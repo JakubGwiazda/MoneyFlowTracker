@@ -24,8 +24,7 @@ MoneyFlowTracker is an Angular + Astro-based web tool that enables users to quic
   - Astro 5  
   - Angular 20  
   - TypeScript 5  
-  - Tailwind CSS 4  
-  - Angular Material / Shadcn/UI  
+  - Angular Material 
 - **Backend & Database**  
   - Supabase (Auth & Postgres)  
 - **AI Integration**  

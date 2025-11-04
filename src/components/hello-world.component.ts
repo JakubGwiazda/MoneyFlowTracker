@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
       <p class="text-lg text-gray-600">To jest prosty komponent Angular w Astro</p>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HelloWorldComponent {
 }

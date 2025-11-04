@@ -2,7 +2,6 @@
 import { defineConfig } from "astro/config";
 
 import sitemap from "@astrojs/sitemap";
-import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
 import angular from '@analogjs/astro-angular';
 
@@ -15,7 +14,6 @@ export default defineConfig({
   ],
   server: { port: 3000 },
   vite: {
-    plugins: [tailwindcss()],
     ssr: {
       noExternal: ['@angular/**', '@rx-angular/**'],
     },

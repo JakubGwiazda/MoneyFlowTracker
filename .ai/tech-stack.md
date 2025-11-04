@@ -3,7 +3,6 @@ Frontend:
 - Astro 5
 - Angular 20
 - TypeScript 5
-- Tailwind 4
 - Angular Material
 
 Backend i bazadanych:
