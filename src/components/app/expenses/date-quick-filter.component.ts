@@ -12,7 +12,7 @@ import type { DatePreset, DatePresetOption } from '../../../lib/models/expenses'
     <mat-button-toggle-group
       [value]="selectedPreset()"
       [disabled]="disabled()"
-      (valueChange)="onPresetChange($event as DatePreset)"
+      (valueChange)="onPresetChange($event)"
       appearance="legacy"
       class="flex flex-wrap gap-2"
     >
@@ -31,8 +31,14 @@ export class DateQuickFilterComponent {
 
   readonly presetChange = output<DatePreset>();
 
-  onPresetChange(preset: DatePreset): void {
-    this.presetChange.emit(preset);
+  onPresetChange(event: unknown): void {
+    const preset = typeof event === 'string' ? event : (event as { value?: string | null })?.value;
+
+    if (!preset) {
+      return;
+    }
+
+    this.presetChange.emit(preset as DatePreset);
   }
 }
 
