@@ -17,8 +17,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import type { ExpensesListViewModel, SortState } from '../../../lib/models/expenses';
-import { ClassificationBadgeComponent } from './classification-badge.component.ts';
-import { ExpenseRowActionsComponent } from './expense-row-actions.component.ts';
+import { ClassificationBadgeComponent } from './classification-badge.component';
+import { ExpenseRowActionsComponent } from './expense-row-actions.component';
 
 @Component({
   selector: 'app-expenses-table',
@@ -104,7 +104,7 @@ import { ExpenseRowActionsComponent } from './expense-row-actions.component.ts';
         <tr mat-header-row *matHeaderRowDef="columns"></tr>
         <tr mat-row *matRowDef="let row; columns: columns"></tr>
         <tr matNoDataRow>
-          <td colspan="{{ columns.length }}" class="p-6 text-center text-sm text-gray-500">
+          <td [attr.colspan]="columns.length" class="p-6 text-center text-sm text-gray-500">
             Brak wydatków do wyświetlenia.
           </td>
         </tr>

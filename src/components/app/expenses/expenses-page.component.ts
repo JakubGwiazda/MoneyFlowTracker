@@ -6,12 +6,12 @@ import { firstValueFrom } from 'rxjs';
 
 import { ExpensesFacadeService } from './expenses-facade.service';
 import { ExpensesToolbarComponent } from './expenses-toolbar.component';
-import { ExpensesTableComponent } from './expenses-table.component.ts';
-import { PaginationControlsComponent } from './pagination-controls.component.ts';
+import { ExpensesTableComponent } from './expenses-table.component';
+import { PaginationControlsComponent } from './pagination-controls.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
-import { AddExpenseDialogComponent, type AddExpenseDialogResult } from './dialogs/add-expense-dialog.component.ts';
-import { EditExpenseCategoryDialogComponent } from './dialogs/edit-expense-category-dialog.component.ts';
-import { ConfirmDialogComponent, type ConfirmDialogData } from './dialogs/confirm-dialog.component.ts';
+import { AddExpenseDialogComponent, type AddExpenseDialogResult } from './dialogs/add-expense-dialog.component';
+import { EditExpenseCategoryDialogComponent } from './dialogs/edit-expense-category-dialog.component';
+import { ConfirmDialogComponent, type ConfirmDialogData } from './dialogs/confirm-dialog.component';
 
 @Component({
   selector: 'app-expenses-page',

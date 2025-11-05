@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../db/database.types';
 import type { ExpenseDto } from '../../types';
 import { updateExpenseClassification } from './expenses.service';
+import { environment } from '../../environments/environment';
 
 /**
  * Service for AI-powered expense classification using OpenRouter.ai
@@ -98,7 +99,7 @@ async function performAIClassification(
   categories: Array<{ id: string; name: string }>
 ): Promise<ClassificationResult> {
   
-  const apiKey = import.meta.env['OPENROUTER_API_KEY'];
+  const apiKey = environment.openRouterApiKey;
   
   if (!apiKey) {
     throw new Error('OpenRouter API key not configured');

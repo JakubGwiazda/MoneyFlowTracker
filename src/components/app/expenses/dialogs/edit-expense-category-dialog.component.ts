@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { CategoryAutocompleteComponent } from '../category-autocomplete.component.ts';
+import { CategoryAutocompleteComponent } from '../category-autocomplete.component';
 import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../lib/models/expenses';
 
 type DialogData = {

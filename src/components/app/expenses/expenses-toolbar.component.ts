@@ -24,9 +24,9 @@ import type {
   StatusFilterOption,
 } from '../../../lib/models/expenses';
 import type { ClassificationStatus } from '../../../types';
-import { DateQuickFilterComponent } from './date-quick-filter.component.ts';
-import { ClassificationStatusChipsComponent } from './classification-status-chips.component.ts';
-import { CategoryAutocompleteComponent } from './category-autocomplete.component.ts';
+import { DateQuickFilterComponent } from './date-quick-filter.component';
+import { ClassificationStatusChipsComponent } from './classification-status-chips.component';
+import { CategoryAutocompleteComponent } from './category-autocomplete.component';
 
 const DEFAULT_PRESET: DatePreset = 'month';
 
@@ -83,7 +83,7 @@ const DEFAULT_PRESET: DatePreset = 'month';
           <h3 class="text-sm font-medium text-gray-700">Status klasyfikacji</h3>
           <app-classification-status-chips
             [options]="statusOptions"
-            [selectedStatus]="form.controls.status.value"
+            [selectedStatus]="form.controls.status.value ?? undefined"
             [disabled]="loading()"
             (statusChange)="onStatusChange($event)"
           />

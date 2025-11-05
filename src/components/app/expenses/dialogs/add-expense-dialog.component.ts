@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import type { CategoryOptionViewModel } from '../../../../lib/models/expenses';
 import type { CreateExpenseCommand } from '../../../../types';
-import { CategoryAutocompleteComponent } from '../category-autocomplete.component.ts';
+import { CategoryAutocompleteComponent } from '../category-autocomplete.component';
 
 export type AddExpenseDialogMode = 'single' | 'add-another';
 

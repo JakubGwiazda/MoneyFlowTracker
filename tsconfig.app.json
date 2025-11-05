@@ -2,7 +2,6 @@
   "extends": "./tsconfig.json",
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -14,12 +13,11 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node16",
-    "module": "es2020",
+    "moduleResolution": "bundler",
     "importHelpers": true,
-    "noEmit": false,
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022", "dom"],
     "skipLibCheck": true
   },
   "angularCompilerOptions": {
