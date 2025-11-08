@@ -1,14 +1,15 @@
-<section>
-    <header class="space-y-1">
-      <h1 class="text-2xl font-semibold text-gray-900">Lista wydatków</h1>
-      <p class="text-sm text-gray-600">
-        Zarządzaj wydatkami, filtruj według daty i statusu klasyfikacji, a także dodawaj nowe pozycje.
-      </p>
-    </header>
+<div class="expenses-page-container">
+  <header class="page-header space-y-1">
+    <h1 class="text-2xl font-semibold text-gray-900">Lista wydatków</h1>
+    <p class="text-sm text-gray-600">
+      Zarządzaj wydatkami, filtruj według daty i statusu klasyfikacji, a także dodawaj nowe pozycje.
+    </p>
+  </header>
 
-    <mat-tab-group class="tab_group">
-      <mat-tab label="Lista wydatków">        
-        <mat-card class="mt-4 filters-card">
+  <mat-tab-group class="tab_group">
+    <mat-tab label="Lista wydatków">        
+      <div class="tab-content">
+        <mat-card class="filters-card">
           <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
             <mat-expansion-panel-header>
               <mat-panel-title>
@@ -30,36 +31,41 @@
           </mat-expansion-panel>
         </mat-card>
 
-        <app-expenses-table
-          [data]="vm().expenses"
-          [loading]="vm().loading"
-          [sortState]="vm().sort"
-          (sortChange)="onSortChange($event)"
-          (editExpense)="onEditExpense($event)"
-          (editCategory)="onEditCategory($event)"
-          (reclassifyExpense)="onReclassifyExpense($event)"
-          (deleteExpense)="onDeleteExpense($event)"
-        />
-        
-        <app-pagination-controls
-          [state]="vm().pagination"
-          [disabled]="vm().loading"
-          (pageChange)="onPageChange($event)"
-          (perPageChange)="onPerPageChange($event)"
-        />
-      </mat-tab>
-
-      <mat-tab label="Kategorie">
-        <div class="py-4">
-          <app-expenses-filters
-            [value]="vm().filters"
+        <div class="table-container">
+          <app-expenses-table
+            [data]="vm().expenses"
             [loading]="vm().loading"
-            [categories]="categoryOptions()"
-            (filterChange)="onFilterChange($event)"
-            (addExpenseClick)="onAddExpense()"
-            (categorySearch)="onCategorySearch($event)"
+            [sortState]="vm().sort"
+            (sortChange)="onSortChange($event)"
+            (editExpense)="onEditExpense($event)"
+            (editCategory)="onEditCategory($event)"
+            (reclassifyExpense)="onReclassifyExpense($event)"
+            (deleteExpense)="onDeleteExpense($event)"
           />
         </div>
-      </mat-tab>
-    </mat-tab-group>
-  </section>
+        
+        <div class="pagination-container">
+          <app-pagination-controls
+            [state]="vm().pagination"
+            [disabled]="vm().loading"
+            (pageChange)="onPageChange($event)"
+            (perPageChange)="onPerPageChange($event)"
+          />
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Kategorie">
+      <div class="tab-content py-4">
+        <app-expenses-filters
+          [value]="vm().filters"
+          [loading]="vm().loading"
+          [categories]="categoryOptions()"
+          (filterChange)="onFilterChange($event)"
+          (addExpenseClick)="onAddExpense()"
+          (categorySearch)="onCategorySearch($event)"
+        />
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

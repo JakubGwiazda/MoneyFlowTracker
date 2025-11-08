@@ -11,8 +11,8 @@ import { AuthService } from '../../lib/services/auth.service';
   standalone: true,
   imports: [RouterOutlet, MatButtonModule, MatIconModule, MatMenuModule],
   template: `
-    <div class="">
-      <header class="d-flex align-items-center px-6 py-4">
+    <div class="main-layout">
+      <header class="main-header d-flex align-items-center px-6 py-4">
         <div class="flex-fill"></div>
         <div class="text-lg font-semibold text-center">
           MoneyFlowTracker
@@ -32,12 +32,31 @@ import { AuthService } from '../../lib/services/auth.service';
           </mat-menu>
         </div>
       </header>
-      <main>
+      <main class="main-content">
         <router-outlet />
       </main>
     </div>
   `,
   styles: [`
+    .main-layout {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .main-header {
+      flex-shrink: 0;
+      background-color: white;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .main-content {
+      flex: 1;
+      overflow: hidden;
+      padding: 16px;
+    }
+    
     .user-menu-button {
       color: #4b5563;
     }

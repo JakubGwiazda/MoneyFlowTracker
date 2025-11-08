@@ -37,81 +37,83 @@ import { RowActionsComponent } from '../../common/row-actions.component';
     DecimalPipe,
   ],
   template: `
-    <div class="relative">
-      <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
-          <td mat-cell *matCellDef="let element">
-            <div class="flex flex-col">
-              <span class="font-medium text-sm text-gray-900">{{ element.name }}</span>
-              <span class="text-xs text-gray-500">Dodano {{ element.created_at | date:'mediumDate' }}</span>
-            </div>
-          </td>
-        </ng-container>
+    <div class="table-wrapper">
+      <div class="table-scroll-container">
+        <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="flex flex-col">
+                <span class="font-medium text-sm text-gray-900">{{ element.name }}</span>
+                <span class="text-xs text-gray-500">Dodano {{ element.created_at | date:'mediumDate' }}</span>
+              </div>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="amount">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">Kwota</th>
-          <td mat-cell *matCellDef="let element" class="text-right font-semibold text-sm">
-            {{ element.amount | number:'1.2-2' }}
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">Kwota</th>
+            <td mat-cell *matCellDef="let element" class="text-right font-semibold text-sm">
+              {{ element.amount | number:'1.2-2' }}
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="expense_date">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header="expense_date">Data</th>
-          <td mat-cell *matCellDef="let element">{{ element.expense_date | date:'mediumDate' }}</td>
-        </ng-container>
+          <ng-container matColumnDef="expense_date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="expense_date">Data</th>
+            <td mat-cell *matCellDef="let element">{{ element.expense_date | date:'mediumDate' }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef>Kategoria</th>
-          <td mat-cell *matCellDef="let element">
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-800">{{ element.categoryName }}</span>
-              @if (element.predictedCategoryName && element.classification_status === 'predicted') {
-                <span class="text-xs text-blue-500">Sugestia: {{ element.predictedCategoryName }}</span>
-              }
-            </div>
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Kategoria</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="flex flex-col">
+                <span class="text-sm text-gray-800">{{ element.categoryName }}</span>
+                @if (element.predictedCategoryName && element.classification_status === 'predicted') {
+                  <span class="text-xs text-blue-500">Sugestia: {{ element.predictedCategoryName }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="classification">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let element">
-            <app-badge
-              [label]="element.statusLabel"
-              [tone]="element.statusTone"
-              [pending]="element.classification_status === 'pending'"
-              [tooltip]="element.classification_status === 'predicted' ? 'Pewność: ' + element.confidenceDisplay : null"
-            />
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="classification">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let element">
+              <app-badge
+                [label]="element.statusLabel"
+                [tone]="element.statusTone"
+                [pending]="element.classification_status === 'pending'"
+                [tooltip]="element.classification_status === 'predicted' ? 'Pewność: ' + element.confidenceDisplay : null"
+              />
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="confidence">
-          <th mat-header-cell *matHeaderCellDef>Pewność</th>
-          <td mat-cell *matCellDef="let element">{{ element.confidenceDisplay }}</td>
-        </ng-container>
+          <ng-container matColumnDef="confidence">
+            <th mat-header-cell *matHeaderCellDef>Pewność</th>
+            <td mat-cell *matCellDef="let element">{{ element.confidenceDisplay }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef class="w-12 text-right">Akcje</th>
-          <td mat-cell *matCellDef="let element" class="text-right">
-            <app-row-actions
-              [expense]="element"
-              [disabled]="loading()"
-              (actionSelect)="onAction(element.id, $event)"
-            />
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="w-12 text-right">Akcje</th>
+            <td mat-cell *matCellDef="let element" class="text-right">
+              <app-row-actions
+                [expense]="element"
+                [disabled]="loading()"
+                (actionSelect)="onAction(element.id, $event)"
+              />
+            </td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="columns"></tr>
-        <tr mat-row *matRowDef="let row; columns: columns"></tr>
-        <tr matNoDataRow>
-          <td [attr.colspan]="columns.length" class="p-6 text-center text-sm text-gray-500">
-            Brak wydatków do wyświetlenia.
-          </td>
-        </tr>
-      </table>
+          <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+          <tr matNoDataRow>
+            <td [attr.colspan]="columns.length" class="p-6 text-center text-sm text-gray-500">
+              Brak wydatków do wyświetlenia.
+            </td>
+          </tr>
+        </table>
+      </div>
 
       @if (loading()) {
-        <div class="absolute inset-0 flex items-center justify-center bg-white/70">
+        <div class="loading-overlay">
           <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
         </div>
       }
@@ -119,11 +121,55 @@ import { RowActionsComponent } from '../../common/row-actions.component';
   `,
   styles: [
     `
+      :host {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      .table-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+      }
+      
+      .table-scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+      }
+      
       :host table {
         width: 100%;
       }
+      
       :host th.mat-sort-header-sorted {
         color: #2563eb;
+      }
+      
+      :host .mat-mdc-header-row {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #fafafa;
+      }
+      
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 20;
       }
     `,
   ],

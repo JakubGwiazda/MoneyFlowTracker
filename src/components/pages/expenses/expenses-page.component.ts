@@ -32,12 +32,55 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
   templateUrl: './expenses-page.component.html',
   styles: [
     `
+      :host {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      .expenses-page-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      .page-header {
+        flex-shrink: 0;
+        margin-bottom: 1rem;
+      }
+      
       .tab_group {
         width: 90%;
         margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+      }
+      
+      .tab_group ::ng-deep .mat-mdc-tab-body-wrapper {
+        flex: 1;
+        overflow: hidden;
+      }
+      
+      .tab_group ::ng-deep .mat-mdc-tab-body-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      .tab-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
       }
       
       .filters-card {
+        flex-shrink: 0;
         margin-bottom: 1rem;
       }
       
@@ -53,6 +96,19 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
       
       .filters-expansion-panel .mat-expansion-panel-body {
         padding: 16px;
+      }
+      
+      .table-container {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      
+      .pagination-container {
+        flex-shrink: 0;
+        margin-top: 1rem;
       }
     `,
   ],
