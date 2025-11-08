@@ -8,32 +8,45 @@
 
     <mat-tab-group class="tab_group">
       <mat-tab label="Lista wydatków">        
-        <div>
+        <mat-card class="mt-4 filters-card">
+          <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Filtry wyszukiwania
+              </mat-panel-title>
+              <mat-panel-description>
+                Kliknij aby rozwinąć/zwinąć filtry
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            
             <app-expenses-filters
-            [value]="vm().filters"
-            [loading]="vm().loading"
-            [categories]="categoryOptions()"
-            (filterChange)="onFilterChange($event)"
-            (addExpenseClick)="onAddExpense()"
-            (categorySearch)="onCategorySearch($event)"
-          />
-        </div>
-            <app-expenses-table
-              [data]="vm().expenses"
+              [value]="vm().filters"
               [loading]="vm().loading"
-              [sortState]="vm().sort"
-              (sortChange)="onSortChange($event)"
-              (editExpense)="onEditExpense($event)"
-              (editCategory)="onEditCategory($event)"
-              (reclassifyExpense)="onReclassifyExpense($event)"
-              (deleteExpense)="onDeleteExpense($event)"
+              [categories]="categoryOptions()"
+              (filterChange)="onFilterChange($event)"
+              (addExpenseClick)="onAddExpense()"
+              (categorySearch)="onCategorySearch($event)"
             />
+          </mat-expansion-panel>
+        </mat-card>
+
+        <app-expenses-table
+          [data]="vm().expenses"
+          [loading]="vm().loading"
+          [sortState]="vm().sort"
+          (sortChange)="onSortChange($event)"
+          (editExpense)="onEditExpense($event)"
+          (editCategory)="onEditCategory($event)"
+          (reclassifyExpense)="onReclassifyExpense($event)"
+          (deleteExpense)="onDeleteExpense($event)"
+        />
+        
         <app-pagination-controls
-        [state]="vm().pagination"
-        [disabled]="vm().loading"
-        (pageChange)="onPageChange($event)"
-        (perPageChange)="onPerPageChange($event)"
-      />
+          [state]="vm().pagination"
+          [disabled]="vm().loading"
+          (pageChange)="onPageChange($event)"
+          (perPageChange)="onPerPageChange($event)"
+        />
       </mat-tab>
 
       <mat-tab label="Kategorie">

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
 import { ExpensesFacadeService } from '../../app/expenses/services/expenses-facade.service';
 import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
@@ -21,6 +23,8 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
     MatDialogModule,
     MatSnackBarModule,
     MatTabsModule,
+    MatCardModule,
+    MatExpansionModule,
     ExpensesFilterComponent,
     ExpensesTableComponent,
     PaginationControlsComponent,
@@ -31,6 +35,24 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
       .tab_group {
         width: 90%;
         margin: 0 auto;
+      }
+      
+      .filters-card {
+        margin-bottom: 1rem;
+      }
+      
+      .filters-expansion-panel {
+        box-shadow: none;
+        border: 1px solid #e0e0e0;
+      }
+      
+      .filters-expansion-panel .mat-expansion-panel-header {
+        padding: 0 16px;
+        height: 56px;
+      }
+      
+      .filters-expansion-panel .mat-expansion-panel-body {
+        padding: 16px;
       }
     `,
   ],
