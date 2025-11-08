@@ -19,7 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
 import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
 
 @Component({
-  selector: 'app-category-autocomplete',
+  selector: 'app-select-autocomplete',
   standalone: true,
   imports: [
     CommonModule,
@@ -32,8 +32,7 @@ import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Kategoria</mat-label>
+    <mat-form-field appearance="outline" class="w-25">
       <input
         type="text"
         matInput
@@ -81,7 +80,7 @@ import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
     </mat-form-field>
   `,
 })
-export class CategoryAutocompleteComponent {
+export class SelectAutocompleteComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 

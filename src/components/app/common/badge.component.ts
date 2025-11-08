@@ -4,7 +4,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-classification-badge',
+  selector: 'app-badge',
   standalone: true,
   imports: [NgClass, MatChipsModule, MatTooltipModule],
   template: `
@@ -46,7 +46,7 @@ import { NgClass } from '@angular/common';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClassificationBadgeComponent {
+export class BadgeComponent {
   readonly label = input<string | null>(null);
   readonly tone = input<'info' | 'success' | 'warning' | 'error' | null>('info');
   readonly pending = input<boolean>(false);

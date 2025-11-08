@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import type { CategoryOptionViewModel } from '../../../../lib/models/expenses';
 import type { CreateExpenseCommand } from '../../../../types';
-import { CategoryAutocompleteComponent } from '../category-autocomplete.component';
+import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
 
 export type AddExpenseDialogMode = 'single' | 'add-another';
 
@@ -45,7 +45,7 @@ type DialogData = {
     MatNativeDateModule,
     MatButtonModule,
     MatCheckboxModule,
-    CategoryAutocompleteComponent,
+    SelectAutocompleteComponent,
   ],
   template: `
     <h2 mat-dialog-title>{{ expense ? 'Edytuj wydatek' : 'Dodaj wydatek' }}</h2>
@@ -79,7 +79,7 @@ type DialogData = {
         </mat-error>
       </mat-form-field>
 
-      <app-category-autocomplete
+      <app-select-autocomplete
         [options]="categories()"
         [value]="form.controls.category_id.value"
         (valueChange)="form.controls.category_id.setValue($event)"

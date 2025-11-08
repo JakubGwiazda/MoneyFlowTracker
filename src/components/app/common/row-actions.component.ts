@@ -7,7 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import type { ExpenseActionType, ExpensesListViewModel } from '../../../lib/models/expenses';
 
 @Component({
-  selector: 'app-expense-row-actions',
+  selector: 'app-row-actions',
   standalone: true,
   imports: [MatMenuModule, MatIconModule, MatButtonModule, MatDividerModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,7 +18,7 @@ import type { ExpenseActionType, ExpensesListViewModel } from '../../../lib/mode
       [disabled]="disabled()"
       aria-label="Opcje wydatku"
     >
-      <mat-icon>more_vert</mat-icon>
+      <mat-icon fontIcon="more_vert"></mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">
@@ -42,7 +42,7 @@ import type { ExpenseActionType, ExpensesListViewModel } from '../../../lib/mode
     </mat-menu>
   `,
 })
-export class ExpenseRowActionsComponent {
+export class RowActionsComponent {
   readonly expense = input.required<ExpensesListViewModel>();
   readonly disabled = input<boolean>(false);
 

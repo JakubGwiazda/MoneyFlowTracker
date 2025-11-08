@@ -16,9 +16,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import type { ExpensesListViewModel, SortState } from '../../../lib/models/expenses';
-import { ClassificationBadgeComponent } from './classification-badge.component';
-import { ExpenseRowActionsComponent } from './expense-row-actions.component';
+import type { ExpensesListViewModel, SortState } from '../../../../lib/models/expenses';
+import { BadgeComponent } from '../../common/badge.component';
+import { RowActionsComponent } from '../../common/row-actions.component';
 
 @Component({
   selector: 'app-expenses-table',
@@ -31,8 +31,8 @@ import { ExpenseRowActionsComponent } from './expense-row-actions.component';
     MatButtonModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    ClassificationBadgeComponent,
-    ExpenseRowActionsComponent,
+    BadgeComponent,
+    RowActionsComponent,
     DatePipe,
     DecimalPipe,
   ],
@@ -76,7 +76,7 @@ import { ExpenseRowActionsComponent } from './expense-row-actions.component';
         <ng-container matColumnDef="classification">
           <th mat-header-cell *matHeaderCellDef>Status</th>
           <td mat-cell *matCellDef="let element">
-            <app-classification-badge
+            <app-badge
               [label]="element.statusLabel"
               [tone]="element.statusTone"
               [pending]="element.classification_status === 'pending'"
@@ -93,7 +93,7 @@ import { ExpenseRowActionsComponent } from './expense-row-actions.component';
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="w-12 text-right">Akcje</th>
           <td mat-cell *matCellDef="let element" class="text-right">
-            <app-expense-row-actions
+            <app-row-actions
               [expense]="element"
               [disabled]="loading()"
               (actionSelect)="onAction(element.id, $event)"

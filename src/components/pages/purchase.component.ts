@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ExpensesPageComponent } from '../app/expenses/expenses-page.component';
+import { ExpensesPageComponent } from './expenses/expenses-page.component';
 
 @Component({
   selector: 'app-purchase',

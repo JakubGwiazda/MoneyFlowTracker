@@ -2,16 +2,16 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
 import { firstValueFrom } from 'rxjs';
-
-import { ExpensesFacadeService } from './expenses-facade.service';
-import { ExpensesToolbarComponent } from './expenses-toolbar.component';
-import { ExpensesTableComponent } from './expenses-table.component';
-import { PaginationControlsComponent } from './pagination-controls.component';
+import { ExpensesFacadeService } from '../../app/expenses/services/expenses-facade.service';
+import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
+import { ExpensesTableComponent } from '../../app/expenses/ui/expenses-table.component';
+import { PaginationControlsComponent } from '../../app/common/pagination-controls.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
-import { AddExpenseDialogComponent, type AddExpenseDialogResult } from './dialogs/add-expense-dialog.component';
-import { EditExpenseCategoryDialogComponent } from './dialogs/edit-expense-category-dialog.component';
-import { ConfirmDialogComponent, type ConfirmDialogData } from './dialogs/confirm-dialog.component';
+import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense-dialog.component';
+import { EditExpenseCategoryDialogComponent } from '../../app/expenses/dialogs/edit-expense-category-dialog.component';
+import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expenses/dialogs/confirm-dialog.component';
 
 @Component({
   selector: 'app-expenses-page',
@@ -20,51 +20,12 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from './dialogs/confir
     CommonModule,
     MatDialogModule,
     MatSnackBarModule,
-    ExpensesToolbarComponent,
+    MatTabsModule,
+    ExpensesFilterComponent,
     ExpensesTableComponent,
     PaginationControlsComponent,
   ],
-  template: `
-    <section class="flex flex-col gap-6">
-      <header class="space-y-1">
-        <h1 class="text-2xl font-semibold text-gray-900">Lista wydatków</h1>
-        <p class="text-sm text-gray-600">
-          Zarządzaj wydatkami, filtruj według daty i statusu klasyfikacji, a także dodawaj nowe pozycje.
-        </p>
-      </header>
-
-      <app-expenses-toolbar
-        [value]="vm().filters"
-        [loading]="vm().loading"
-        [categories]="categoryOptions()"
-        (filterChange)="onFilterChange($event)"
-        (addExpenseClick)="onAddExpense()"
-        (categorySearch)="onCategorySearch($event)"
-      />
-
-      <section class="rounded-lg border border-gray-200 bg-white">
-        <app-expenses-table
-          [data]="vm().expenses"
-          [loading]="vm().loading"
-          [sortState]="vm().sort"
-          (sortChange)="onSortChange($event)"
-          (editExpense)="onEditExpense($event)"
-          (editCategory)="onEditCategory($event)"
-          (reclassifyExpense)="onReclassifyExpense($event)"
-          (deleteExpense)="onDeleteExpense($event)"
-        />
-      </section>
-
-      <section class="rounded-lg border border-gray-200 bg-white p-4">
-        <app-pagination-controls
-          [state]="vm().pagination"
-          [disabled]="vm().loading"
-          (pageChange)="onPageChange($event)"
-          (perPageChange)="onPerPageChange($event)"
-        />
-      </section>
-    </section>
-  `,
+  templateUrl: './expenses-page.component.html',
 })
 export class ExpensesPageComponent {
   private readonly facade = inject(ExpensesFacadeService);

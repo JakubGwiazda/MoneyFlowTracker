@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { CategoryAutocompleteComponent } from '../category-autocomplete.component';
+import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
 import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../lib/models/expenses';
 
 type DialogData = {
@@ -15,7 +15,7 @@ type DialogData = {
 @Component({
   selector: 'app-edit-expense-category-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, CategoryAutocompleteComponent],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, SelectAutocompleteComponent],
   template: `
     <h2 mat-dialog-title>Zmień kategorię</h2>
     <div mat-dialog-content class="flex flex-col gap-4">
@@ -24,7 +24,7 @@ type DialogData = {
         <div class="text-gray-600">{{ data.expense.amount | number:'1.2-2' }} · {{ data.expense.expense_date | date:'mediumDate' }}</div>
       </div>
 
-      <app-category-autocomplete
+      <app-select-autocomplete
         [options]="categories()"
         [value]="selectedCategoryId()"
         (valueChange)="onSelect($event)"

@@ -21,17 +21,15 @@ import type {
   DatePreset,
   DatePresetOption,
   ExpensesFilterState,
-  StatusFilterOption,
-} from '../../../lib/models/expenses';
-import type { ClassificationStatus } from '../../../types';
-import { DateQuickFilterComponent } from './date-quick-filter.component';
-import { ClassificationStatusChipsComponent } from './classification-status-chips.component';
-import { CategoryAutocompleteComponent } from './category-autocomplete.component';
+} from '../../../../lib/models/expenses';
+import type { ClassificationStatus } from '../../../../types';
+import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../../common/chips.component';
+import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
 
-const DEFAULT_PRESET: DatePreset = 'month';
+const DEFAULT_PRESET: DatePreset = 'today';
 
 @Component({
-  selector: 'app-expenses-toolbar',
+  selector: 'app-expenses-filters',
   standalone: true,
   imports: [
     CommonModule,
@@ -42,56 +40,46 @@ const DEFAULT_PRESET: DatePreset = 'month';
     MatNativeDateModule,
     MatIconModule,
     MatButtonModule,
-    DateQuickFilterComponent,
-    ClassificationStatusChipsComponent,
-    CategoryAutocompleteComponent,
+    ChipsComponent,
+    SelectAutocompleteComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="flex flex-col gap-4" [formGroup]="form">
-      <div class="flex flex-wrap items-start gap-4">
-        <app-date-quick-filter
-          [presets]="datePresets"
-          [selectedPreset]="selectedPreset()"
-          [disabled]="loading()"
-          (presetChange)="onPresetChange($event)"
-        />
-
-        <mat-form-field appearance="outline" class="min-w-[260px] flex-1">
-          <mat-label>Zakres dat</mat-label>
-          <mat-date-range-input [rangePicker]="picker" [formGroup]="form" (dateChange)="onDateRangeChange()">
-            <input matStartDate formControlName="date_from" placeholder="Od" />
-            <input matEndDate formControlName="date_to" placeholder="Do" />
-          </mat-date-range-input>
-          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
-
-        <button
-          mat-button
-          type="button"
-          class="self-center"
-          (click)="onResetFilters()"
-          [disabled]="loading()"
-        >
-          Resetuj filtry
-        </button>
-      </div>
-
-      <div class="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)_auto]">
-        <section class="flex flex-col gap-2">
-          <h3 class="text-sm font-medium text-gray-700">Status klasyfikacji</h3>
-          <app-classification-status-chips
-            [options]="statusOptions"
-            [selectedStatus]="form.controls.status.value ?? undefined"
+    <form class="mt-4" [formGroup]="form">
+      <section>
+      <p class="label_text">Data</p>
+        <app-chips
+            [options]="dateChipOptions"
+            [selectedValue]="selectedPreset()"
             [disabled]="loading()"
-            (statusChange)="onStatusChange($event)"
+            (selectionChange)="onDateSelectionChange($event)"
+          />
+
+        @if (selectedPreset() === 'custom') {
+          <mat-form-field appearance="outline" class="mt-4 w-25">
+            <mat-label>Zakres dat</mat-label>
+            <mat-date-range-input [rangePicker]="picker" [formGroup]="form.controls.date" >
+              <input matStartDate formControlName="date_from" placeholder="Od" (dateChange)="onDateRangeChange()"/>
+              <input matEndDate formControlName="date_to" placeholder="Do" (dateChange)="onDateRangeChange()"/>
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
+        }
+
+      </section>
+        <section class="mt-2">
+          <p class="label_text">Status klasyfikacji</p>
+          <app-chips
+            [options]="statusChipOptions"
+            [selectedValue]="form.controls.status.value"
+            [disabled]="loading()"
+            (selectionChange)="onStatusSelectionChange($event)"
           />
         </section>
 
-        <section class="flex flex-col gap-2">
-          <h3 class="text-sm font-medium text-gray-700">Kategoria</h3>
-          <app-category-autocomplete
+        <section class="mt-2">
+          <p class="label_text">Kategoria</p>
+          <app-select-autocomplete
             [options]="categories()"
             [value]="form.controls.category_id.value"
             [disabled]="loading()"
@@ -99,8 +87,7 @@ const DEFAULT_PRESET: DatePreset = 'month';
             (queryChange)="categorySearch.emit($event)"
           />
         </section>
-
-        <section class="flex items-end justify-end">
+        <section>
           <button
             mat-raised-button
             color="primary"
@@ -112,12 +99,29 @@ const DEFAULT_PRESET: DatePreset = 'month';
             <mat-icon>add</mat-icon>
             Dodaj wydatek
           </button>
+          <button
+          mat-button
+          type="button"
+          class="self-center"
+          (click)="onResetFilters()"
+          [disabled]="loading()"
+        >
+          Resetuj filtry
+        </button>
         </section>
-      </div>
     </form>
   `,
+  styles: [
+    `
+      .label_text {
+        font-size: 20px;
+        font-weight: 500;
+        margin: 0;
+      }
+    `
+  ]
 })
-export class ExpensesToolbarComponent {
+export class ExpensesFilterComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly value = input.required<ExpensesFilterState>();
@@ -129,23 +133,30 @@ export class ExpensesToolbarComponent {
   readonly categorySearch = output<string>();
 
   readonly form = this.fb.group({
-    date_from: this.fb.control<Date | null>(null),
-    date_to: this.fb.control<Date | null>(null),
-    status: this.fb.control<ClassificationStatus | undefined>(undefined),
+    date: this.fb.group({
+      date_from: this.fb.control<Date | null>(null),
+      date_to: this.fb.control<Date | null>(null),
+    }),
+    status: this.fb.control<ClassificationStatus | undefined | null>(undefined),
     category_id: this.fb.control<string | null>(null),
   });
 
-  readonly selectedPreset = signal<DatePreset>('custom');
+  readonly selectedPreset = signal<DatePreset>('today');
 
-  readonly statusOptions: StatusFilterOption[] = [
-    { value: undefined, label: 'Wszystkie' },
-    { value: 'pending', label: 'Oczekujące' },
-    { value: 'predicted', label: 'Automatyczne' },
-    { value: 'corrected', label: 'Skorygowane' },
-    { value: 'failed', label: 'Nieudane' },
+  readonly dateChipOptions: ChipOption<DatePreset>[] = this.buildPresets().map((preset) => ({
+    id: preset.id,
+    value: preset.id,
+    label: preset.label,
+    range: preset.range,
+  }));
+
+  readonly statusChipOptions: ChipOption<ClassificationStatus | undefined>[] = [
+    { id: 'all', value: undefined, label: 'Wszystkie' },
+    { id: 'pending', value: 'pending', label: 'Oczekujące' },
+    { id: 'predicted', value: 'predicted', label: 'Automatyczne' },
+    { id: 'corrected', value: 'corrected', label: 'Skorygowane' },
+    { id: 'failed', value: 'failed', label: 'Nieudane' },
   ];
-
-  readonly datePresets: DatePresetOption[] = this.buildPresets();
 
   private syncingInput = false;
 
@@ -153,11 +164,13 @@ export class ExpensesToolbarComponent {
     effect(() => {
       const incoming = this.value();
       this.syncingInput = true;
-      this.selectedPreset.set(incoming.preset ?? 'custom');
+      this.selectedPreset.set(incoming.preset ?? 'today');
       this.form.patchValue(
         {
-          date_from: this.parseDate(incoming.date_from),
-          date_to: this.parseDate(incoming.date_to),
+          date: {
+            date_from: this.parseDate(incoming.date_from),
+            date_to: this.parseDate(incoming.date_to),
+          },
           status: incoming.status,
           category_id: incoming.category_id ?? null,
         },
@@ -173,15 +186,32 @@ export class ExpensesToolbarComponent {
     this.selectedPreset.set(preset);
 
     if (preset === 'custom') {
-      this.emitFilterPatch({ preset, page: 1 });
+      this.form.patchValue(
+        {
+          date: {
+            date_from: null,
+            date_to: null,
+          },
+        },
+        { emitEvent: false },
+      );
+
+      this.emitFilterPatch({
+        preset,
+        date_from: undefined,
+        date_to: undefined,
+        page: 1
+      });
       return;
     }
 
     const range = this.resolvePresetRange(preset);
     this.form.patchValue(
       {
-        date_from: this.parseDate(range.from),
-        date_to: this.parseDate(range.to),
+        date: {
+          date_from: this.parseDate(range.from),
+          date_to: this.parseDate(range.to),
+        },
       },
       { emitEvent: false },
     );
@@ -195,11 +225,11 @@ export class ExpensesToolbarComponent {
   }
 
   onDateRangeChange(): void {
-    if (this.syncingInput) {
+    const { date: { date_from: begin, date_to: end } } = this.form.getRawValue();
+
+    if (!begin || !end) {
       return;
     }
-
-    const { date_from: begin, date_to: end } = this.form.getRawValue();
 
     this.selectedPreset.set('custom');
 
@@ -211,9 +241,18 @@ export class ExpensesToolbarComponent {
     });
   }
 
-  onStatusChange(status: ClassificationStatus | undefined): void {
+  onStatusSelectionChange(event: ChipSelectionChange<ClassificationStatus | undefined | null>): void {
+    const status = event.selected === null ? undefined : event.selected;
     this.form.controls.status.setValue(status, { emitEvent: false });
     this.emitFilterPatch({ status, page: 1 });
+  }
+
+  onDateSelectionChange(event: ChipSelectionChange<DatePreset | undefined | null>): void {
+    const selectedPreset = event.selected === null || event.selected === undefined ? 'today' : event.selected;
+
+    if (selectedPreset) {
+      this.onPresetChange(selectedPreset);
+    }
   }
 
   onCategorySelected(categoryId: string | null): void {
@@ -227,8 +266,10 @@ export class ExpensesToolbarComponent {
     this.selectedPreset.set(DEFAULT_PRESET);
     this.form.patchValue(
       {
-        date_from: this.parseDate(range.from),
-        date_to: this.parseDate(range.to),
+        date: {
+          date_from: this.parseDate(range.from),
+          date_to: this.parseDate(range.to),
+        },
         status: undefined,
         category_id: null,
       },
@@ -293,15 +334,15 @@ export class ExpensesToolbarComponent {
   }
 
   private resolvePresetRange(preset: DatePreset): { from: string; to: string } {
-    const match = this.datePresets.find((option) => option.id === preset)?.range;
+    const match = this.dateChipOptions.find((option) => option.id === preset)?.range;
     if (match) {
       return match;
     }
 
     const current = this.form.getRawValue();
     return {
-      from: current.date_from ? this.toIsoDate(current.date_from) : this.toIsoDate(new Date()),
-      to: current.date_to ? this.toIsoDate(current.date_to) : this.toIsoDate(new Date()),
+      from: current.date.date_from ? this.toIsoDate(current.date.date_from) : this.toIsoDate(new Date()),
+      to: current.date.date_to ? this.toIsoDate(current.date.date_to) : this.toIsoDate(new Date()),
     };
   }
 

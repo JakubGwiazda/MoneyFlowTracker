@@ -2,22 +2,21 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import type { DatePreset, DatePresetOption } from '../../../lib/models/expenses';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-date-quick-filter',
   standalone: true,
-  imports: [MatButtonToggleModule],
+  imports: [MatButtonToggleModule, MatChipsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <mat-button-toggle-group
       [value]="selectedPreset()"
       [disabled]="disabled()"
       (valueChange)="onPresetChange($event)"
-      appearance="legacy"
-      class="flex flex-wrap gap-2"
     >
       @for (option of presets(); track option.id) {
-        <mat-button-toggle [value]="option.id" class="min-w-[84px] px-3">
+        <mat-button-toggle [value]="option.id">
           {{ option.label }}
         </mat-button-toggle>
       }
