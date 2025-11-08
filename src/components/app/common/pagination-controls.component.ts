@@ -14,16 +14,17 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
   imports: [CommonModule, MatButtonModule, MatSelectModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div class="flex items-center gap-2 text-sm text-gray-600">
+    <div class="d-flex flex-column align-items-end">
+      <div>
         <span>Strona {{ state().page }}</span>
-        <span>·</span>
-        <span *ngIf="totalItems() !== null">
-          Łącznie {{ totalItems() }}
-        </span>
+        @if (totalItems() !== null) {
+          <span>
+            z {{ totalItems() }}
+          </span>
+        }
       </div>
-
-      <div class="flex flex-wrap items-center gap-2 md:justify-end">
+      <div class="pagination d-flex justify-content-end flex-column">
+      <mat-form-field>
         <mat-select
           [value]="state().perPage"
           (valueChange)="onPerPageChange($event)"
@@ -31,11 +32,11 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
           aria-label="Elementów na stronę"
         >
           @for (option of perPageOptions; track option) {
-            <mat-option [value]="option">{{ option }} / stronę</mat-option>
+            <mat-option [value]="option">{{ option }}</mat-option>
           }
         </mat-select>
-
-        <div class="flex items-center gap-2">
+        </mat-form-field>
+        <div class="d-flex justify-content-between gap-2">
           <button mat-stroked-button type="button" (click)="onPrev()" [disabled]="disabled() || !state().hasPrev">
             <mat-icon>chevron_left</mat-icon>
             Poprzednia
@@ -48,6 +49,13 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
       </div>
     </div>
   `,
+  styles: [
+    `
+      .pagination {
+        width: 20%;        
+      }
+    `,
+  ],
 })
 export class PaginationControlsComponent {
   readonly state = input.required<PaginationState>();

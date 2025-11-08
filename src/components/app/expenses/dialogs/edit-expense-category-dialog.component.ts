@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete.component';
 import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../lib/models/expenses';
 
 type DialogData = {
@@ -45,7 +45,12 @@ export class EditExpenseCategoryDialogComponent {
   readonly dialogRef = inject(MatDialogRef<EditExpenseCategoryDialogComponent, string | null | undefined>);
   readonly data = inject(MAT_DIALOG_DATA) as DialogData;
 
-  readonly categories = computed(() => this.data.getCategories());
+  readonly categories = computed((): SelectAutocompleteOption[] =>
+    this.data.getCategories().map((category) => ({
+      id: category.id,
+      label: category.label,
+    }))
+  );
   private readonly selectedId = signal<string | null>(this.data.expense.category_id ?? null);
 
   readonly selectedCategoryId = computed(() => this.selectedId());

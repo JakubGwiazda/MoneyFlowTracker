@@ -1,0 +1,65 @@
+<form class="mt-4" [formGroup]="form">
+    <div class="d-flex justify-content-between">
+    <div>
+    <p class="label_text">Data</p>
+      <app-chips
+          [options]="dateChipOptions"
+          [selectedValue]="selectedPreset()"
+          [disabled]="loading()"
+          (selectionChange)="onDateSelectionChange($event)"
+        />
+      @if (selectedPreset() === 'custom') {
+        <mat-form-field appearance="outline" class="mt-4 w-25">
+          <mat-label>Zakres dat</mat-label>
+          <mat-date-range-input [rangePicker]="picker" [formGroup]="form.controls.date" >
+            <input matStartDate formControlName="date_from" placeholder="Od" (dateChange)="onDateRangeChange()"/>
+            <input matEndDate formControlName="date_to" placeholder="Do" (dateChange)="onDateRangeChange()"/>
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      }
+    </div>
+    <div>
+        <p class="label_text">Status klasyfikacji</p>
+        <app-chips
+          [options]="statusChipOptions"
+          [selectedValue]="form.controls.status.value"
+          [disabled]="loading()"
+          (selectionChange)="onStatusSelectionChange($event)"
+        />
+    </div>
+</div>
+      <section class="mt-2 w-25">
+        <p class="label_text">Kategoria</p>
+        <app-select-autocomplete
+          [options]="categoryOptions()"
+          [value]="form.controls.category_id.value"
+          [disabled]="loading()"
+          (valueChange)="onCategorySelected($event)"
+          (queryChange)="categorySearch.emit($event)"
+        />
+      </section>
+      <div >
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="addExpenseClick.emit()"
+          [disabled]="loading()"
+          class="flex items-center gap-2 me-3"
+        >
+          <mat-icon>add</mat-icon>
+          Dodaj wydatek
+        </button>
+        <button
+        mat-button
+        type="button"
+        class="self-center"
+        (click)="onResetFilters()"
+        [disabled]="loading()"
+      >
+        Resetuj filtry
+      </button>
+    </div>
+  </form>

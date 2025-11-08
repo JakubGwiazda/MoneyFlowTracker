@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import type { CategoryOptionViewModel } from '../../../../lib/models/expenses';
 import type { CreateExpenseCommand } from '../../../../types';
-import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete.component';
 
 export type AddExpenseDialogMode = 'single' | 'add-another';
 
@@ -50,7 +50,7 @@ type DialogData = {
   template: `
     <h2 mat-dialog-title>{{ expense ? 'Edytuj wydatek' : 'Dodaj wydatek' }}</h2>
     <form mat-dialog-content [formGroup]="form" class="flex flex-col gap-4">
-      <mat-form-field appearance="outline">
+      <mat-form-field class="mt-2" appearance="outline">
         <mat-label>Nazwa</mat-label>
         <input matInput formControlName="name" required maxlength="100" />
         <mat-error *ngIf="form.controls.name.hasError('required')">
@@ -58,7 +58,7 @@ type DialogData = {
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field class="mt-2" appearance="outline">
         <mat-label>Kwota</mat-label>
         <input matInput type="number" min="0" step="0.01" formControlName="amount" required />
         <mat-error *ngIf="form.controls.amount.hasError('required')">
@@ -69,7 +69,7 @@ type DialogData = {
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field class="mt-2" appearance="outline">
         <mat-label>Data</mat-label>
         <input matInput [matDatepicker]="picker" formControlName="expense_date" required />
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -78,8 +78,8 @@ type DialogData = {
           Data jest wymagana
         </mat-error>
       </mat-form-field>
-
-      <app-select-autocomplete
+      <p>Kategoria
+      <app-select-autocomplete class="w-25"
         [options]="categories()"
         [value]="form.controls.category_id.value"
         (valueChange)="form.controls.category_id.setValue($event)"
@@ -105,7 +105,12 @@ export class AddExpenseDialogComponent {
   readonly dialogRef = inject(MatDialogRef<AddExpenseDialogComponent, AddExpenseDialogResult | undefined>);
   private readonly fb = inject(FormBuilder);
 
-  readonly categories = computed(() => this.data.getCategories());
+  readonly categories = computed((): SelectAutocompleteOption[] =>
+    this.data.getCategories().map((category) => ({
+      id: category.id,
+      label: category.label,
+    }))
+  );
   readonly expense = this.data.expense;
 
   readonly form = this.fb.group({

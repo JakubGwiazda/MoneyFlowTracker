@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -24,7 +25,7 @@ import type {
 } from '../../../../lib/models/expenses';
 import type { ClassificationStatus } from '../../../../types';
 import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../../common/chips.component';
-import { SelectAutocompleteComponent } from '../../common/select-autocomplete.component';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete.component';
 
 const DEFAULT_PRESET: DatePreset = 'today';
 
@@ -43,74 +44,7 @@ const DEFAULT_PRESET: DatePreset = 'today';
     ChipsComponent,
     SelectAutocompleteComponent,
   ],
-  template: `
-    <form class="mt-4" [formGroup]="form">
-      <section>
-      <p class="label_text">Data</p>
-        <app-chips
-            [options]="dateChipOptions"
-            [selectedValue]="selectedPreset()"
-            [disabled]="loading()"
-            (selectionChange)="onDateSelectionChange($event)"
-          />
-
-        @if (selectedPreset() === 'custom') {
-          <mat-form-field appearance="outline" class="mt-4 w-25">
-            <mat-label>Zakres dat</mat-label>
-            <mat-date-range-input [rangePicker]="picker" [formGroup]="form.controls.date" >
-              <input matStartDate formControlName="date_from" placeholder="Od" (dateChange)="onDateRangeChange()"/>
-              <input matEndDate formControlName="date_to" placeholder="Do" (dateChange)="onDateRangeChange()"/>
-            </mat-date-range-input>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-          </mat-form-field>
-        }
-
-      </section>
-        <section class="mt-2">
-          <p class="label_text">Status klasyfikacji</p>
-          <app-chips
-            [options]="statusChipOptions"
-            [selectedValue]="form.controls.status.value"
-            [disabled]="loading()"
-            (selectionChange)="onStatusSelectionChange($event)"
-          />
-        </section>
-
-        <section class="mt-2">
-          <p class="label_text">Kategoria</p>
-          <app-select-autocomplete
-            [options]="categories()"
-            [value]="form.controls.category_id.value"
-            [disabled]="loading()"
-            (valueChange)="onCategorySelected($event)"
-            (queryChange)="categorySearch.emit($event)"
-          />
-        </section>
-        <section>
-          <button
-            mat-raised-button
-            color="primary"
-            type="button"
-            (click)="addExpenseClick.emit()"
-            [disabled]="loading()"
-            class="flex items-center gap-2"
-          >
-            <mat-icon>add</mat-icon>
-            Dodaj wydatek
-          </button>
-          <button
-          mat-button
-          type="button"
-          class="self-center"
-          (click)="onResetFilters()"
-          [disabled]="loading()"
-        >
-          Resetuj filtry
-        </button>
-        </section>
-    </form>
-  `,
+  templateUrl: './expenses-filters.component.html',
   styles: [
     `
       .label_text {
@@ -127,7 +61,6 @@ export class ExpensesFilterComponent {
   readonly value = input.required<ExpensesFilterState>();
   readonly loading = input<boolean>(false);
   readonly categories = input.required<CategoryOptionViewModel[]>();
-
   readonly filterChange = output<Partial<ExpensesFilterState>>();
   readonly addExpenseClick = output<void>();
   readonly categorySearch = output<string>();
@@ -140,6 +73,14 @@ export class ExpensesFilterComponent {
     status: this.fb.control<ClassificationStatus | undefined | null>(undefined),
     category_id: this.fb.control<string | null>(null),
   });
+
+
+  readonly categoryOptions = computed((): SelectAutocompleteOption[] =>
+    this.categories().map((category) => ({
+      id: category.id,
+      label: category.label,
+    }))
+  );
 
   readonly selectedPreset = signal<DatePreset>('today');
 

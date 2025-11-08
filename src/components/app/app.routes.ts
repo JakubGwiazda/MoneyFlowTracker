@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from '../../lib/guards/auth.guard';
 import { guestGuard } from '../../lib/guards/guest.guard';
-import { MainShellComponent } from './main-shell.component';
+import { MainLayoutComponent } from './main-layout.component';
 import { LoginComponent } from '../pages/login.component';
 import { RegisterComponent } from '../pages/register.component';
 import { WelcomeComponent } from '../pages/welcome.component';
@@ -37,7 +37,7 @@ export const appRoutes: Routes = [
   },
   {
     path: 'app',
-    component: MainShellComponent,
+    component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
       {

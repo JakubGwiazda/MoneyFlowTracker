@@ -26,6 +26,14 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
     PaginationControlsComponent,
   ],
   templateUrl: './expenses-page.component.html',
+  styles: [
+    `
+      .tab_group {
+        width: 90%;
+        margin: 0 auto;
+      }
+    `,
+  ],
 })
 export class ExpensesPageComponent {
   private readonly facade = inject(ExpensesFacadeService);

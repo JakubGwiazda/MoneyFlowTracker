@@ -7,11 +7,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../lib/services/auth.service';
 
 @Component({
-  selector: 'app-main-shell',
+  selector: 'app-main-layout',
   standalone: true,
   imports: [RouterOutlet, MatButtonModule, MatIconModule, MatMenuModule],
   template: `
-    <div class="min-h-screen bg-gray-50">
+    <div class="">
       <header class="d-flex align-items-center px-6 py-4">
         <div class="flex-fill"></div>
         <div class="text-lg font-semibold text-center">
@@ -32,7 +32,7 @@ import { AuthService } from '../../lib/services/auth.service';
           </mat-menu>
         </div>
       </header>
-      <main class="mx-auto max-w-6xl px-6 py-8">
+      <main>
         <router-outlet />
       </main>
     </div>
@@ -47,7 +47,7 @@ import { AuthService } from '../../lib/services/auth.service';
     }
   `],
 })
-export class MainShellComponent {
+export class MainLayoutComponent {
   userEmail = computed(() => this.authService.authState().user?.email || 'Użytkownik');
 
   constructor(private authService: AuthService) { }

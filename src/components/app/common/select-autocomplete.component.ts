@@ -16,7 +16,10 @@ import type { MatAutocompleteSelectedEvent } from '@angular/material/autocomplet
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
-import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
+export interface SelectAutocompleteOption {
+  id: string;
+  label: string;
+}
 
 @Component({
   selector: 'app-select-autocomplete',
@@ -32,7 +35,7 @@ import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <mat-form-field appearance="outline" class="w-25">
+    <mat-form-field appearance="outline">
       <input
         type="text"
         matInput
@@ -40,19 +43,9 @@ import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
         [formControl]="queryCtrl"
         [disabled]="disabled()"
         (input)="onQueryInput()"
+        (focus)="onFocus()"
         (blur)="onBlur()"
       />
-      <button
-        *ngIf="queryCtrl.value || value()"
-        type="button"
-        mat-icon-button
-        matSuffix
-        aria-label="Wyczyść kategorię"
-        (click)="clearSelection()"
-        [disabled]="disabled()"
-      >
-        <mat-icon>close</mat-icon>
-      </button>
       <mat-autocomplete
         #auto="matAutocomplete"
         (optionSelected)="onOptionSelected($event)"
@@ -61,17 +54,11 @@ import type { CategoryOptionViewModel } from '../../../lib/models/expenses';
         @if (options().length === 0) {
           <mat-option [disabled]="true">Brak dopasowań</mat-option>
         } @else {
+          <mat-option [value]="null">-</mat-option>
           @for (option of options(); track option.id) {
             <mat-option [value]="option.id">
               <div class="flex items-center justify-between gap-3">
                 <span class="truncate text-sm">{{ option.label }}</span>
-                <span
-                  class="text-xs"
-                  [class.text-emerald-600]="option.isActive"
-                  [class.text-red-500]="!option.isActive"
-                >
-                  {{ option.isActive ? 'Aktywna' : 'Nieaktywna' }}
-                </span>
               </div>
             </mat-option>
           }
@@ -84,7 +71,7 @@ export class SelectAutocompleteComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly options = input.required<CategoryOptionViewModel[]>();
+  readonly options = input.required<SelectAutocompleteOption[]>();
   readonly value = input<string | null>(null);
   readonly disabled = input<boolean>(false);
 
@@ -95,13 +82,14 @@ export class SelectAutocompleteComponent {
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private syncing = false;
+  private userTyping = false;
 
   constructor() {
     effect(() => {
       const currentValue = this.value();
       const options = this.options();
 
-      if (this.syncing) {
+      if (this.syncing || this.userTyping) {
         return;
       }
 
@@ -118,11 +106,21 @@ export class SelectAutocompleteComponent {
     });
   }
 
+  onFocus(): void {
+    if (this.syncing) {
+      return;
+    }
+
+    this.userTyping = true;
+    this.queryChange.emit('');
+  }
+
   onQueryInput(): void {
     if (this.syncing) {
       return;
     }
 
+    this.userTyping = true;
     const query = this.queryCtrl.value.trim();
 
     if (this.debounceTimer) {
@@ -136,31 +134,19 @@ export class SelectAutocompleteComponent {
 
   onOptionSelected(event: MatAutocompleteSelectedEvent): void {
     const optionId = event.option.value as string;
-    const label = event.option.viewValue;
-
-    this.syncing = true;
-    this.queryCtrl.setValue(label, { emitEvent: false });
-    this.syncing = false;
-
+    
+    this.userTyping = false;
     this.valueChange.emit(optionId);
   }
 
   onBlur(): void {
-    const currentValue = this.value();
-    const label = this.queryCtrl.value.trim();
-    const match = this.options().find((option) => option.label === label);
-
-    if (!match && currentValue) {
-      this.clearSelection();
-    }
+    // Reset userTyping flag when user leaves the field without selecting an option
+    // This allows the effect to sync the display value properly
+    setTimeout(() => {
+      this.userTyping = false;
+    }, 200); // Small delay to allow option selection to complete first
   }
 
-  clearSelection(): void {
-    this.syncing = true;
-    this.queryCtrl.setValue('', { emitEvent: false });
-    this.syncing = false;
-    this.valueChange.emit(null);
-  }
 
   readonly displayLabel = (value: string): string => {
     const option = this.options().find((item) => item.id === value);
