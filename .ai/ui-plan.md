@@ -24,7 +24,7 @@
 - **Kluczowe komponenty widoku:** Reactive Forms z walidatorami, przycisk `Utwórz konto`, link do logowania, snackbar z potwierdzeniem.
 - **UX, dostępność i względy bezpieczeństwa:** Weryfikacja emaila i haseł po stronie klienta, informowanie o błędach inline, minimalizacja pól, obsługa klawisza Enter, bezpieczne przesyłanie danych do Supabase.
 
-### Widok: MainShell (Layout uwierzytelniony)
+### Widok: MainLayout (Layout uwierzytelniony)
 - **Ścieżka widoku:** `/app/*`
 - **Główny cel:** Zapewnia wspólny układ dla wszystkich tras zabezpieczonych, umożliwia dostęp do nawigacji, przełącznika motywu i akcji globalnych (US-011).
 - **Kluczowe informacje do wyświetlenia:** Nazwa/logotyp aplikacji, aktywna trasa, skróty do kluczowych działań (przycisk „Dodaj wydatek”), status połączenia (opcjonalnie), menu użytkownika.

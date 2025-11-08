@@ -10,6 +10,7 @@ import { ExpensesFacadeService } from '../../app/expenses/services/expenses-faca
 import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from '../../app/expenses/ui/expenses-table.component';
 import { PaginationControlsComponent } from '../../app/common/pagination-controls.component';
+import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
 import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense-dialog.component';
 import { EditExpenseCategoryDialogComponent } from '../../app/expenses/dialogs/edit-expense-category-dialog.component';
@@ -28,6 +29,7 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
     ExpensesFilterComponent,
     ExpensesTableComponent,
     PaginationControlsComponent,
+    CategoriesPageComponent,
   ],
   templateUrl: './expenses-page.component.html',
   styles: [

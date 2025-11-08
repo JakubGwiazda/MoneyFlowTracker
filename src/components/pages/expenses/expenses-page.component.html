@@ -56,15 +56,8 @@
     </mat-tab>
 
     <mat-tab label="Kategorie">
-      <div class="tab-content py-4">
-        <app-expenses-filters
-          [value]="vm().filters"
-          [loading]="vm().loading"
-          [categories]="categoryOptions()"
-          (filterChange)="onFilterChange($event)"
-          (addExpenseClick)="onAddExpense()"
-          (categorySearch)="onCategorySearch($event)"
-        />
+      <div class="tab-content">
+        <app-categories-page />
       </div>
     </mat-tab>
   </mat-tab-group>

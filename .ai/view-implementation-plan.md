@@ -2,7 +2,7 @@
 
 ## 1. Przegląd punktu końcowego
 - Cel: umożliwić zalogowanemu użytkownikowi utworzenie rekordu wydatku i zainicjować jego klasyfikację AI.
-- Środowisko: Astro 5 (API route) + Supabase (PostgreSQL) + integracja z OpenRouter.ai dla klasyfikacji.
+- Środowisko: Angular 20 + Supabase (PostgreSQL) + integracja z OpenRouter.ai dla klasyfikacji.
 - Rezultat: nowy wpis w tabeli `expenses` powiązany z `logs` oraz rozpoczęta asynchroniczna klasyfikacja.
 
 ## 2. Szczegóły żądania
