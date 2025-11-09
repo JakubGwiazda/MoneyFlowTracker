@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { BadgeComponent } from '../../common/badge.component';
 import type { CategoryListViewModel } from '../../../../lib/models/categories';
+
+type CategoryTreeNode = CategoryListViewModel & {
+  level: number;
+  isExpanded: boolean;
+  children: CategoryTreeNode[];
+};
 
 @Component({
   selector: 'app-categories-table',
@@ -41,33 +47,42 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
 
       @if (data().length > 0) {
         <div class="table-container">
-          <table mat-table [dataSource]="data()" class="categories-table">
-            <!-- Name Column -->
+          <table mat-table [dataSource]="visibleRows()" class="categories-table">
+            <!-- Name Column with Tree Structure -->
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Nazwa</th>
-              <td mat-cell *matCellDef="let category">
-                <div class="category-name">
-                  <strong>{{ category.name }}</strong>
-                  @if (category.hasChildren) {
-                    <mat-icon 
-                      class="children-icon" 
-                      matTooltip="Kategoria zawiera podkategorie"
+              <td mat-cell *matCellDef="let node" [class.child-row]="node.level > 0">
+                <div class="category-name" [style.padding-left.px]="node.level * 24">
+                  @if (node.hasChildren) {
+                    <button 
+                      mat-icon-button 
+                      class="expand-button d-flex justify-content-center align-items-center"
+                      (click)="toggleExpand(node.id)"
                     >
-                      subdirectory_arrow_right
-                    </mat-icon>
+                      <mat-icon>
+                        @if (node.isExpanded) {
+                          expand_more
+                        } @else {
+                          chevron_right
+                        }
+                      </mat-icon>
+                    </button>
+                  } @else {
+                    <span class="expand-placeholder"></span>
                   }
+                  <strong>{{ node.name }}</strong>         
                 </div>
               </td>
             </ng-container>
 
-            <!-- Parent Column -->
-            <ng-container matColumnDef="parent">
-              <th mat-header-cell *matHeaderCellDef>Kategoria nadrzędna</th>
-              <td mat-cell *matCellDef="let category">
-                @if (category.parentName) {
-                  <span class="parent-name">{{ category.parentName }}</span>
+            <!-- Level indicator (hidden column for tree structure) -->
+            <ng-container matColumnDef="level">
+              <th mat-header-cell *matHeaderCellDef>Poziom</th>
+              <td mat-cell *matCellDef="let node">
+                @if (node.level === 0) {
+                  <span class="text-muted">Główna</span>
                 } @else {
-                  <span class="text-muted">—</span>
+                  <span class="text-muted">Poziom {{ node.level }}</span>
                 }
               </td>
             </ng-container>
@@ -75,10 +90,10 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
             <!-- Status Column -->
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let category">
+              <td mat-cell *matCellDef="let node">
                 <app-badge 
-                  [label]="category.statusLabel"
-                  [tone]="category.statusTone"
+                  [label]="node.statusLabel"
+                  [tone]="node.statusTone"
                 />
               </td>
             </ng-container>
@@ -86,10 +101,10 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
             <!-- Usage Column -->
             <ng-container matColumnDef="usage">
               <th mat-header-cell *matHeaderCellDef>Użycie</th>
-              <td mat-cell *matCellDef="let category">
+              <td mat-cell *matCellDef="let node">
                 <div class="usage-cell">
-                  @if (category.usageCount && category.usageCount > 0) {
-                    <span class="usage-count">{{ category.usageCount }}</span>
+                  @if (node.usageCount && node.usageCount > 0) {
+                    <span class="usage-count">{{ node.usageCount }}</span>
                     <span class="text-muted">wydatków</span>
                   } @else {
                     <span class="text-muted">Nieużywana</span>
@@ -101,15 +116,15 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
             <!-- Created At Column -->
             <ng-container matColumnDef="created_at">
               <th mat-header-cell *matHeaderCellDef>Data utworzenia</th>
-              <td mat-cell *matCellDef="let category">
-                {{ category.created_at | date: 'dd.MM.yyyy' }}
+              <td mat-cell *matCellDef="let node">
+                {{ node.created_at | date: 'dd.MM.yyyy' }}
               </td>
             </ng-container>
 
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-header">Akcje</th>
-              <td mat-cell *matCellDef="let category" class="actions-cell">
+              <td mat-cell *matCellDef="let node" class="actions-cell">
                 <button 
                   mat-icon-button 
                   [matMenuTriggerFor]="menu"
@@ -118,23 +133,24 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="editCategory.emit(category.id)">
+                  <button mat-menu-item (click)="editCategory.emit(node.id)">
                     <mat-icon>edit</mat-icon>
                     <span>Edytuj</span>
                   </button>
                   <button 
                     mat-menu-item 
-                    (click)="toggleActive.emit(category.id)"
+                    (click)="toggleActive.emit(node.id)"
+                    [disabled]="node.usageCount > 0 || node.hasChildren"
                   >
                     <mat-icon>
-                      @if (category.is_active) {
+                      @if (node.is_active) {
                         visibility_off
                       } @else {
                         visibility
                       }
                     </mat-icon>
                     <span>
-                      @if (category.is_active) {
+                      @if (node.is_active) {
                         Dezaktywuj
                       } @else {
                         Aktywuj
@@ -143,8 +159,8 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
                   </button>
                   <button 
                     mat-menu-item 
-                    (click)="deleteCategory.emit(category.id)"
-                    [disabled]="category.usageCount > 0 || category.hasChildren"
+                    (click)="deleteCategory.emit(node.id)"
+                    [disabled]="node.usageCount > 0 || node.hasChildren"
                   >
                     <mat-icon>delete</mat-icon>
                     <span>Usuń</span>
@@ -165,7 +181,8 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
       position: relative;
       width: 100%;
       height: 100%;
-      overflow: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     .loading-overlay {
@@ -214,7 +231,10 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
 
     .table-container {
       width: 100%;
+      overflow-y: auto;
       overflow-x: auto;
+      flex: 1;
+      max-height: 600px;
     }
 
     .categories-table {
@@ -225,19 +245,38 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
     .category-name {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.25rem;
     }
 
-    .children-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+    .expand-button {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      margin-right: 0.25rem;
+    }
+
+    .expand-button mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+    }
+
+    .expand-placeholder {
+      display: inline-block;
+      width: 40px;
+    }
+
+    .child-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
       color: rgba(0, 0, 0, 0.54);
+      margin-left: 0.25rem;
     }
 
-    .parent-name {
-      color: rgba(0, 0, 0, 0.6);
-      font-size: 0.875rem;
+    .child-row {
+      background-color: rgba(0, 0, 0, 0.02);
     }
 
     .text-muted {
@@ -266,6 +305,10 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
     th.mat-header-cell {
       font-weight: 600;
       color: rgba(0, 0, 0, 0.87);
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     td.mat-cell {
@@ -273,7 +316,11 @@ import type { CategoryListViewModel } from '../../../../lib/models/categories';
     }
 
     tr.mat-row:hover {
-      background-color: rgba(0, 0, 0, 0.02);
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    tr.mat-row.child-row:hover {
+      background-color: rgba(0, 0, 0, 0.06);
     }
   `],
 })
@@ -285,6 +332,86 @@ export class CategoriesTableComponent {
   readonly deleteCategory = output<string>();
   readonly toggleActive = output<string>();
 
-  readonly displayedColumns = ['name', 'parent', 'status', 'usage', 'created_at', 'actions'];
+  private readonly expandedIds = signal<Set<string>>(new Set());
+
+  // Build tree structure from flat list
+  private readonly treeData = computed(() => {
+    const categories = this.data();
+    const categoryMap = new Map<string, CategoryTreeNode>();
+    const rootNodes: CategoryTreeNode[] = [];
+
+    // First pass: create all nodes
+    for (const category of categories) {
+      const node: CategoryTreeNode = {
+        ...category,
+        level: 0,
+        isExpanded: this.expandedIds().has(category.id),
+        children: [],
+      };
+      categoryMap.set(category.id, node);
+    }
+
+    // Second pass: build tree structure
+    for (const category of categories) {
+      const node = categoryMap.get(category.id)!;
+      
+      if (category.parent_id) {
+        const parent = categoryMap.get(category.parent_id);
+        if (parent) {
+          node.level = parent.level + 1;
+          parent.children.push(node);
+        } else {
+          // Parent not found in current list, treat as root
+          rootNodes.push(node);
+        }
+      } else {
+        rootNodes.push(node);
+      }
+    }
+
+    return { roots: rootNodes, map: categoryMap };
+  });
+
+  // Flatten tree to visible rows based on expanded state
+  readonly visibleRows = computed(() => {
+    const { roots } = this.treeData();
+    const visible: CategoryTreeNode[] = [];
+
+    const addNode = (node: CategoryTreeNode) => {
+      visible.push(node);
+      if (node.isExpanded && node.children.length > 0) {
+        // Sort children by name
+        const sortedChildren = [...node.children].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        );
+        for (const child of sortedChildren) {
+          addNode(child);
+        }
+      }
+    };
+
+    // Sort root nodes by name
+    const sortedRoots = [...roots].sort((a, b) => a.name.localeCompare(b.name));
+    for (const root of sortedRoots) {
+      addNode(root);
+    }
+
+    return visible;
+  });
+
+  readonly displayedColumns = ['name', 'level', 'status', 'usage', 'created_at', 'actions'];
+
+  toggleExpand(categoryId: string): void {
+    const expanded = this.expandedIds();
+    const newExpanded = new Set(expanded);
+    
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    
+    this.expandedIds.set(newExpanded);
+  }
 }
 
