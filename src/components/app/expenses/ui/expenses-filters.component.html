@@ -1,0 +1,52 @@
+<form class="mt-4" [formGroup]="form">
+    <div class="d-flex justify-content-between">
+    <div>
+      <app-date-filter
+        [value]="dateFilterValue()"
+        [disabled]="loading()"
+        (dateChange)="onDateFilterChange($event)"
+      />
+    </div>
+    <div>
+        <p class="label_text">Status klasyfikacji</p>
+        <app-chips
+          [options]="statusChipOptions"
+          [selectedValue]="form.controls.status.value"
+          [disabled]="loading()"
+          (selectionChange)="onStatusSelectionChange($event)"
+        />
+    </div>
+</div>
+      <section class="mt-2 w-25">
+        <p class="label_text">Kategoria</p>
+        <app-select-autocomplete
+          [options]="categoryOptions()"
+          [value]="form.controls.category_id.value"
+          [disabled]="loading()"
+          (valueChange)="onCategorySelected($event)"
+          (queryChange)="categorySearch.emit($event)"
+        />
+      </section>
+      <div >
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="addExpenseClick.emit()"
+          [disabled]="loading()"
+          class="flex items-center gap-2 me-3"
+        >
+          <mat-icon>add</mat-icon>
+          Dodaj wydatek
+        </button>
+        <button
+        mat-button
+        type="button"
+        class="self-center"
+        (click)="onResetFilters()"
+        [disabled]="loading()"
+      >
+        Resetuj filtry
+      </button>
+    </div>
+  </form>

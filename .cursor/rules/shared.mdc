@@ -9,11 +9,10 @@ alwaysApply: true
 
 ## Tech Stack
 
-- Astro 5
 - TypeScript 5
 - Angular 20
-- Tailwind 4
-- Shadcn/ui
+- Angular material
+- Bootstrap 5.3.8
 
 ## Project Structure
 

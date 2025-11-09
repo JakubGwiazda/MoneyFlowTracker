@@ -1,6 +1,14 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { HelloWorldComponent } from './components/hello-world.component';
+import { provideRouter } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { importProvidersFrom } from '@angular/core';
 
-// This file is used by Angular CLI for build configuration
-// In Astro + Angular setup, components are loaded individually
-export { HelloWorldComponent };
+import { AppComponent } from './app.component';
+import { appRoutes } from './components/app/app.routes';
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideRouter(appRoutes),
+    provideAnimationsAsync(),
+  ]
+}).catch((err) => console.error(err));

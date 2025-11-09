@@ -3,8 +3,8 @@ Frontend:
 - Astro 5
 - Angular 20
 - TypeScript 5
-- Tailwind 4
 - Angular Material
+- Ngx-Charts 23.1.0 
 
 Backend i bazadanych:
 - supabase

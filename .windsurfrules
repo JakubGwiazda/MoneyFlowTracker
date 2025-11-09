@@ -96,7 +96,6 @@ When modifying the directory structure, always update this section.
 - Prefer **standalone components** and **signals** instead of NgModules and excessive two-way bindings  
 - Avoid using `"use client"` or other framework directives — Angular integrates directly with Astro  
 - Extract reusable logic into **services** in `src/app/services` or **custom directives/pipes** for cleaner code  
-- Use **ChangeDetectionStrategy.OnPush** for components that rely on immutable inputs or pure data flows  
 - Implement **lazy loading** for feature modules or standalone components to improve performance  
 - Use **EventEmitter** for child-to-parent communication, keeping input/output properties well-typed  
 - Optimize expensive calculations with **RxJS operators** (e.g. `shareReplay`, `distinctUntilChanged`) to prevent recomputation  
