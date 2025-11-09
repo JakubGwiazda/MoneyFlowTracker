@@ -4,6 +4,7 @@ Frontend:
 - Angular 20
 - TypeScript 5
 - Angular Material
+- Ngx-Charts 23.1.0 
 
 Backend i bazadanych:
 - supabase

@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { ExpensesFacadeService } from '../../app/expenses/services/expenses-facade.service';
 import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from '../../app/expenses/ui/expenses-table.component';
+import { ExpensesChartsComponent } from '../../app/expenses/ui/expenses-charts.component';
 import { PaginationControlsComponent } from '../../app/common/pagination-controls.component';
 import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
@@ -28,6 +29,7 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
     MatExpansionModule,
     ExpensesFilterComponent,
     ExpensesTableComponent,
+    ExpensesChartsComponent,
     PaginationControlsComponent,
     CategoriesPageComponent,
   ],
@@ -122,6 +124,7 @@ export class ExpensesPageComponent {
 
   readonly vm = this.facade.viewModel;
   readonly categoryOptions = this.facade.categoryOptions;
+  readonly chartData = this.facade.expensesByCategory;
 
   private readonly expenseLookup = computed(() => {
     const vm = this.vm();

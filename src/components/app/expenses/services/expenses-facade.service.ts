@@ -97,6 +97,34 @@ export class ExpensesFacadeService {
     sort: this.sortState(),
   }));
 
+  /**
+   * Aggregated expenses by category for chart visualization
+   */
+  readonly expensesByCategory = computed(() => {
+    const expenses = this.expensesSignal();
+    const aggregationMap = new Map<string, { name: string; total: number }>();
+
+    for (const expense of expenses) {
+      const categoryId = expense.category_id || 'uncategorized';
+      const categoryName = expense.categoryName || 'Bez kategorii';
+      
+      const existing = aggregationMap.get(categoryId);
+      if (existing) {
+        existing.total += expense.amount;
+      } else {
+        aggregationMap.set(categoryId, {
+          name: categoryName,
+          total: expense.amount,
+        });
+      }
+    }
+
+    return Array.from(aggregationMap.values()).map((item) => ({
+      name: item.name,
+      value: item.total,
+    }));
+  });
+
   constructor() {
     effect(() => {
       // Auto-refresh when filters change.

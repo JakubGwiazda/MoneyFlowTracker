@@ -7,6 +7,19 @@
   </header>
 
   <mat-tab-group class="tab_group">
+    <mat-tab label="Wizualizacja wydatków">
+      <div class="tab-content mt-2">
+        <app-expenses-charts
+          [data]="chartData()"
+          [title]="'Wydatki według kategorii'"
+          [xAxisLabel]="'Kategorie'"
+          [yAxisLabel]="'Kwota (PLN)'"
+          [showLegend]="true"
+          [gradient]="false"
+          [animations]="true"
+        />
+      </div>
+    </mat-tab>
     <mat-tab label="Lista wydatków">        
       <div class="tab-content mt-2">
         <mat-card class="filters-card">
