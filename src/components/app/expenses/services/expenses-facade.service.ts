@@ -24,25 +24,13 @@ type RefreshTrigger = 'initial' | 'filters' | 'sort' | 'page' | 'manual';
 const DEFAULT_PER_PAGE = 25;
 const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
-function startOfCurrentMonth(): string {
-  const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth(), 1)
-    .toISOString()
-    .slice(0, 10);
-}
-
-function endOfCurrentMonth(): string {
-  const today = new Date();
-  return new Date(today.getFullYear(), today.getMonth() + 1, 0)
-    .toISOString()
-    .slice(0, 10);
-}
-
 function createDefaultFilters(): ExpensesFilterState {
+  const today = new Date().toISOString().slice(0, 10);
+
   return {
-    preset: 'month',
-    date_from: startOfCurrentMonth(),
-    date_to: endOfCurrentMonth(),
+    preset: 'today',
+    date_from: today,
+    date_to: today,
     page: 1,
     per_page: DEFAULT_PER_PAGE,
   } satisfies ExpensesFilterState;
@@ -448,8 +436,8 @@ export class ExpensesFacadeService {
     }
   }
 
-  async loadCategories(query: string): Promise<void> {
-    const search = query.trim();
+  async loadCategories(query?: string): Promise<void> {
+    const search = query?.trim() ?? '';
 
     try {
       let categoriesQuery = supabaseClient

@@ -1,4 +1,4 @@
-import { Component, input, signal, computed } from '@angular/core';
+import { Component, input, signal, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BarChartModule, PieChartModule } from '@swimlane/ngx-charts';
 import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/charts';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter.component';
 
 /**
  * Component for displaying expense data in various chart formats
@@ -26,16 +28,34 @@ import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/
     CommonModule,
     MatButtonToggleModule,
     MatCardModule,
+    MatExpansionModule,
     MatIconModule,
     MatTooltipModule,
     BarChartModule,
-    PieChartModule
+    PieChartModule,
+    DateFilterComponent,
   ],
   template: `
-    <mat-card class="chart-card">
-      <mat-card-header>
-        <mat-card-title>{{ title() }}</mat-card-title>
-        <div class="chart-controls">
+        <mat-card class="filters-card">
+          <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Filtry wyszukiwania
+              </mat-panel-title>
+              <mat-panel-description>
+                Kliknij aby rozwinąć/zwinąć filtry
+              </mat-panel-description>
+            </mat-expansion-panel-header>     
+            <div>
+              <app-date-filter
+                [value]="dateFilterValue()"
+                [label]="'Okres danych'"
+                (dateChange)="onDateFilterChange($event)"
+              />
+            </div>       
+          </mat-expansion-panel>
+        </mat-card>
+        <div class="chart-controls mt-4">
           <mat-button-toggle-group 
             [value]="selectedChartType()" 
             (change)="onChartTypeChange($event.value)"
@@ -49,9 +69,7 @@ import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/
             }
           </mat-button-toggle-group>
         </div>
-      </mat-card-header>
-      
-      <mat-card-content>
+      <div>
         @if (hasData()) {
           <div class="chart-container">
             @switch (selectedChartType()) {
@@ -69,7 +87,7 @@ import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/
                   [scheme]="colorScheme()"
                   [animations]="animations()"
                   [legend]="showLegend()"
-                  [legendTitle]="'Categories'"
+                  [legendTitle]="'Kategorie'"
                   (select)="onSelect($event)"
                   (activate)="onActivate($event)"
                   (deactivate)="onDeactivate($event)">
@@ -100,14 +118,16 @@ import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/
             <p>{{ noDataMessage() }}</p>
           </div>
         }
-      </mat-card-content>
-    </mat-card>
+      </div>
   `,
   styles: [`
     .chart-card {
       margin: 1rem 0;
       height: 100%;
     }
+
+    .filters-card {
+      }
 
     mat-card-header {
       display: flex;
@@ -127,6 +147,11 @@ import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/
       height: 400px;
       min-height: 300px;
     }
+
+    .filters-expansion-panel {
+        box-shadow: none;
+        border: 1px solid #e0e0e0;
+      }
 
     .no-data-message {
       display: flex;
@@ -183,10 +208,9 @@ export class ExpensesChartsComponent {
 
   // Input signals using the new input() function
   readonly data = input<ChartDataItem[]>([]);
-  readonly title = input<string>('Expenses Chart');
-  readonly noDataMessage = input<string>('No data available for the selected period');
-  readonly xAxisLabel = input<string>('Categories');
-  readonly yAxisLabel = input<string>('Amount (PLN)');
+  readonly noDataMessage = input<string>('W wybranym zakresie nie znaleziono żadnych wpisów');
+  readonly xAxisLabel = input<string>('Kategorie');
+  readonly yAxisLabel = input<string>('Kwota (PLN)');
   readonly showLegend = input<boolean>(true);
   readonly showLabels = input<boolean>(true);
   readonly gradient = input<boolean>(false);
@@ -194,12 +218,16 @@ export class ExpensesChartsComponent {
   readonly colorScheme = input<any>({
     domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA', '#7aa3e5', '#a27ea8', '#f47560', '#e8c1a0']
   });
+  readonly dateFilterValue = input<DateFilterValue>({ preset: 'today' });
+
+  // Output signals
+  readonly dateFilterChange = output<DateFilterChange>();
 
   // View state
   private readonly _selectedChartType = signal<ChartType>(ChartType.BAR);
   private readonly _chartViewModes = signal<ChartViewMode[]>([
-    { type: ChartType.BAR, label: 'Bar Chart', icon: 'bar_chart' },
-    { type: ChartType.PIE, label: 'Pie Chart', icon: 'pie_chart' }
+    { type: ChartType.BAR, label: 'Wykres słupkowy', icon: 'bar_chart' },
+    { type: ChartType.PIE, label: 'Wykres kołowy', icon: 'pie_chart' }
   ]);
 
   // Computed signals
@@ -233,5 +261,12 @@ export class ExpensesChartsComponent {
    */
   protected onDeactivate(event: any): void {
     // Can be used to clean up hover effects
+  }
+
+  /**
+   * Handle date filter change
+   */
+  protected onDateFilterChange(change: DateFilterChange): void {
+    this.dateFilterChange.emit(change);
   }
 }

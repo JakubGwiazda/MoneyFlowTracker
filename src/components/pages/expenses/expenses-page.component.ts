@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -117,7 +117,8 @@ import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expens
     `,
   ],
 })
-export class ExpensesPageComponent {
+export class ExpensesPageComponent implements OnInit{
+
   private readonly facade = inject(ExpensesFacadeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -135,8 +136,21 @@ export class ExpensesPageComponent {
     return map;
   });
 
+  ngOnInit(): void {
+    void this.facade.loadCategories();
+  }
+
   onFilterChange(patch: Partial<ExpensesFilterState>): void {
     this.facade.setFilters(patch);
+  }
+
+  onChartDateFilterChange(change: { preset: string; date_from?: string; date_to?: string }): void {
+    this.facade.setFilters({
+      preset: change.preset as any,
+      date_from: change.date_from,
+      date_to: change.date_to,
+      page: 1
+    });
   }
 
   onAddExpense(): void {

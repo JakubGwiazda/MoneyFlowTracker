@@ -17,6 +17,12 @@
           [showLegend]="true"
           [gradient]="false"
           [animations]="true"
+          [dateFilterValue]="{
+            preset: vm().filters.preset ?? 'today',
+            date_from: vm().filters.date_from,
+            date_to: vm().filters.date_to
+          }"
+          (dateFilterChange)="onChartDateFilterChange($event)"
         />
       </div>
     </mat-tab>

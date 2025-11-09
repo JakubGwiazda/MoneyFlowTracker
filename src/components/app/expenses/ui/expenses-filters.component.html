@@ -1,24 +1,11 @@
 <form class="mt-4" [formGroup]="form">
     <div class="d-flex justify-content-between">
     <div>
-    <p class="label_text">Data</p>
-      <app-chips
-          [options]="dateChipOptions"
-          [selectedValue]="selectedPreset()"
-          [disabled]="loading()"
-          (selectionChange)="onDateSelectionChange($event)"
-        />
-      @if (selectedPreset() === 'custom') {
-        <mat-form-field appearance="outline" class="mt-4 w-25">
-          <mat-label>Zakres dat</mat-label>
-          <mat-date-range-input [rangePicker]="picker" [formGroup]="form.controls.date" >
-            <input matStartDate formControlName="date_from" placeholder="Od" (dateChange)="onDateRangeChange()"/>
-            <input matEndDate formControlName="date_to" placeholder="Do" (dateChange)="onDateRangeChange()"/>
-          </mat-date-range-input>
-          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
-      }
+      <app-date-filter
+        [value]="dateFilterValue()"
+        [disabled]="loading()"
+        (dateChange)="onDateFilterChange($event)"
+      />
     </div>
     <div>
         <p class="label_text">Status klasyfikacji</p>
