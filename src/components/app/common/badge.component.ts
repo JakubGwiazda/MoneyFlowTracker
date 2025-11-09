@@ -8,18 +8,17 @@ import { NgClass } from '@angular/common';
   standalone: true,
   imports: [NgClass, MatChipsModule, MatTooltipModule],
   template: `
+  @if(label()) {
     <mat-chip
-      *ngIf="label(); else unknown"
       [ngClass]="toneClass()"
       [matTooltip]="tooltip()"
       class="min-w-[7rem] justify-center text-xs font-medium"
     >
       {{ label() }}
     </mat-chip>
-
-    <ng-template #unknown>
-      <span class="text-xs text-gray-500">Brak danych</span>
-    </ng-template>
+    } @else {
+    <span class="text-xs text-gray-500">Brak danych</span>
+    }
   `,
   styles: [
     `

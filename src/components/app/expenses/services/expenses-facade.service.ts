@@ -1,6 +1,8 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, signal, inject } from '@angular/core';
 import { supabaseClient } from '../../../../db/supabase.client';
 import type { Database } from '../../../../db/database.types';
+import { ClassificationService } from '../../../../lib/services/classification.service';
+import { ClassificationResult } from '../../../../lib/models/openrouter';
 
 import type {
   CreateExpenseCommand,
@@ -48,6 +50,7 @@ const EMPTY_PAGINATION: PaginationState = {
 export class ExpensesFacadeService {
   private currentRequest: AbortController | null = null;
   private readonly categoryLabelMap = new Map<string, string>();
+  private readonly classificationService = inject(ClassificationService);
 
   private readonly filtersSignal = signal<ExpensesFilterState>(createDefaultFilters());
   private readonly expensesSignal = signal<ExpensesListViewModel[]>([]);
@@ -468,6 +471,47 @@ export class ExpensesFacadeService {
       this.categoryOptionsSignal.set(options);
     } catch (error) {
       this.errorSignal.set(this.resolveErrorMessage(error));
+    }
+  }
+
+  /**
+   * Sugeruje kategorię dla wydatku używając AI
+   */
+  async suggestCategory(description: string, amount: number): Promise<ClassificationResult> {
+    try {
+      // Pobierz aktualne kategorie
+      const { data: categories, error } = await supabaseClient
+        .from('categories')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) {
+        throw new Error('Nie udało się pobrać kategorii do klasyfikacji.');
+      }
+
+      // Mapuj na format wymagany przez ClassificationService
+      const categoryDtos = (categories || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        parent_id: null,
+        is_active: cat.is_active,
+        created_at: new Date().toISOString()
+      }));
+
+      // Wywołaj klasyfikację
+      return new Promise((resolve, reject) => {
+        this.classificationService.classifyExpense(
+          description,
+          amount,
+          categoryDtos
+        ).subscribe({
+          next: (result) => resolve(result),
+          error: (error) => reject(error)
+        });
+      });
+    } catch (error) {
+      throw new Error(this.resolveErrorMessage(error));
     }
   }
 

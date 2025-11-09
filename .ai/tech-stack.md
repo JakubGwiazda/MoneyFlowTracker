@@ -1,6 +1,5 @@
 <tech-stack>
 Frontend:
-- Astro 5
 - Angular 20
 - TypeScript 5
 - Angular Material
