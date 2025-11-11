@@ -20,6 +20,7 @@ import {
   type ExpenseDialogResult,
   type DatePreset,
 } from '../../../../lib/models/expenses';
+import { CategoriesFacadeService } from '../../categories/services/categories-facade.service';
 
 type RefreshTrigger = 'initial' | 'filters' | 'sort' | 'page' | 'manual';
 
@@ -51,6 +52,7 @@ export class ExpensesFacadeService {
   private currentRequest: AbortController | null = null;
   private readonly categoryLabelMap = new Map<string, string>();
   private readonly classificationService = inject(ClassificationService);
+  private readonly categoriesFacade = inject(CategoriesFacadeService);
 
   private readonly filtersSignal = signal<ExpensesFilterState>(createDefaultFilters());
   private readonly expensesSignal = signal<ExpensesListViewModel[]>([]);
@@ -555,7 +557,7 @@ export class ExpensesFacadeService {
           error: (error) => reject(error)
         });
       });
-      console.log('classificationResults ', classificationResults);
+
       // 4. Utwórz nowe kategorie jeśli są potrzebne
       const newCategoriesToCreate = classificationResults
         .filter(result => result.isNewCategory)
@@ -584,7 +586,10 @@ export class ExpensesFacadeService {
         // Dodaj nowe kategorie do mapy
         newCategories?.forEach(cat => {
           categoryNameToIdMap.set(cat.name, cat.id);
+          this.categoryLabelMap.set(cat.id, cat.name);
         });
+
+        this.categoriesFacade.refresh();
       }
 
       // 5. Pobierz użytkownika
