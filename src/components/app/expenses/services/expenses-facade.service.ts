@@ -601,7 +601,10 @@ export class ExpensesFacadeService {
         if (classification.categoryId) {
           categoryId = classification.categoryId;
         } else if (classification.isNewCategory) {
-          categoryId = categoryNameToIdMap.get(classification.categoryName) || null;
+          categoryId = categoryNameToIdMap.get(classification.newCategoryName) || null;
+          if (!categoryId) {
+            console.warn(`Nie znaleziono ID dla nowej kategorii: ${classification.newCategoryName}`);
+          }
         }
 
         return {
