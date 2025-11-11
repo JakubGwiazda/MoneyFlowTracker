@@ -45,13 +45,12 @@ import { RowActionsComponent } from '../../common/row-actions.component';
             <td mat-cell *matCellDef="let element">
               <div class="flex flex-col">
                 <span class="font-medium text-sm text-gray-900">{{ element.name }}</span>
-                <span class="text-xs text-gray-500">Dodano {{ element.created_at | date:'mediumDate' }}</span>
               </div>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">Kwota</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">Kwota (PLN)</th>
             <td mat-cell *matCellDef="let element" class="text-right font-semibold text-sm">
               {{ element.amount | number:'1.2-2' }}
             </td>
@@ -59,7 +58,7 @@ import { RowActionsComponent } from '../../common/row-actions.component';
 
           <ng-container matColumnDef="expense_date">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="expense_date">Data</th>
-            <td mat-cell *matCellDef="let element">{{ element.expense_date | date:'mediumDate' }}</td>
+            <td mat-cell *matCellDef="let element">{{ element.expense_date | date:'dd.MM.yyyy' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="category">
@@ -88,7 +87,7 @@ import { RowActionsComponent } from '../../common/row-actions.component';
 
           <ng-container matColumnDef="confidence">
             <th mat-header-cell *matHeaderCellDef>Pewność</th>
-            <td mat-cell *matCellDef="let element">{{ element.confidenceDisplay }}</td>
+            <td mat-cell *matCellDef="let element">{{element.classification_status === 'corrected' ?  'n/d' : element.confidenceDisplay}}</td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
@@ -217,13 +216,10 @@ export class ExpensesTableComponent implements AfterViewInit {
     this.sortChange.emit({ active: sort.active as SortState['active'], direction: sort.direction as 'asc' | 'desc' });
   }
 
-  onAction(expenseId: string, action: 'edit' | 'changeCategory' | 'reclassify' | 'delete'): void {
+  onAction(expenseId: string, action: 'edit' | 'reclassify' | 'delete'): void {
     switch (action) {
       case 'edit':
         this.editExpense.emit(expenseId);
-        break;
-      case 'changeCategory':
-        this.editCategory.emit(expenseId);
         break;
       case 'reclassify':
         this.reclassifyExpense.emit(expenseId);

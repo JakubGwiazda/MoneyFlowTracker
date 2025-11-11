@@ -98,7 +98,7 @@ import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from
                   [results]="data()"
                   [labels]="showLabels()"
                   [legend]="showLegend()"
-                  [legendTitle]="'Categories'"
+                  [legendTitle]="'Kategorie'"
                   [gradient]="gradient()"
                   [scheme]="colorScheme()"
                   [animations]="animations()"

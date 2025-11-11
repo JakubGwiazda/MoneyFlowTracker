@@ -52,7 +52,7 @@ export type ClassificationBadgeConfig = {
   icon?: string;
 };
 
-export type ExpenseActionType = 'edit' | 'changeCategory' | 'reclassify' | 'delete';
+export type ExpenseActionType = 'edit' | 'reclassify' | 'delete';
 
 export type SortState = {
   active: ExpenseSortableField;

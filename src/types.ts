@@ -116,7 +116,7 @@ export type CreateExpenseCommand = Pick<
 /** Partial update payload for expenses. */
 export type UpdateExpenseCommand = Pick<
   TablesUpdate<"expenses">,
-  "name" | "amount" | "expense_date" | "category_id"
+  "name" | "amount" | "expense_date" | "category_id" | "classification_status"
 >
 
 /** Route parameter contract for deleting an expense. */

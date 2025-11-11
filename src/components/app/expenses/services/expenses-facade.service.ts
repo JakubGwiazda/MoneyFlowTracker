@@ -360,7 +360,7 @@ export class ExpensesFacadeService {
 
       if (command.category_id !== undefined) {
         updateData.category_id = command.category_id;
-        updateData.classification_status = 'corrected';
+        updateData.classification_status = command.classification_status;
         updateData.corrected_category_id = command.category_id;
       }
 
@@ -509,6 +509,122 @@ export class ExpensesFacadeService {
           error: (error) => reject(error)
         });
       });
+    } catch (error) {
+      throw new Error(this.resolveErrorMessage(error));
+    }
+  }
+
+  /**
+   * Klasyfikuje i tworzy wiele wydatków jednocześnie
+   */
+  async batchClassifyAndCreateExpenses(expenses: Array<{ name: string; amount: number; expense_date: string }>): Promise<void> {
+    try {
+      // 1. Pobierz aktualne kategorie
+      const { data: categories, error: categoriesError } = await supabaseClient
+        .from('categories')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+
+      if (categoriesError) {
+        throw new Error('Nie udało się pobrać kategorii do klasyfikacji.');
+      }
+
+      const categoryDtos = (categories || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        parent_id: null,
+        is_active: cat.is_active,
+        created_at: new Date().toISOString()
+      }));
+
+      // 2. Przygotuj wydatki do klasyfikacji
+      const expensesToClassify = expenses.map(exp => ({
+        description: exp.name,
+        amount: exp.amount,
+        date: exp.expense_date
+      }));
+
+      // 3. Wywołaj klasyfikację batch
+      const classificationResults = await new Promise<ClassificationResult[]>((resolve, reject) => {
+        this.classificationService.batchClassifyExpenses(
+          expensesToClassify,
+          categoryDtos
+        ).subscribe({
+          next: (results) => resolve(results),
+          error: (error) => reject(error)
+        });
+      });
+      console.log('classificationResults ', classificationResults);
+      // 4. Utwórz nowe kategorie jeśli są potrzebne
+      const newCategoriesToCreate = classificationResults
+        .filter(result => result.isNewCategory)
+        .map(result => result.newCategoryName);
+
+      const uniqueNewCategories = [...new Set(newCategoriesToCreate)];
+      const categoryNameToIdMap = new Map<string, string>();
+
+      // Dodaj istniejące kategorie do mapy
+      categories?.forEach(cat => {
+        categoryNameToIdMap.set(cat.name, cat.id);
+      });
+
+      // Utwórz nowe kategorie
+      if (uniqueNewCategories.length > 0) {
+        const { data: newCategories, error: createCategoriesError } = await supabaseClient
+          .from('categories')
+          .insert(uniqueNewCategories.map(name => ({name, is_active: true })))
+          .select('id, name');
+
+        if (createCategoriesError) {
+          console.error('createCategoriesError ', createCategoriesError);
+          throw new Error('Nie udało się utworzyć nowych kategorii.');
+        }
+
+        // Dodaj nowe kategorie do mapy
+        newCategories?.forEach(cat => {
+          categoryNameToIdMap.set(cat.name, cat.id);
+        });
+      }
+
+      // 5. Pobierz użytkownika
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        throw new Error('Nie jesteś zalogowany.');
+      }
+
+      // 6. Utwórz wydatki z przypisanymi kategoriami
+      const expensesToInsert = expenses.map((expense, index) => {
+        const classification = classificationResults[index];
+        let categoryId: string | null = null;
+
+        if (classification.categoryId) {
+          categoryId = classification.categoryId;
+        } else if (classification.isNewCategory) {
+          categoryId = categoryNameToIdMap.get(classification.categoryName) || null;
+        }
+
+        return {
+          name: expense.name,
+          amount: expense.amount,
+          expense_date: expense.expense_date,
+          category_id: categoryId,
+          user_id: user.id,
+          classification_status: 'predicted' as const,
+          prediction_confidence: classification.confidence,
+        };
+      });
+
+      const { error: insertError } = await supabaseClient
+        .from('expenses')
+        .insert(expensesToInsert);
+
+      if (insertError) {
+        throw new Error('Nie udało się zapisać wydatków.');
+      }
+
+      // 7. Odśwież listę wydatków
+      await this.refresh();
     } catch (error) {
       throw new Error(this.resolveErrorMessage(error));
     }

@@ -36,6 +36,14 @@ export interface JsonSchemaProperty {
   description?: string;
   minimum?: number;
   maximum?: number;
+  minItems?: number;
+  maxItems?: number;
+  items?: JsonSchemaProperty | {
+    type: string;
+    properties: Record<string, JsonSchemaProperty>;
+    required: string[];
+    additionalProperties: boolean;
+  };
   enum?: string[];
 }
 
@@ -70,6 +78,7 @@ export interface ClassificationOptions {
 export interface ExpenseToClassify {
   description: string;
   amount: number;
+  date?: string;
 }
 
 export interface ClassificationResult {
@@ -77,6 +86,7 @@ export interface ClassificationResult {
   categoryName: string;
   confidence: number;
   isNewCategory: boolean;
+  newCategoryName: string;
   reasoning: string;
 }
 

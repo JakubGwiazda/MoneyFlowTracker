@@ -107,7 +107,7 @@ export class ClassificationService {
 
     // Budowanie payloadu dla batch
     const expensesText = expenses
-      .map((exp, idx) => `${idx + 1}. "${exp.description}" - ${exp.amount} PLN`)
+      .map((exp, idx) => `${idx + 1}. Opis: "${exp.description}", Kwota: ${exp.amount} PLN${exp.date ? `, Data: ${exp.date}` : ''}`)
     .join('\n');
 
     const payload: OpenRouterRequest = {
@@ -115,14 +115,14 @@ export class ClassificationService {
       messages: [
         {
           role: 'system',
-          content: this.buildSystemPrompt(existingCategories)
+          content: this.buildBatchSystemPrompt(existingCategories)
         },
         {
           role: 'user',
-          content: `Sklasyfikuj następujące wydatki:\n\n${expensesText}\n\nZwróć tablicę wyników w formacie JSON.`
+          content: this.buildBatchUserPrompt(expensesText, expenses.length)
         }
       ],
-      response_format: this.buildBatchResponseFormat(),
+      response_format: this.buildBatchResponseFormat(expenses.length),
       temperature: options?.temperature ?? 0.2,
       max_tokens: options?.maxTokens ?? 2000
     };
@@ -208,6 +208,53 @@ Opis: ${description}
 Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, opisów ani tekstu.`;
   }
 
+  private buildBatchSystemPrompt(categories: CategoryDto[]): string {
+    const categoriesList = categories
+      .map(cat => `- ID: ${cat.id}, Nazwa: "${cat.name}"`)
+      .join('\n');
+      
+    return `Jesteś ekspertem w klasyfikacji wydatków finansowych.
+    TWOJE ZADANIE:
+    Na podstawie listy wydatków dopasuj każdy z nich do jednej z istniejących kategorii lub, jeśli żadne dopasowanie nie jest wystarczająco pewne, zaproponuj nową kategorię.
+    
+    ---
+    
+    ### LISTA ISTNIEJĄCYCH KATEGORII:
+    ${categoriesList}    
+    ---
+    
+    ### ZASADY KLASYFIKACJI:
+    
+    1. Dla każdego wydatku oceń, do której z istniejących kategorii najbardziej pasuje.
+    2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć identyfikator i nazwę tej kategorii.
+    3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii** zgodną z zasadami poniżej.
+    4. Oceniaj pewność (confidence) w skali 0–1, uwzględniając:
+       - słowa kluczowe w opisie,
+       - kontekst zakupu (np. miejsce, usługa, produkt),
+       - kwotę transakcji (większe kwoty mogą wskazywać na większe zakupy, np. sprzęt RTV/AGD, samochód itp.).
+    5. Nowe kategorie muszą być:
+       - krótkie (1–3 słowa),
+       - jednoznaczne i zrozumiałe,
+       - opisowe (np. „Sprzęt fotograficzny", nie „Rzeczy"),
+       - w języku polskim.
+    6. Użyj kategorii „Inne" **tylko wtedy**, gdy żadna z istniejących nie pasuje, a nowa kategoria byłaby zbyt wąska lub unikalna.
+    7. Zawsze podaj krótkie (1–2 zdania) uzasadnienie wyboru dla każdego wydatku.
+    8. Zwróć wynik **w formacie JSON** jako tablicę obiektów.
+    9. Zachowaj kolejność wydatków - wynik dla wydatku nr 1 musi być pierwszy w tablicy, itd.
+    10. Proponowane nazwy nowych kategorii muszą być unikalne i nie powinny być takie same jak nazwy istniejących kategorii.
+    11. W przypadku nowych kategorii w polu ID oraz category name zwróć null, a uzupelnij pole newCategoryName nazwą nowej kategorii.
+    `;   
+  }
+
+  private buildBatchUserPrompt(expensesText: string, count: number): string {
+    return `Sklasyfikuj następujące ${count} wydatki:
+
+${expensesText}
+
+WAŻNE: Zwróć tablicę z dokładnie ${count} wynikami w tej samej kolejności. Każdy wynik musi zawierać pola: categoryId, categoryName, confidence, isNewCategory, reasoning.
+Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, opisów ani tekstu.`;
+  }
+
   private buildResponseFormat(): ResponseFormat {
     return {
       type: 'json_schema',
@@ -219,11 +266,11 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
           properties: {
             categoryId: {
               type: ['string', 'null'],
-              description: 'ID dopasowanej kategorii lub null dla nowej kategorii'
+              description: 'ID dopasowanej kategorii z listy istniejących kategorii'
             },
             categoryName: {
               type: 'string',
-              description: 'Nazwa dopasowanej kategorii lub proponowana nazwa nowej kategorii'
+              description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii'
             },
             confidence: {
               type: 'number',
@@ -234,6 +281,10 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
             isNewCategory: {
               type: 'boolean',
               description: 'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej'
+            },
+            newCategoryName: {
+              type: 'string',
+              description: 'Proponowana nazwa nowej kategorii'
             },
             reasoning: {
               type: 'string',
@@ -247,7 +298,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
     };
   }
 
-  private buildBatchResponseFormat(): ResponseFormat {
+  private buildBatchResponseFormat(expectedCount: number): ResponseFormat {
     return {
       type: 'json_schema',
       json_schema: {
@@ -257,7 +308,42 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
           type: 'object',
           properties: {
             results: {
-              type: 'array'
+              type: 'array',
+              minItems: expectedCount,
+              maxItems: expectedCount,
+              items: {
+                type: 'object',
+                properties: {
+                  categoryId: {
+                    type: ['string', 'null'],
+                    description: 'ID dopasowanej kategorii lub null dla nowej kategorii'
+                  },
+                  categoryName: {
+                    type: 'string',
+                    description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii'
+                  },
+                  confidence: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 1,
+                    description: 'Pewność dopasowania w skali 0-1'
+                  },
+                  isNewCategory: {
+                    type: 'boolean',
+                    description: 'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej'
+                  },
+                  reasoning: {
+                    type: 'string',
+                    description: 'Krótkie wyjaśnienie decyzji klasyfikacyjnej'
+                  },
+                  newCategoryName:{
+                    type: 'string',
+                    description: 'Proponowana nazwa nowej kategorii'
+                  }
+                },
+                required: ['categoryId', 'categoryName', 'confidence', 'isNewCategory', 'reasoning','newCategoryName'],
+                additionalProperties: false
+              }
             }
           },
           required: ['results'],
@@ -325,7 +411,8 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
         categoryName: parsed.categoryName,
         confidence: parsed.confidence,
         isNewCategory: parsed.isNewCategory,
-        reasoning: parsed.reasoning || ''
+        newCategoryName: parsed.newCategoryName,
+        reasoning: parsed.reasoning
       };
     } catch (error) {
       throw new ClassificationError(
@@ -357,11 +444,12 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
       }
 
       return parsed.results.map((result: any) => ({
-        categoryId: result.categoryId || null,
+        categoryId: result.categoryId,
         categoryName: result.categoryName,
         confidence: result.confidence,
         isNewCategory: result.isNewCategory,
-        reasoning: result.reasoning || ''
+        newCategoryName: result.newCategoryName,
+        reasoning: result.reasoning
       }));
     } catch (error) {
       throw new ClassificationError(

@@ -14,8 +14,9 @@ import { PaginationControlsComponent } from '../../app/common/pagination-control
 import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
 import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense-dialog.component';
-import { EditExpenseCategoryDialogComponent } from '../../app/expenses/dialogs/edit-expense-category-dialog.component';
+import { EditExpenseDialogComponent } from '../../app/expenses/dialogs/edit-expense-dialog.component';
 import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expenses/dialogs/confirm-dialog.component';
+import { ClassificationStatus } from 'src/types';
 
 @Component({
   selector: 'app-expenses-page',
@@ -166,10 +167,6 @@ export class ExpensesPageComponent implements OnInit{
   }
 
   onEditExpense(expenseId: string): void {
-    void this.openExpenseDialog(expenseId);
-  }
-
-  onEditCategory(expenseId: string): void {
     const expense = this.expenseLookup().get(expenseId);
     if (!expense) {
       return;
@@ -177,7 +174,7 @@ export class ExpensesPageComponent implements OnInit{
 
     void this.facade.loadCategories('');
 
-    const dialogRef = this.dialog.open(EditExpenseCategoryDialogComponent, {
+    const dialogRef = this.dialog.open(EditExpenseDialogComponent, {
       width: '420px',
       data: {
         expense,
@@ -186,19 +183,20 @@ export class ExpensesPageComponent implements OnInit{
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (categoryId: string | null | undefined) => {
-      if (categoryId === undefined) {
+    dialogRef.afterClosed().subscribe(async (result: { name: string; amount: number; expense_date: string; category_id: string; classification_status: ClassificationStatus } | undefined) => {
+      if (result === undefined) {
         return;
       }
 
       try {
         await this.facade.updateExpense(expenseId, {
-          name: expense.name,
-          amount: expense.amount,
-          expense_date: expense.expense_date,
-          category_id: categoryId,
+          name: result.name,
+          amount: result.amount,
+          expense_date: result.expense_date,
+          category_id: result.category_id,
+          classification_status: result.classification_status,
         });
-        this.snackBar.open('Kategoria została zaktualizowana.', 'Zamknij', { duration: 3000 });
+        this.snackBar.open('Pozycja została zaktualizowana.', 'Zamknij', { duration: 3000 });
       } catch (error) {
         console.error(error);
         this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', { duration: 3000 });
@@ -267,38 +265,30 @@ export class ExpensesPageComponent implements OnInit{
   }
 
   private async openExpenseDialog(expenseId?: string): Promise<void> {
-    if (this.categoryOptions().length === 0) {
-      await this.facade.loadCategories('');
-    }
-
-    const expense = expenseId ? this.expenseLookup().get(expenseId) : undefined;
+    // Edycja pojedynczego wydatku nie jest obecnie obsługiwana w nowym flow
+    // if (expenseId) {
+    //   this.snackBar.open('Edycja wydatków jest dostępna przez tabelę.', 'Zamknij', { duration: 3000 });
+    //   return;
+    // }
 
     const dialogRef = this.dialog.open<AddExpenseDialogComponent, unknown, AddExpenseDialogResult>(AddExpenseDialogComponent, {
-      width: '520px',
-      data: {
-        getCategories: () => this.categoryOptions(),
-        expense,
-        onCategorySearch: (query: string) => this.facade.loadCategories(query),
-      },
+      width: '800px',
+      maxHeight: '90vh',
     });
 
     const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result) {
+    if (!result || result.expenses.length === 0) {
       return;
     }
 
     try {
-      if (expense) {
-        await this.facade.updateExpense(expense.id, result.command);
-        this.snackBar.open('Wydatek został zaktualizowany.', 'Zamknij', { duration: 3000 });
-      } else {
-        await this.facade.createExpense(result.command);
-        this.snackBar.open('Wydatek został dodany.', 'Zamknij', { duration: 3000 });
-
-        if (result.mode === 'add-another') {
-          void this.openExpenseDialog();
-        }
-      }
+      // Dialog już obsługuje klasyfikację i zapis, więc tutaj tylko pokazujemy komunikat
+      const count = result.expenses.length;
+      this.snackBar.open(
+        `Dodano ${count} ${count === 1 ? 'wydatek' : count < 5 ? 'wydatki' : 'wydatków'} i sklasyfikowano.`,
+        'Zamknij',
+        { duration: 3000 }
+      );
     } catch (error) {
       console.error(error);
       this.snackBar.open('Operacja nie powiodła się.', 'Zamknij', { duration: 3000 });
