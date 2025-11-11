@@ -38,12 +38,11 @@ export class ClassificationService {
    */
   public classifyExpense(
     description: string,
-    amount: number,
     existingCategories: CategoryDto[],
     options?: ClassificationOptions
   ): Observable<ClassificationResult> {
     // Walidacja wejścia
-    this.validateInput(description, amount);
+    this.validateInput(description);
 
     // Rate limiting
     if (!this.rateLimiter.canMakeRequest('classification')) {
@@ -64,11 +63,11 @@ export class ClassificationService {
         },
         {
           role: 'user',
-          content: this.buildUserPrompt(description, amount)
+          content: this.buildUserPrompt(description)
         }
       ],
       response_format: this.buildResponseFormat(),
-      temperature: options?.temperature ?? 0.3,
+      temperature: options?.temperature ?? 0.2,
       max_tokens: options?.maxTokens ?? 500
     };
 
@@ -124,7 +123,7 @@ export class ClassificationService {
         }
       ],
       response_format: this.buildBatchResponseFormat(),
-      temperature: options?.temperature ?? 0.3,
+      temperature: options?.temperature ?? 0.2,
       max_tokens: options?.maxTokens ?? 2000
     };
 
@@ -171,39 +170,42 @@ export class ClassificationService {
       .map(cat => `- ID: ${cat.id}, Nazwa: "${cat.name}"`)
       .join('\n');
       
-    return `Jesteś ekspertem w klasyfikacji wydatków finansowych. 
-Twoim zadaniem jest dopasowanie wydatku do jednej z istniejących kategorii lub zaproponowanie nowej nazwy kategorii.
-
-ISTNIEJĄCE KATEGORIE:
-${categoriesList}
-
-ZASADY KLASYFIKACJI:
-1. Jeśli wydatek wyraźnie pasuje do istniejącej kategorii (pewność >= 0.7), zwróć jej ID i nazwę
-2. Jeśli pewność dopasowania < 0.7, zaproponuj nową, konkretną nazwę kategorii
-3. Oceniaj pewność dopasowania w skali 0-1 na podstawie:
-   - Podobieństwa słów kluczowych
-   - Kontekstu zakupu
-   - Kwoty (duże kwoty mogą sugerować specyficzne kategorie)
-4. Nowe kategorie powinny być:
-   - Jasne i zrozumiałe
-   - Zwięzłe (1-3 słowa)
-   - Opisowe i specyficzne
-   - W języku polskim
-5. Zawsze podaj krótkie uzasadnienie swojej decyzji
-
-PRZYKŁADY:
-- "Zakup kawy w Starbucks" → pasuje do "Restauracje i kawiarnie" (confidence: 0.9)
-- "Opłata za Netflix" → pasuje do "Rozrywka cyfrowa" (confidence: 0.95)
-- "Zakup specjalistycznego sprzętu fotograficznego" → nowa kategoria "Sprzęt fotograficzny" (confidence: 0.3 dla ogólnej "Elektroniki")`;
+    return `Jesteś ekspertem w klasyfikacji wydatków finansowych.
+    TWOJE ZADANIE:
+    Na podstawie opisu pojedynczego wydatku dopasuj go do jednej z istniejących kategorii lub, jeśli żadne dopasowanie nie jest wystarczająco pewne, zaproponuj nową kategorię.
+    
+    ---
+    
+    ### LISTA ISTNIEJĄCYCH KATEGORII:
+    ${categoriesList}    
+    ---
+    
+    ### ZASADY KLASYFIKACJI:
+    
+    1. Oceń, do której z istniejących kategorii wydatek najbardziej pasuje.
+    2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć identyfikator i nazwę tej kategorii.
+    3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii** zgodną z zasadami poniżej.
+    4. Oceniaj pewność (confidence) w skali 0–1, uwzględniając:
+       - słowa kluczowe w opisie,
+       - kontekst zakupu (np. miejsce, usługa, produkt),
+       - kwotę transakcji (większe kwoty mogą wskazywać na większe zakupy, np. sprzęt RTV/AGD, samochód itp.).
+    5. Nowe kategorie muszą być:
+       - krótkie (1–3 słowa),
+       - jednoznaczne i zrozumiałe,
+       - opisowe (np. „Sprzęt fotograficzny”, nie „Rzeczy”),
+       - w języku polskim.
+    6. Użyj kategorii „Inne” **tylko wtedy**, gdy żadna z istniejących nie pasuje, a nowa kategoria byłaby zbyt wąska lub unikalna.
+    7. Zawsze podaj krótkie (1–2 zdania) uzasadnienie wyboru.
+    8. Zwróć wynik **w formacie JSON**:
+    `;   
   }
 
-  private buildUserPrompt(description: string, amount: number): string {
+  private buildUserPrompt(description: string): string {
     return `Sklasyfikuj następujący wydatek:
 
 Opis: ${description}
-Kwota: ${amount} PLN
 
-Zwróć wynik w formacie JSON zgodnym ze schematem.`;
+Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, opisów ani tekstu.`;
   }
 
   private buildResponseFormat(): ResponseFormat {
@@ -385,7 +387,7 @@ Zwróć wynik w formacie JSON zgodnym ze schematem.`;
     return result;
   }
 
-  private validateInput(description: string, amount: number): void {
+  private validateInput(description: string): void {
     if (!description || description.trim().length === 0) {
       throw new ClassificationError(
         'Opis wydatku jest wymagany',
@@ -396,20 +398,6 @@ Zwróć wynik w formacie JSON zgodnym ze schematem.`;
     if (description.length > 500) {
       throw new ClassificationError(
         'Opis wydatku jest zbyt długi (maksymalnie 500 znaków)',
-        'VALIDATION_ERROR'
-      );
-    }
-
-    if (typeof amount !== 'number' || amount < 0) {
-      throw new ClassificationError(
-        'Kwota musi być liczbą dodatnią',
-        'VALIDATION_ERROR'
-      );
-    }
-
-    if (amount > 1000000) {
-      throw new ClassificationError(
-        'Kwota wydaje się być nieprawidłowa (przekracza 1 000 000 PLN)',
         'VALIDATION_ERROR'
       );
     }

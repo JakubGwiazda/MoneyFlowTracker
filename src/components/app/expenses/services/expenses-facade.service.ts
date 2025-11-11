@@ -503,7 +503,6 @@ export class ExpensesFacadeService {
       return new Promise((resolve, reject) => {
         this.classificationService.classifyExpense(
           description,
-          amount,
           categoryDtos
         ).subscribe({
           next: (result) => resolve(result),

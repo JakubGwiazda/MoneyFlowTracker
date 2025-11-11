@@ -86,7 +86,7 @@ serve(async (req) => {
         model: payload.model || 'openai/gpt-4o-mini',
         messages: payload.messages,
         response_format: payload.response_format,
-        temperature: payload.temperature ?? 0.3,
+        temperature: payload.temperature ?? 0.2,
         max_tokens: payload.max_tokens ?? 500,
         top_p: payload.top_p ?? 1,
         frequency_penalty: payload.frequency_penalty ?? 0,
