@@ -204,32 +204,6 @@ export class ExpensesPageComponent implements OnInit{
     });
   }
 
-  onReclassifyExpense(expenseId: string): void {
-    const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
-      width: '360px',
-      data: {
-        title: 'Czy na pewno chcesz zlecić ponowną klasyfikację?',
-        message: 'Wydatki w statusie oczekującym zostaną wysłane do usługi klasyfikacji AI.',
-        confirmLabel: 'Reklasyfikuj',
-        confirmColor: 'primary',
-      },
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        await this.facade.reclassifyExpense(expenseId);
-        this.snackBar.open('Rozpoczęto klasyfikację wydatku.', 'Zamknij', { duration: 3000 });
-      } catch (error) {
-        console.error(error);
-        this.snackBar.open('Nie udało się zainicjować klasyfikacji.', 'Zamknij', { duration: 3000 });
-      }
-    });
-  }
-
   onDeleteExpense(expenseId: string): void {
     const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
       width: '360px',

@@ -24,13 +24,7 @@ type DialogData = {
      ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
   template: `
     <h2 mat-dialog-title>Edycja pozycji</h2>
-    <div mat-dialog-content class="flex flex-col gap-4">
-      <div class="rounded-lg bg-gray-100 p-3 text-sm">
-        <div class="font-medium text-gray-900">Nazwa: {{ data.expense.name }}</div>
-        <div class="font-medium text-gray-900">Kwota: {{ data.expense.amount | number:'1.2-2' }} PLN</div>
-        <div class="font-medium text-gray-900">Data: {{ data.expense.expense_date | date:'dd.mm.yyyy' }}</div>
-      </div>
-
+    <div mat-dialog-content class="flex flex-col gap-4"> 
       <form [formGroup]="editForm" class="expense-edit-form">
         <mat-form-field appearance="outline">
           <mat-label>Nazwa</mat-label>
@@ -63,6 +57,7 @@ type DialogData = {
         
       <app-select-autocomplete formControlName="category_id"
         [options]="categories()"
+        [fieldLabel]="'Kategoria'"
         [value]="selectedId()"
         (valueChange)="onSelect($event)"
         (queryChange)="data.onCategorySearch?.($event)"

@@ -216,14 +216,11 @@ export class ExpensesTableComponent implements AfterViewInit {
     this.sortChange.emit({ active: sort.active as SortState['active'], direction: sort.direction as 'asc' | 'desc' });
   }
 
-  onAction(expenseId: string, action: 'edit' | 'reclassify' | 'delete'): void {
+  onAction(expenseId: string, action: 'edit' | 'delete'): void {
     switch (action) {
       case 'edit':
         this.editExpense.emit(expenseId);
-        break;
-      case 'reclassify':
-        this.reclassifyExpense.emit(expenseId);
-        break;
+        break; 
       case 'delete':
         this.deleteExpense.emit(expenseId);
         break;
