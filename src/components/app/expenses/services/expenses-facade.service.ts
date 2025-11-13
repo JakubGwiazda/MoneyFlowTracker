@@ -498,7 +498,8 @@ export class ExpensesFacadeService {
         name: cat.name,
         parent_id: null,
         is_active: cat.is_active,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        user_id: null
       }));
 
       // Wywołaj klasyfikację
@@ -537,7 +538,8 @@ export class ExpensesFacadeService {
         name: cat.name,
         parent_id: null,
         is_active: cat.is_active,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        user_id: null
       }));
 
       // 2. Przygotuj wydatki do klasyfikacji
@@ -558,7 +560,13 @@ export class ExpensesFacadeService {
         });
       });
 
-      // 4. Utwórz nowe kategorie jeśli są potrzebne
+      // 4. Pobierz użytkownika (potrzebny do tworzenia kategorii)
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        throw new Error('Nie jesteś zalogowany.');
+      }
+
+      // 5. Utwórz nowe kategorie jeśli są potrzebne
       const newCategoriesToCreate = classificationResults
         .filter(result => result.isNewCategory)
         .map(result => result.newCategoryName);
@@ -571,11 +579,15 @@ export class ExpensesFacadeService {
         categoryNameToIdMap.set(cat.name, cat.id);
       });
 
-      // Utwórz nowe kategorie
+      // Utwórz nowe kategorie (przypisując user_id)
       if (uniqueNewCategories.length > 0) {
         const { data: newCategories, error: createCategoriesError } = await supabaseClient
           .from('categories')
-          .insert(uniqueNewCategories.map(name => ({name, is_active: true })))
+          .insert(uniqueNewCategories.map(name => ({
+            name, 
+            is_active: true,
+            user_id: user.id
+          })))
           .select('id, name');
 
         if (createCategoriesError) {
@@ -590,12 +602,6 @@ export class ExpensesFacadeService {
         });
 
         this.categoriesFacade.refresh();
-      }
-
-      // 5. Pobierz użytkownika
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) {
-        throw new Error('Nie jesteś zalogowany.');
       }
 
       // 6. Utwórz wydatki z przypisanymi kategoriami

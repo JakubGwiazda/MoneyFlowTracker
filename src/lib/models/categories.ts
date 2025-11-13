@@ -9,6 +9,7 @@ export type CategoryListViewModel = CategoryDto & {
   hasChildren: boolean;
   statusLabel: string;
   statusTone: 'success' | 'error' | 'warning' | 'info';
+  isSystem: boolean;
 };
 
 /**
@@ -52,6 +53,7 @@ export type CategoryOptionViewModel = {
   label: string;
   parentId?: string | null;
   isActive: boolean;
+  isSystem?: boolean;
 };
 
 /**

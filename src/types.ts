@@ -38,7 +38,7 @@ type CategoryRow = Tables<"categories">
 /** Category payload returned by the API. */
 export type CategoryDto = Pick<
   CategoryRow,
-  "id" | "name" | "parent_id" | "is_active" | "created_at"
+  "id" | "name" | "parent_id" | "is_active" | "created_at" | "user_id"
 >
 
 /** Query-string contract for listing categories. */
@@ -50,7 +50,7 @@ export type CategoryListQueryDto = PageQueryParams & {
 /** Request body structure for creating categories. */
 export type CreateCategoryCommand = Pick<
   TablesInsert<"categories">,
-  "name" | "parent_id" | "is_active"
+  "name" | "parent_id" | "is_active" | "user_id"
 >
 
 /** Partial update payload for categories. */
