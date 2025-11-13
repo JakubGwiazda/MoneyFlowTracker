@@ -22,12 +22,23 @@ export async function createCategory(
   supabase: SupabaseClient<Database>
 ): Promise<CategoryDto> {
   
-  // Check for duplicate name (categories are global, case-insensitive unique)
-  const { data: existingCategory, error: duplicateError } = await supabase
+  // Check for duplicate name within the same scope (system or user)
+  // System categories (user_id IS NULL) are unique globally
+  // User categories are unique per user
+  let duplicateQuery = supabase
     .from('categories')
     .select('id')
-    .ilike('name', command.name)
-    .maybeSingle();
+    .ilike('name', command.name);
+
+  if (command.user_id) {
+    // Check for duplicates within user's categories
+    duplicateQuery = duplicateQuery.eq('user_id', command.user_id);
+  } else {
+    // Check for duplicates within system categories
+    duplicateQuery = duplicateQuery.is('user_id', null);
+  }
+
+  const { data: existingCategory, error: duplicateError } = await duplicateQuery.maybeSingle();
 
   if (duplicateError) {
     console.error('Failed to check for duplicate category:', duplicateError);
@@ -42,20 +53,28 @@ export async function createCategory(
   if (command.parent_id) {
     const { data: parent, error: parentError } = await supabase
       .from('categories')
-      .select('id')
+      .select('id, user_id')
       .eq('id', command.parent_id)
       .single();
 
     if (parentError || !parent) {
       throw new Error('PARENT_CATEGORY_NOT_FOUND');
     }
+
+    // Validate that parent is of the same type (system or user)
+    // System categories can only have system parents
+    // User categories can only have parents from the same user
+    if (command.user_id !== parent.user_id) {
+      throw new Error('PARENT_CATEGORY_TYPE_MISMATCH');
+    }
   }
 
-  // Prepare category data for insertion (categories are global, no user_id)
+  // Prepare category data for insertion
   const categoryData = {
     name: command.name,
     parent_id: command.parent_id || null,
     is_active: command.is_active ?? true,
+    user_id: command.user_id || null,
   };
 
   // Insert category record
@@ -77,6 +96,7 @@ export async function createCategory(
     parent_id: category.parent_id,
     is_active: category.is_active,
     created_at: category.created_at,
+    user_id: category.user_id,
   };
 }
 
@@ -110,12 +130,20 @@ export async function updateCategory(
 
   // Check for duplicate name if name is being changed (case-insensitive)
   if (command.name && command.name.toLowerCase() !== existingCategory.name.toLowerCase()) {
-    const { data: duplicateCategory, error: duplicateError } = await supabase
+    let duplicateQuery = supabase
       .from('categories')
       .select('id')
       .ilike('name', command.name)
-      .neq('id', categoryId)
-      .maybeSingle();
+      .neq('id', categoryId);
+
+    // Check within the same scope (system or user)
+    if (existingCategory.user_id) {
+      duplicateQuery = duplicateQuery.eq('user_id', existingCategory.user_id);
+    } else {
+      duplicateQuery = duplicateQuery.is('user_id', null);
+    }
+
+    const { data: duplicateCategory, error: duplicateError } = await duplicateQuery.maybeSingle();
 
     if (duplicateError) {
       console.error('Failed to check for duplicate category:', duplicateError);
@@ -136,12 +164,17 @@ export async function updateCategory(
 
     const { data: parent, error: parentError } = await supabase
       .from('categories')
-      .select('id, parent_id')
+      .select('id, parent_id, user_id')
       .eq('id', command.parent_id)
       .single();
 
     if (parentError || !parent) {
       throw new Error('PARENT_CATEGORY_NOT_FOUND');
+    }
+
+    // Validate that parent is of the same type (system or user)
+    if (existingCategory.user_id !== parent.user_id) {
+      throw new Error('PARENT_CATEGORY_TYPE_MISMATCH');
     }
 
     // Check if parent has this category as parent (circular reference)
@@ -184,6 +217,7 @@ export async function updateCategory(
     parent_id: category.parent_id,
     is_active: category.is_active,
     created_at: category.created_at,
+    user_id: category.user_id,
   };
 }
 

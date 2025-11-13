@@ -36,6 +36,7 @@ export interface SelectAutocompleteOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <mat-form-field appearance="outline">
+      <mat-label>{{ fieldLabel() }}</mat-label>
       <input
         type="text"
         matInput
@@ -72,6 +73,8 @@ export class SelectAutocompleteComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly options = input.required<SelectAutocompleteOption[]>();
+  readonly fieldLabel = input.required<string>();
+  
   readonly value = input<string | null>(null);
   readonly disabled = input<boolean>(false);
 

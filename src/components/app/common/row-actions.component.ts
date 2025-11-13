@@ -26,14 +26,6 @@ import type { ExpenseActionType, ExpensesListViewModel } from '../../../lib/mode
         <mat-icon>edit</mat-icon>
         <span>Edytuj</span>
       </button>
-      <button mat-menu-item (click)="emit('changeCategory')">
-        <mat-icon>label</mat-icon>
-        <span>Zmień kategorię</span>
-      </button>
-      <button mat-menu-item [disabled]="expense().classification_status === 'pending'" (click)="emit('reclassify')">
-        <mat-icon>refresh</mat-icon>
-        <span>Reklasyfikuj</span>
-      </button>
       <mat-divider></mat-divider>
       <button mat-menu-item class="text-red-600" (click)="emit('delete')">
         <mat-icon color="warn">delete</mat-icon>

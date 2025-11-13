@@ -102,7 +102,8 @@ export class CategoriesFacadeService {
         throw new Error('Nie jesteś zalogowany.');
       }
 
-      // Build Supabase query (categories are global, no user_id filter)
+      // Build Supabase query
+      // RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
       let query = supabaseClient
         .from('categories')
         .select('*', { count: 'exact' });
@@ -160,6 +161,7 @@ export class CategoriesFacadeService {
         parent_id: row.parent_id,
         is_active: row.is_active,
         created_at: row.created_at,
+        user_id: row.user_id,
       }));
 
       this.categoriesSignal.set(
@@ -196,7 +198,7 @@ export class CategoriesFacadeService {
 
       const { data: categories, error } = await supabaseClient
         .from('categories')
-        .select('id, name, parent_id, is_active')
+        .select('id, name, parent_id, is_active, user_id')
         .order('name');
 
       if (error) {
@@ -208,6 +210,7 @@ export class CategoriesFacadeService {
         label: category.name,
         parentId: category.parent_id,
         isActive: category.is_active,
+        isSystem: category.user_id === null,
       } satisfies CategoryOptionViewModel));
 
       for (const option of options) {
@@ -228,37 +231,45 @@ export class CategoriesFacadeService {
         throw new Error('Nie jesteś zalogowany.');
       }
 
-      // Check for duplicate name (case-insensitive, categories are global)
+      // Check for duplicate name (case-insensitive, within user's scope)
+      // Users can only create their own categories, not system categories
       const { data: existingCategory } = await supabaseClient
         .from('categories')
         .select('id')
         .ilike('name', command.name)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (existingCategory) {
-        throw new Error('Kategoria o tej nazwie już istnieje.');
+        throw new Error('Kategoria o tej nazwie już istnieje w Twoich kategoriach.');
       }
 
       // Validate parent if provided
       if (command.parent_id) {
         const { data: parent, error: parentError } = await supabaseClient
           .from('categories')
-          .select('id')
+          .select('id, user_id')
           .eq('id', command.parent_id)
           .single();
 
         if (parentError || !parent) {
           throw new Error('Kategoria nadrzędna nie została znaleziona.');
         }
+
+        // Validate that parent belongs to the same user (users can't use system categories as parents)
+        if (parent.user_id !== user.id) {
+          throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
+        }
       }
 
-      // Insert category (categories are global, no user_id)
+      // Insert category with user_id (users can only create their own categories)
       const { data: category, error: insertError } = await supabaseClient
         .from('categories')
         .insert({
           name: command.name,
           parent_id: command.parent_id || null,
           is_active: command.is_active ?? true,
+          user_id: user.id,
         })
         .select()
         .single();
@@ -282,7 +293,7 @@ export class CategoriesFacadeService {
         throw new Error('Nie jesteś zalogowany.');
       }
 
-      // Check if category exists (categories are global)
+      // Check if category exists and belongs to user (RLS will filter, but we check explicitly)
       const { data: existingCategory, error: fetchError } = await supabaseClient
         .from('categories')
         .select('*')
@@ -293,17 +304,23 @@ export class CategoriesFacadeService {
         throw new Error('Kategoria nie została znaleziona.');
       }
 
-      // Check for duplicate name if name is being changed (case-insensitive)
+      // Users can only update their own categories (not system categories)
+      if (existingCategory.user_id !== user.id) {
+        throw new Error('Nie możesz edytować tej kategorii.');
+      }
+
+      // Check for duplicate name if name is being changed (case-insensitive, within user's scope)
       if (command.name && command.name.toLowerCase() !== existingCategory.name.toLowerCase()) {
         const { data: duplicateCategory } = await supabaseClient
           .from('categories')
           .select('id')
           .ilike('name', command.name)
+          .eq('user_id', user.id)
           .neq('id', categoryId)
           .maybeSingle();
 
         if (duplicateCategory) {
-          throw new Error('Kategoria o tej nazwie już istnieje.');
+          throw new Error('Kategoria o tej nazwie już istnieje w Twoich kategoriach.');
         }
       }
 
@@ -316,12 +333,17 @@ export class CategoriesFacadeService {
 
         const { data: parent, error: parentError } = await supabaseClient
           .from('categories')
-          .select('id, parent_id')
+          .select('id, parent_id, user_id')
           .eq('id', command.parent_id)
           .single();
 
         if (parentError || !parent) {
           throw new Error('Kategoria nadrzędna nie została znaleziona.');
+        }
+
+        // Validate that parent belongs to the same user
+        if (parent.user_id !== user.id) {
+          throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
         }
 
         // Check if parent has this category as parent
@@ -367,6 +389,22 @@ export class CategoriesFacadeService {
       
       if (authError || !user) {
         throw new Error('Nie jesteś zalogowany.');
+      }
+
+      // Check if category exists and belongs to user
+      const { data: existingCategory } = await supabaseClient
+        .from('categories')
+        .select('user_id')
+        .eq('id', categoryId)
+        .single();
+
+      if (!existingCategory) {
+        throw new Error('Kategoria nie została znaleziona.');
+      }
+
+      // Users can only delete their own categories (not system categories)
+      if (existingCategory.user_id !== user.id) {
+        throw new Error('Nie możesz usunąć tej kategorii.');
       }
 
       // Check if category is being used
@@ -551,6 +589,7 @@ export class CategoriesFacadeService {
       hasChildren,
       statusLabel,
       statusTone,
+      isSystem: category.user_id === null,
     } satisfies CategoryListViewModel;
   }
 

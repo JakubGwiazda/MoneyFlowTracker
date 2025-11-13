@@ -219,7 +219,6 @@ insert into categories (name, parent_id) values
     ('Zdrowie', null),
     ('Edukacja', null),
     ('Podróże', null),
-    ('Business', null),
     ('Inne', null);
 
 -- Insert subcategories for more granular classification

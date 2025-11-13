@@ -41,6 +41,7 @@ export type Database = {
           is_active: boolean
           name: string
           parent_id: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -48,6 +49,7 @@ export type Database = {
           is_active?: boolean
           name: string
           parent_id?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -55,6 +57,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           parent_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -62,6 +65,13 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
