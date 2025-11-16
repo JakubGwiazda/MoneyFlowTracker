@@ -85,6 +85,21 @@ From the project root, run:
 | `npm run lint:fix` | Run ESLint with auto-fix              |
 | `npm run format`   | Format code with Prettier             |
 
+## Testing
+
+Karma + Jasmine power the unit test suite. The CLI is already wired to use a headless Chrome instance so you can run tests locally or in CI without opening a browser window.
+
+1. **Single run (CI-friendly)**  
+   ```bash
+   npm run test -- --watch=false --browsers=ChromeHeadless
+   ```
+2. **Watch mode for local development**  
+   ```bash
+   npm run test
+   ```
+
+> Make sure Google Chrome (or Chromium) is installed locally. The Karma runner launches `ChromeHeadless` by default, but you can override the `browsers` flag if needed.
+
 ## Project Scope
 
 ### In Scope (MVP)
