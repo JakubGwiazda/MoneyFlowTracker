@@ -25,6 +25,7 @@
           [disabled]="loading()"
           (valueChange)="onCategorySelected($event)"
           (queryChange)="categorySearch.emit($event)"
+          data-testid="expenses-category-filter"
         />
       </section>
       <div >
@@ -35,6 +36,7 @@
           (click)="addExpenseClick.emit()"
           [disabled]="loading()"
           class="flex items-center gap-2 me-3"
+          data-testid="add-expense-button"
         >
           <mat-icon>add</mat-icon>
           Dodaj wydatek
@@ -45,6 +47,7 @@
         class="self-center"
         (click)="onResetFilters()"
         [disabled]="loading()"
+        data-testid="expenses-clear-filters-button"
       >
         Resetuj filtry
       </button>

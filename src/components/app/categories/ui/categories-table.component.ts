@@ -47,7 +47,7 @@ type CategoryTreeNode = CategoryListViewModel & {
 
       @if (data().length > 0) {
         <div class="table-container">
-          <table mat-table [dataSource]="visibleRows()" class="categories-table">
+          <table mat-table [dataSource]="visibleRows()" class="categories-table" data-testid="categories-table">
             <!-- Name Column with Tree Structure -->
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Nazwa</th>

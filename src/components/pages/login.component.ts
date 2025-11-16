@@ -38,7 +38,7 @@ import { AuthService } from '../../lib/services/auth.service';
         <mat-card-content>
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             @if (errorMessage()) {
-              <div class="error-message">
+              <div class="error-message" data-testid="login-error-message">
                 <mat-icon>error</mat-icon>
                 <span>{{ errorMessage() }}</span>
               </div>
@@ -52,6 +52,7 @@ import { AuthService } from '../../lib/services/auth.service';
                 formControlName="email"
                 placeholder="nazwa@example.com"
                 autocomplete="email"
+                data-testid="login-email-input"
               />
               @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
                 <mat-error>Email jest wymagany</mat-error>
@@ -69,6 +70,7 @@ import { AuthService } from '../../lib/services/auth.service';
                 formControlName="password"
                 placeholder="Twoje hasło"
                 autocomplete="current-password"
+                data-testid="login-password-input"
               />
               <button
                 mat-icon-button
@@ -91,6 +93,7 @@ import { AuthService } from '../../lib/services/auth.service';
               type="submit"
               [disabled]="loginForm.invalid || loading()"
               class="submit-button"
+              data-testid="login-submit-button"
             >
               @if (loading()) {
                 <mat-spinner diameter="20"></mat-spinner>
@@ -105,7 +108,7 @@ import { AuthService } from '../../lib/services/auth.service';
         <mat-card-actions>
           <p class="register-link">
             Nie masz konta?
-            <a routerLink="/register">Zarejestruj się</a>
+            <a routerLink="/register" data-testid="login-register-link">Zarejestruj się</a>
           </p>
         </mat-card-actions>
       </mat-card>

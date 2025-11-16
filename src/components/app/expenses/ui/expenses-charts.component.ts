@@ -71,7 +71,7 @@ import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from
         </div>
       <div>
         @if (hasData()) {
-          <div class="chart-container">
+          <div class="chart-container" data-testid="expenses-chart">
             @switch (selectedChartType()) {
               @case (ChartType.BAR) {
                 <ngx-charts-bar-vertical

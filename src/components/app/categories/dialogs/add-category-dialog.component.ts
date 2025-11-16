@@ -44,7 +44,7 @@ export type AddCategoryDialogResult = {
       }
     </h2>
 
-    <mat-dialog-content>
+    <mat-dialog-content data-testid="add-category-dialog">
       <form [formGroup]="form" class="category-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nazwa kategorii</mat-label>
@@ -53,6 +53,7 @@ export type AddCategoryDialogResult = {
             formControlName="name"
             placeholder="np. Transport, Jedzenie"
             autocomplete="off"
+            data-testid="category-name-input"
           />
           @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
             <mat-error>Nazwa jest wymagana</mat-error>
@@ -85,7 +86,7 @@ export type AddCategoryDialogResult = {
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">
+      <button mat-button (click)="onCancel()" data-testid="category-cancel-button">
         Anuluj
       </button>
       <button 
@@ -93,6 +94,7 @@ export type AddCategoryDialogResult = {
         color="primary"
         (click)="onSubmit()"
         [disabled]="form.invalid || submitting()"
+        data-testid="category-save-button"
       >
         @if (submitting()) {
           <mat-spinner diameter="20"></mat-spinner>

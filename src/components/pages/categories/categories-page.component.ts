@@ -48,6 +48,7 @@ import { CreateCategoryCommand } from 'src/types';
             mat-raised-button 
             color="primary"
             (click)="onAddCategory()"
+            data-testid="add-category-button"
           >
             <mat-icon>add</mat-icon>
             Dodaj kategorię
@@ -65,6 +66,7 @@ import { CreateCategoryCommand } from 'src/types';
                 [(ngModel)]="searchQuery"
                 (ngModelChange)="onSearchChange($event)"
                 placeholder="Wpisz nazwę kategorii..."
+                data-testid="categories-search-input"
               />
               <mat-icon matPrefix>search</mat-icon>
             </mat-form-field>

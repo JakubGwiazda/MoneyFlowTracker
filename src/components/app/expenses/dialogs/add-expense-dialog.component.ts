@@ -41,11 +41,11 @@ export type AddExpenseDialogResult = {
   ],
   template: `
     <h2 mat-dialog-title>Dodaj wydatek</h2>
-    <div mat-dialog-content class="dialog-content">
+    <div mat-dialog-content class="dialog-content" data-testid="add-expense-dialog">
       <form [formGroup]="form" class="mt-2 expense-form">
         <mat-form-field appearance="outline">
           <mat-label>Nazwa</mat-label>
-          <input matInput formControlName="name" required maxlength="100" />
+          <input matInput formControlName="name" required maxlength="100" data-testid="expense-description-input" />
           @if (form.controls.name.hasError('required')) {
             <mat-error>Nazwa jest wymagana</mat-error>
           }
@@ -53,7 +53,7 @@ export type AddExpenseDialogResult = {
 
         <mat-form-field appearance="outline">
           <mat-label>Kwota</mat-label>
-          <input matInput type="number" min="0" step="0.01" formControlName="amount" required />
+          <input matInput type="number" min="0" step="0.01" formControlName="amount" required data-testid="expense-amount-input" />
           @if (form.controls.amount.hasError('required')) {
             <mat-error>Kwota jest wymagana</mat-error>
           }
@@ -64,7 +64,7 @@ export type AddExpenseDialogResult = {
 
         <mat-form-field appearance="outline">
           <mat-label>Data</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="expense_date" required />
+          <input matInput [matDatepicker]="picker" formControlName="expense_date" required data-testid="expense-date-input" />
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           @if (form.controls.expense_date.hasError('required')) {
@@ -122,8 +122,8 @@ export type AddExpenseDialogResult = {
     </div>
 
     <mat-dialog-actions align="end">
-      <button mat-button (click)="dialogRef.close()">Anuluj</button>
-      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isClassifying()">
+      <button mat-button (click)="dialogRef.close()" data-testid="expense-cancel-button">Anuluj</button>
+      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isClassifying()" data-testid="expense-save-button">
         Zapisz i klasyfikuj
       </button>
     </mat-dialog-actions>

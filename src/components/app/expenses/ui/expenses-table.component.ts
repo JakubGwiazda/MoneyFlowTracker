@@ -39,7 +39,7 @@ import { RowActionsComponent } from '../../common/row-actions.component';
   template: `
     <div class="table-wrapper">
       <div class="table-scroll-container">
-        <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)">
+        <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)" data-testid="expenses-table">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
             <td mat-cell *matCellDef="let element">
