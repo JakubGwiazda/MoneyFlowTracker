@@ -18,39 +18,78 @@ export class AuthService {
   });
 
   readonly authState = this.authStateSignal.asReadonly();
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(private router: Router) {
     this.initializeAuth();
   }
 
   private async initializeAuth(): Promise<void> {
-    try {
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
+    // Prevent multiple simultaneous initialization calls
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
 
-      if (error) {
-        throw error;
-      }
+    this.initializationPromise = (async () => {
+      try {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-      this.authStateSignal.update((state) => ({
-        ...state,
-        user: session?.user || null,
-        loading: false,
-      }));
+        if (error) {
+          throw error;
+        }
 
-      // Listen to auth state changes
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
         this.authStateSignal.update((state) => ({
           ...state,
           user: session?.user || null,
+          loading: false,
         }));
-      });
-    } catch (error) {
-      this.authStateSignal.update((state) => ({
-        ...state,
-        loading: false,
-        error: this.resolveErrorMessage(error),
-      }));
+
+        // Listen to auth state changes (only once)
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          this.authStateSignal.update((state) => ({
+            ...state,
+            user: session?.user || null,
+          }));
+        });
+      } catch (error) {
+        this.authStateSignal.update((state) => ({
+          ...state,
+          loading: false,
+          error: this.resolveErrorMessage(error),
+        }));
+      }
+    })();
+
+    return this.initializationPromise;
+  }
+
+  /**
+   * Check if user is authenticated without calling getSession() again
+   * Uses cached state from AuthService
+   */
+  isAuthenticated(): boolean {
+    return this.authState().user !== null;
+  }
+
+  /**
+   * Wait for initialization to complete before checking auth status
+   */
+  async waitForInitialization(): Promise<void> {
+    if (this.initializationPromise) {
+      await this.initializationPromise;
     }
+  }
+
+  /**
+   * Get current session access token
+   * Returns the cached token without making additional API calls
+   */
+  async getAccessToken(): Promise<string | null> {
+    await this.waitForInitialization();
+    
+    // Get session from Supabase's internal cache (doesn't trigger API call)
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    return session?.access_token || null;
   }
 
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {

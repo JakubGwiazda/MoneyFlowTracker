@@ -15,7 +15,7 @@ import {
 } from '../models/openrouter';
 import { CategoryDto } from '../../types';
 import { RateLimiterService } from './rate-limiter.service';
-import { supabaseClient } from 'src/db/supabase.client';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +23,7 @@ import { supabaseClient } from 'src/db/supabase.client';
 export class ClassificationService {
   private readonly http = inject(HttpClient);
   private readonly rateLimiter = inject(RateLimiterService);
+  private readonly authService = inject(AuthService);
   
   private readonly edgeFunctionUrl: string;
   private readonly defaultTimeout = 30000;
@@ -354,14 +355,13 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
   }
 
   private callEdgeFunction(payload: OpenRouterRequest): Observable<OpenRouterResponse> {
-    // Pobierz aktualny token sesji użytkownika
-    return from(supabaseClient.auth.getSession()).pipe(
-      switchMap(({ data: { session }, error }) => {
-        if (error || !session?.access_token) {
+    // Pobierz aktualny token sesji użytkownika z cache
+    return from(this.authService.getAccessToken()).pipe(
+      switchMap((accessToken) => {
+        if (!accessToken) {
           return throwError(() => new ClassificationError(
             'Nie jesteś zalogowany. Zaloguj się ponownie.',
-            'AUTH_ERROR',
-            error
+            'AUTH_ERROR'
           ));
         }
   
@@ -372,7 +372,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
           {
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}` // ← To jest klucz!
+              'Authorization': `Bearer ${accessToken}` // ← To jest klucz!
             }
           }
         );
