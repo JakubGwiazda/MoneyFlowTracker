@@ -250,7 +250,7 @@ MoneyFlowTracker to aplikacja MVP w wersji 0.0.1, wykorzystująca:
 
 **Cel**: Weryfikacja kompletnych ścieżek użytkownika w realnym środowisku przeglądarki
 
-**Framework**: Cypress (rekomendacja dla Angular 20)
+**Framework**: Playwright (rekomendacja dla Angular 20)
 
 #### 3.3.1 Krytyczne ścieżki użytkownika
 
@@ -835,12 +835,11 @@ NODE_ENV=test
 
 ### 6.2 Testy E2E
 
-#### 6.2.1 Cypress (rekomendacja)
+#### 6.2.1 Playwright (rekomendacja)
 - **Wersja**: Najnowsza stabilna
 - **Cel**: Testy end-to-end w realnej przeglądarce
 - **Zalety**: Szybki setup, time-travel debugging, automatyczne czekanie
-- **Konfiguracja**: `cypress.config.ts`
-- **Komendy**: `cy.visit()`, `cy.get()`, `cy.click()`
+
 
 **Alternatywa**: Playwright (jeśli potrzebne cross-browser testing)
 
@@ -905,7 +904,7 @@ NODE_ENV=test
 
 #### 6.7.1 axe DevTools
 - **Cel**: Automatyczne sprawdzanie WCAG 2.1
-- **Integracja**: Cypress plugin lub browser extension
+- **Integracja**: Browser extension
 
 #### 6.7.2 WAVE
 - **Cel**: Wizualna analiza dostępności
@@ -1164,7 +1163,7 @@ NODE_ENV=test
 - Testy akceptacyjne (UAT) z PO
 - Monitorowanie jakości w CI/CD
 
-**Narzędzia**: Cypress, Lighthouse, axe DevTools
+**Narzędzia**: Playwright, Lighthouse, axe DevTools
 
 #### 9.1.3 Tech Lead / Senior Developer
 **Odpowiedzialności**:
@@ -1191,7 +1190,7 @@ NODE_ENV=test
 - Konfiguracja pipeline CI/CD dla testów
 - Utrzymanie środowisk testowych (staging)
 - Monitorowanie wydajności testów w CI
-- Integracja narzędzi testowych (Cypress Cloud, coverage reports)
+- Integracja narzędzi testowych
 - Smoke tests po wdrożeniu
 
 **Narzędzia**: GitHub Actions, Supabase CLI
