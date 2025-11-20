@@ -55,5 +55,12 @@ export abstract class BasePage {
   async waitForNavigation(): Promise<void> {
     await this.page.waitForLoadState('networkidle');
   }
+
+  /**
+   * Wait for a specific amount of time (use sparingly, prefer specific waitFor* methods)
+   */
+  async waitForTimeout(ms: number): Promise<void> {
+    await this.page.waitForTimeout(ms);
+  }
 }
 

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 /**
  * Read environment variables from file.
@@ -15,11 +16,11 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.test,
+  forbidOnly: !!process.env['test'],
   /* Retry on CI only */
-  retries: process.env.test ? 2 : 0,
+  retries: process.env['test'] ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.test ? 1 : undefined,
+  workers: process.env['test'] ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
@@ -39,9 +40,16 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Setup project - runs first to create authenticated state
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    // Main test project - individual tests control their auth via test.use()
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
   ],
 
@@ -49,7 +57,7 @@ export default defineConfig({
   webServer: {
     command: 'ng serve --configuration=e2e',
     url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.test,
+    reuseExistingServer: !process.env['test'],
     timeout: 120 * 1000,
   },
 });

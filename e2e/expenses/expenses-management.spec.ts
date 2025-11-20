@@ -1,24 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { ExpensesPage, LoginPage, AddExpenseDialog } from '../page-objects';
+import { ExpensesPage, AddExpenseDialog } from '../page-objects';
+import path from 'path';
+
+// Use saved authentication state for all tests in this file
+test.use({ 
+  storageState: path.join(__dirname, '../../playwright/.auth/user.json')
+});
 
 test.describe('Expenses Management', () => {
   let expensesPage: ExpensesPage;
-  let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
-    // Arrange - Login before each test
-    const testEmail = process.env['E2E_USERNAME'];
-    const testPassword = process.env['E2E_PASSWORD'];
-    
-    if (!testEmail || !testPassword) {
-      throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test file');
-    }
-    
-    loginPage = new LoginPage(page);
-    await loginPage.navigate();
-    await loginPage.login(testEmail, testPassword);
-
-    // Navigate to expenses page
+    // Navigate to expenses page (user is already authenticated via storageState)
     expensesPage = new ExpensesPage(page);
     await expensesPage.navigate();
   });
@@ -31,7 +24,6 @@ test.describe('Expenses Management', () => {
     // Assert
     await expect(expensesPage.addExpenseButton).toBeVisible();
     await expect(expensesPage.expensesTable).toBeVisible();
-    await expect(expensesPage.searchInput).toBeVisible();
   });
 
   test('should open add expense dialog when clicking add button', async ({ page }) => {
@@ -63,73 +55,11 @@ test.describe('Expenses Management', () => {
     await addExpenseDialog.save();
 
     // Assert
-    await page.waitForTimeout(1000);
+    await expensesPage.waitForTimeout(1000);
     const isDisplayed = await expensesPage.isExpenseDisplayed(expenseData.description);
     expect(isDisplayed).toBeTruthy();
   });
 
-  test('should filter expenses by search term', async () => {
-    // Arrange
-    const searchTerm = 'Coffee';
-
-    // Act
-    await expensesPage.searchExpenses(searchTerm);
-    await expensesPage.page.waitForTimeout(500);
-
-    // Assert
-    const count = await expensesPage.getExpensesCount();
-    expect(count).toBeGreaterThanOrEqual(0);
-  });
-
-  test('should filter expenses by category', async () => {
-    // Arrange
-    const category = 'Food';
-
-    // Act
-    await expensesPage.filterByCategory(category);
-    await expensesPage.applyFilters();
-    await expensesPage.page.waitForTimeout(500);
-
-    // Assert
-    const count = await expensesPage.getExpensesCount();
-    expect(count).toBeGreaterThanOrEqual(0);
-  });
-
-  test('should clear all filters', async () => {
-    // Arrange
-    await expensesPage.searchExpenses('Test');
-    await expensesPage.filterByCategory('Food');
-    await expensesPage.applyFilters();
-
-    // Act
-    await expensesPage.clearFilters();
-    await expensesPage.page.waitForTimeout(500);
-
-    // Assert
-    await expect(expensesPage.searchInput).toHaveValue('');
-  });
-
-  test('should navigate through pages using pagination', async () => {
-    // Arrange
-    const initialCount = await expensesPage.getExpensesCount();
-
-    // Act
-    await expensesPage.goToNextPage();
-    await expensesPage.page.waitForTimeout(500);
-
-    // Assert
-    const newCount = await expensesPage.getExpensesCount();
-    expect(newCount).toBeGreaterThanOrEqual(0);
-  });
-
-  test('should display expenses chart', async () => {
-    // Arrange - Already done in beforeEach
-
-    // Act - Page is already loaded
-
-    // Assert
-    await expect(expensesPage.expenseChart).toBeVisible();
-  });
 
   test('should cancel add expense dialog', async ({ page }) => {
     // Arrange

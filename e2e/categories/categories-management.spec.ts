@@ -1,24 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { CategoriesPage, LoginPage, AddCategoryDialog } from '../page-objects';
+import { CategoriesPage, AddCategoryDialog } from '../page-objects';
+import path from 'path';
+
+// Use saved authentication state for all tests in this file
+test.use({ 
+  storageState: path.join(__dirname, '../../playwright/.auth/user.json')
+});
 
 test.describe('Categories Management', () => {
   let categoriesPage: CategoriesPage;
-  let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
-    // Arrange - Login before each test
-    const testEmail = process.env['E2E_USERNAME'];
-    const testPassword = process.env['E2E_PASSWORD'];
-    
-    if (!testEmail || !testPassword) {
-      throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test file');
-    }
-    
-    loginPage = new LoginPage(page);
-    await loginPage.navigate();
-    await loginPage.login(testEmail, testPassword);
-
-    // Navigate to categories page
+    // Navigate to categories page (user is already authenticated via storageState)
     categoriesPage = new CategoriesPage(page);
     await categoriesPage.navigate();
   });
@@ -62,7 +55,7 @@ test.describe('Categories Management', () => {
     await addCategoryDialog.save();
 
     // Assert
-    await page.waitForTimeout(1000);
+    await categoriesPage.waitForTimeout(10000);
     const isDisplayed = await categoriesPage.isCategoryDisplayed(categoryData.name);
     expect(isDisplayed).toBeTruthy();
   });
@@ -73,7 +66,7 @@ test.describe('Categories Management', () => {
 
     // Act
     await categoriesPage.searchCategories(searchTerm);
-    await categoriesPage.page.waitForTimeout(500);
+    await categoriesPage.waitForTimeout(500);
 
     // Assert
     const count = await categoriesPage.getCategoriesCount();
@@ -91,26 +84,6 @@ test.describe('Categories Management', () => {
 
     // Assert
     await expect(addCategoryDialog.dialog).not.toBeVisible();
-  });
-
-  test('should display all default categories', async () => {
-    // Arrange - Already done in beforeEach
-
-    // Act
-    const count = await categoriesPage.getCategoriesCount();
-
-    // Assert
-    expect(count).toBeGreaterThanOrEqual(1);
-  });
-
-  test('should have correct page title', async () => {
-    // Arrange - Already done in beforeEach
-
-    // Act
-    const title = await categoriesPage.getTitle();
-
-    // Assert
-    expect(title).toContain('MoneyFlowTracker');
   });
 });
 

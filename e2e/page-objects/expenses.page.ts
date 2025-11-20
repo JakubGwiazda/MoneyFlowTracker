@@ -14,12 +14,12 @@ export class ExpensesPage extends BasePage {
     return this.getByTestId('add-expense-button');
   }
 
-  get expensesTable() {
-    return this.getByTestId('expenses-table');
+  get expensesListTab() {
+    return this.getByTestId('expenses-list-tab');
   }
 
-  get searchInput() {
-    return this.getByTestId('expenses-search-input');
+  get expensesTable() {
+    return this.getByTestId('expenses-table');
   }
 
   get categoryFilter() {
@@ -56,16 +56,13 @@ export class ExpensesPage extends BasePage {
 
   // Actions
   async navigate(): Promise<void> {
-    await this.goto('/expenses');
+    await this.goto('/app/expenses');
     await this.waitForPageLoad();
+    await this.page.getByRole('tab', { name: 'Lista wydatków' }).click();
   }
 
   async clickAddExpense(): Promise<void> {
     await this.addExpenseButton.click();
-  }
-
-  async searchExpenses(searchTerm: string): Promise<void> {
-    await this.searchInput.fill(searchTerm);
   }
 
   async filterByCategory(category: string): Promise<void> {

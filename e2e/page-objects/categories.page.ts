@@ -18,14 +18,20 @@ export class CategoriesPage extends BasePage {
     return this.getByTestId('categories-table');
   }
 
+
+  get categoriesTab() {
+    return this.getByTestId('categories-tab');
+  }
+
   get searchInput() {
     return this.getByTestId('categories-search-input');
   }
 
   // Actions
   async navigate(): Promise<void> {
-    await this.goto('/categories');
+    await this.goto('/app/expenses');
     await this.waitForPageLoad();
+    await this.page.getByRole('tab', { name: 'Kategorie' }).click();
   }
 
   async clickAddCategory(): Promise<void> {

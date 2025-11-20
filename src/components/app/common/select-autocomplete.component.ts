@@ -43,6 +43,7 @@ export interface SelectAutocompleteOption {
         [matAutocomplete]="auto"
         [formControl]="queryCtrl"
         [disabled]="disabled()"
+        data-testid="select-search-input"
         (input)="onQueryInput()"
         (focus)="onFocus()"
         (blur)="onBlur()"

@@ -51,4 +51,5 @@ Thumbs.db
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/playwright/.auth/
 /e2e/screenshots/

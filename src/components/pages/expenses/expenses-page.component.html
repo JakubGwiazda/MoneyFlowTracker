@@ -6,8 +6,8 @@
     </p>
   </header>
 
-  <mat-tab-group class="tab_group">
-    <mat-tab label="Wizualizacja wydatków">
+  <mat-tab-group class="tab_group" [attr.data-testid]="'expenses-tab-group'">
+    <mat-tab label="Wizualizacja wydatków"  [attr.data-testid]="'expenses-chart-tab'">
       <div class="tab-content mt-2">
         <app-expenses-charts
           [data]="chartData()"
@@ -26,7 +26,7 @@
         />
       </div>
     </mat-tab>
-    <mat-tab label="Lista wydatków">        
+    <mat-tab label="Lista wydatków" [attr.data-testid]="'expenses-list-tab'">        
       <div class="tab-content mt-2">
         <mat-card class="filters-card">
           <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
@@ -73,7 +73,7 @@
     </mat-tab>
 
     <mat-tab label="Kategorie">
-      <div class="tab-content">
+      <div class="tab-content" data-testid="categories-tab">
         <app-categories-page />
       </div>
     </mat-tab>

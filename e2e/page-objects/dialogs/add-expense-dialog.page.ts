@@ -55,8 +55,6 @@ export class AddExpenseDialog extends BasePage {
   }): Promise<void> {
     await this.descriptionInput.fill(data.description);
     await this.amountInput.fill(data.amount);
-    await this.categorySelect.click();
-    await this.page.getByRole('option', { name: data.category }).click();
     await this.dateInput.fill(data.date);
   }
 

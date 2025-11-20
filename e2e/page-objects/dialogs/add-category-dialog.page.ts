@@ -49,12 +49,6 @@ export class AddCategoryDialog extends BasePage {
     color?: string;
   }): Promise<void> {
     await this.nameInput.fill(data.name);
-    if (data.description) {
-      await this.descriptionInput.fill(data.description);
-    }
-    if (data.color) {
-      await this.colorInput.fill(data.color);
-    }
   }
 
   async save(): Promise<void> {

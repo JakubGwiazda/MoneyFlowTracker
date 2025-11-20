@@ -60,8 +60,8 @@ const DEFAULT_PRESET: DatePreset = 'today';
         <mat-form-field appearance="outline" class="mt-4 w-100">
           <mat-label>Zakres dat</mat-label>
           <mat-date-range-input [rangePicker]="picker" [formGroup]="form">
-            <input matStartDate formControlName="date_from" placeholder="Od" (dateChange)="onDateRangeChange()"/>
-            <input matEndDate formControlName="date_to" placeholder="Do" (dateChange)="onDateRangeChange()"/>
+            <input matStartDate formControlName="date_from" placeholder="Od" data-testid="expenses-date-from-filter" (dateChange)="onDateRangeChange()"/>
+            <input matEndDate formControlName="date_to" placeholder="Do" data-testid="expenses-date-to-filter" (dateChange)="onDateRangeChange()"/>
           </mat-date-range-input>
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>

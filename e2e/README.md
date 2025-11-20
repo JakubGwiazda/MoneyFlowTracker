@@ -18,6 +18,10 @@ e2e/
 │   ├── dialogs/            # Dialog page objects
 │   └── index.ts            # Centralized exports
 ├── fixtures/                # Test data and fixtures
+├── helpers/                 # Test helper functions
+├── setup/                   # Test setup scripts
+│   ├── auth.setup.ts       # Authentication state setup
+│   └── global-setup.ts     # Global test setup
 └── README.md               # This file
 ```
 
@@ -52,6 +56,44 @@ npm run test:e2e:codegen
 ```bash
 npm run test:e2e:report
 ```
+
+## Authentication in Tests
+
+### Automatic Authentication
+
+Tests requiring authentication automatically use a pre-authenticated session. The authentication state is saved once before tests run and reused across all tests.
+
+**For authenticated tests** (expenses, categories, etc.):
+- No login code needed in tests
+- Authentication happens automatically via `storageState`
+- Tests start with user already logged in
+
+Example:
+```typescript
+import { test, expect } from '@playwright/test';
+import { ExpensesPage } from '../page-objects';
+
+test('should display expenses page', async ({ page }) => {
+  // User is already logged in via storageState
+  const expensesPage = new ExpensesPage(page);
+  await expensesPage.navigate();
+  
+  await expect(expensesPage.addExpenseButton).toBeVisible();
+});
+```
+
+**For authentication tests** (login, register):
+- These tests run without pre-authenticated state
+- Use the `chromium-guest` project
+- Located in `e2e/auth/` directory
+
+### How It Works
+
+1. **Setup Phase**: `e2e/setup/auth.setup.ts` runs first, logs in, and saves auth state to `playwright/.auth/user.json`
+2. **Test Phase**: Tests use the saved authentication state via `storageState` configuration
+3. **Projects**: 
+   - `chromium-authenticated`: Uses saved auth state (most tests)
+   - `chromium-guest`: No auth state (auth tests only)
 
 ## Writing Tests
 
@@ -124,6 +166,17 @@ import { TEST_USERS, TEST_EXPENSES } from '../fixtures/test-data';
 await loginPage.login(TEST_USERS.valid.email, TEST_USERS.valid.password);
 ```
 
+### Environment Variables
+
+Tests require credentials in `.env.test` file:
+
+```env
+E2E_USERNAME=your-test-user@example.com
+E2E_PASSWORD=your-test-password
+```
+
+These credentials are used by the auth setup script to create the pre-authenticated session.
+
 ## Best Practices
 
 1. **Use Page Objects**: Never interact with selectors directly in tests
@@ -146,6 +199,10 @@ Test configuration is in `playwright.config.ts`:
 - **Screenshots**: On failure
 - **Video**: On failure
 - **Trace**: On first retry
+- **Projects**:
+  - `setup`: Runs auth setup before tests
+  - `chromium-authenticated`: Tests requiring auth (uses saved auth state)
+  - `chromium-guest`: Tests without auth (login/register tests)
 
 ## Debugging
 
@@ -187,10 +244,19 @@ lsof -i :4200
 ```
 
 ### Authentication Issues
-Ensure Supabase is running:
-```bash
-npm run db_start
+
+**Missing credentials:**
+Ensure `.env.test` file exists with valid credentials:
+```env
+E2E_USERNAME=your-test-user@example.com
+E2E_PASSWORD=your-test-password
 ```
+
+**Auth setup failing:**
+- Check if Supabase is running: `npm run db_start`
+- Verify credentials are correct
+- Ensure test user exists in database
+- Check `playwright/.auth/user.json` is generated
 
 ### Flaky Tests
 - Use proper waiting mechanisms

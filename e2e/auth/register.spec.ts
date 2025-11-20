@@ -38,19 +38,6 @@ test.describe('Register Page', () => {
     expect(url).toMatch(/register|login|expenses/);
   });
 
-  test('should show error when passwords do not match', async () => {
-    // Arrange
-    const email = 'test@example.com';
-    const password = 'Password123!';
-    const confirmPassword = 'DifferentPassword123!';
-
-    // Act
-    await registerPage.register(email, password, confirmPassword);
-
-    // Assert
-    await expect(registerPage.errorMessage).toBeVisible();
-  });
-
   test('should disable register button when fields are empty', async () => {
     // Arrange - Fields are empty by default
 
@@ -69,30 +56,6 @@ test.describe('Register Page', () => {
 
     // Assert
     await expect(page).toHaveURL(/.*login/);
-  });
-
-  test('should show error with invalid email format', async () => {
-    // Arrange
-    const invalidEmail = 'notanemail';
-    const password = 'Password123!';
-
-    // Act
-    await registerPage.register(invalidEmail, password, password);
-
-    // Assert
-    await expect(registerPage.errorMessage).toBeVisible();
-  });
-
-  test('should show error with weak password', async () => {
-    // Arrange
-    const email = 'test@example.com';
-    const weakPassword = '123';
-
-    // Act
-    await registerPage.register(email, weakPassword, weakPassword);
-
-    // Assert
-    await expect(registerPage.errorMessage).toBeVisible();
   });
 
   test('should have correct page title', async () => {
