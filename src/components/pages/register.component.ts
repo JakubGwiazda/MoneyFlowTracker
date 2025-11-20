@@ -49,14 +49,14 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
         <mat-card-content>
           <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
             @if (errorMessage()) {
-              <div class="error-message">
+              <div class="error-message" data-testid="register-error-message">
                 <mat-icon>error</mat-icon>
                 <span>{{ errorMessage() }}</span>
               </div>
             }
 
             @if (successMessage()) {
-              <div class="success-message">
+              <div class="success-message" data-testid="register-success-message">
                 <mat-icon>check_circle</mat-icon>
                 <span>{{ successMessage() }}</span>
               </div>
@@ -70,6 +70,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
                 formControlName="email"
                 placeholder="nazwa@example.com"
                 autocomplete="email"
+                data-testid="register-email-input"
               />
               @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
                 <mat-error>Email jest wymagany</mat-error>
@@ -87,6 +88,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
                 formControlName="password"
                 placeholder="Minimum 6 znaków"
                 autocomplete="new-password"
+                data-testid="register-password-input"
               />
               <button
                 mat-icon-button
@@ -114,6 +116,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
                 formControlName="confirmPassword"
                 placeholder="Wprowadź hasło ponownie"
                 autocomplete="new-password"
+                data-testid="register-confirm-password-input"
               />
               <button
                 mat-icon-button
@@ -139,6 +142,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
               type="submit"
               [disabled]="registerForm.invalid || loading()"
               class="submit-button"
+              data-testid="register-submit-button"
             >
               @if (loading()) {
                 <mat-spinner diameter="20"></mat-spinner>
@@ -153,7 +157,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
         <mat-card-actions>
           <p class="login-link">
             Masz już konto?
-            <a routerLink="/login">Zaloguj się</a>
+            <a routerLink="/login" data-testid="register-login-link">Zaloguj się</a>
           </p>
         </mat-card-actions>
       </mat-card>

@@ -37,11 +37,11 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
         </mat-select>
         </mat-form-field>
         <div class="d-flex justify-content-between gap-2">
-          <button mat-stroked-button type="button" (click)="onPrev()" [disabled]="disabled() || !state().hasPrev">
+          <button mat-stroked-button type="button" (click)="onPrev()" [disabled]="disabled() || !state().hasPrev" data-testid="pagination-previous-button">
             <mat-icon>chevron_left</mat-icon>
             Poprzednia
           </button>
-          <button mat-stroked-button type="button" (click)="onNext()" [disabled]="disabled() || !state().hasNext">
+          <button mat-stroked-button type="button" (click)="onNext()" [disabled]="disabled() || !state().hasNext" data-testid="pagination-next-button">
             Następna
             <mat-icon>chevron_right</mat-icon>
           </button>

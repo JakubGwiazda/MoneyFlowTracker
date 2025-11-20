@@ -22,8 +22,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-builders/custom-webpack:browser",
           "options": {
+            "customWebpackConfig": {
+              "path": "./webpack.config.js",
+              "mergeRules": {}
+            },
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -56,27 +60,81 @@
                   "maximumError": "512KB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "local": {
+              "optimization": false,
+              "sourceMap": true,
+              "extractLicenses": false,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.local.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "sourceMap": true,
               "extractLicenses": false
+            },
+            "e2e": {
+              "optimization": false,
+              "sourceMap": true,
+              "extractLicenses": false,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular-builders/custom-webpack:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "MoneyFlowTracker:build:production"
             },
             "development": {
               "buildTarget": "MoneyFlowTracker:build:development"
+            },
+            "e2e": {
+              "buildTarget": "MoneyFlowTracker:build:e2e"
+            },
+            "local": {
+              "buildTarget": "MoneyFlowTracker:build:local"
             }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "src/test.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              "src/favicon.png",
+              "src/assets"
+            ],
+            "styles": [
+              "src/styles/global.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css"
+            ],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+            ],
+            "karmaConfig": "karma.conf.cjs"
+          }
         }
       }
     }

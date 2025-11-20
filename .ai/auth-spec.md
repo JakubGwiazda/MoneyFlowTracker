@@ -1068,7 +1068,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 
 #### 5.2.2. E2E Tests (rekomendowane do utworzenia)
 
-**Narzędzie:** Playwright / Cypress
+**Narzędzie:** Playwright
 
 **Przykładowe testy:**
 ```typescript
