@@ -21,14 +21,17 @@ MoneyFlowTracker is an Angular + Astro-based web tool that enables users to quic
 ## Tech Stack
 
 - **Frontend**  
-  - Astro 5  
-  - Angular 20  
+  - Angular 20 (Standalone Components)
   - TypeScript 5  
   - Angular Material 
+  - Bootstrap 5.3.8
 - **Backend & Database**  
   - Supabase (Auth & Postgres)  
 - **AI Integration**  
   - Openrouter.ai for automatic expense classification  
+- **Testing**
+  - Unit Tests: Karma + Jasmine
+  - E2E Tests: Playwright
 - **CI/CD & Hosting**  
   - GitHub Actions  
   - DigitalOcean  
@@ -56,49 +59,118 @@ MoneyFlowTracker is an Angular + Astro-based web tool that enables users to quic
    npm install
    ```
 3. **Configure environment variables**  
-   Copy the example and populate your keys:
+   
+   For **development** (local Supabase):
    ```bash
-   cp .env.example .env
-   # Edit .env to set:
-   # SUPABASE_URL=
-   # SUPABASE_ANON_KEY=
-   # OPENROUTER_API_KEY=
+   # Start local Supabase instance
+   npm run db_start
+   
+   # Create .env with local config
+   # SUPABASE_URL=http://127.0.0.1:54321
+   # SUPABASE_KEY=your_local_anon_key
+   # OPENROUTER_API_KEY=your_api_key
    ```
+   
+   For **E2E testing** (remote Supabase):
+   ```bash
+   cp env.test.example .env.test
+   # Edit .env.test with your test environment credentials
+   ```
+
 4. **Run in development mode**  
    ```bash
-   npm run dev
+   npm start
    ```
 5. **Open in browser**  
-   Visit `http://localhost:3000` (default Astro port)
+   Visit `http://localhost:4200` (default Angular port)
 
 ## Available Scripts
 
 From the project root, run:
 
-| Script       | Description                              |
-|--------------|------------------------------------------|
-| `npm run dev`      | Start Astro dev server                 |
-| `npm run build`    | Build production assets               |
-| `npm run preview`  | Preview production build locally      |
-| `npm run astro`    | Run Astro CLI commands                |
-| `npm run lint`     | Check code with ESLint                |
-| `npm run lint:fix` | Run ESLint with auto-fix              |
-| `npm run format`   | Format code with Prettier             |
+### Development
+| Script              | Description                                    |
+|---------------------|------------------------------------------------|
+| `npm start`         | Start Angular dev server (development mode)    |
+| `npm run start:local` | Start with local environment config          |
+| `npm run start:e2e` | Start with E2E environment config (.env.test)  |
+| `npm run start:prod` | Start with production config                  |
+
+### Build
+| Script              | Description                                    |
+|---------------------|------------------------------------------------|
+| `npm run build`     | Build for production                          |
+| `npm run build:dev` | Build for development                         |
+| `npm run build:e2e` | Build for E2E tests                           |
+| `npm run build:local` | Build with local config                     |
+
+### Testing
+| Script                  | Description                              |
+|-------------------------|------------------------------------------|
+| `npm test`              | Run unit tests (Karma + Jasmine)        |
+| `npm run test:e2e`      | Run E2E tests (Playwright)              |
+| `npm run test:e2e:ui`   | Run E2E tests with UI                   |
+| `npm run test:e2e:headed` | Run E2E tests in headed mode          |
+| `npm run test:e2e:debug` | Debug E2E tests                         |
+| `npm run test:e2e:report` | Show E2E test report                   |
+
+### Code Quality
+| Script              | Description                                    |
+|---------------------|------------------------------------------------|
+| `npm run lint`      | Check code with ESLint                        |
+| `npm run lint:fix`  | Run ESLint with auto-fix                      |
+| `npm run format`    | Format code with Prettier                     |
+
+### Database
+| Script              | Description                                    |
+|---------------------|------------------------------------------------|
+| `npm run db_start`  | Start local Supabase instance                 |
 
 ## Testing
 
-Karma + Jasmine power the unit test suite. The CLI is already wired to use a headless Chrome instance so you can run tests locally or in CI without opening a browser window.
+### Unit Tests
+Karma + Jasmine power the unit test suite. The CLI uses a headless Chrome instance for CI/CD compatibility.
 
 1. **Single run (CI-friendly)**  
    ```bash
-   npm run test -- --watch=false --browsers=ChromeHeadless
+   npm test -- --watch=false --browsers=ChromeHeadless
    ```
 2. **Watch mode for local development**  
    ```bash
-   npm run test
+   npm test
    ```
 
-> Make sure Google Chrome (or Chromium) is installed locally. The Karma runner launches `ChromeHeadless` by default, but you can override the `browsers` flag if needed.
+> Make sure Google Chrome (or Chromium) is installed locally. The Karma runner launches `ChromeHeadless` by default.
+
+### E2E Tests
+End-to-end tests are powered by Playwright and test the application against a remote Supabase instance.
+
+1. **Setup E2E environment**  
+   ```bash
+   cp env.test.example .env.test
+   # Edit .env.test with your test environment credentials
+   ```
+
+2. **Run E2E tests**  
+   ```bash
+   # Start the app in E2E mode (uses .env.test)
+   npm run start:e2e
+   
+   # In another terminal, run the tests
+   npm run test:e2e
+   ```
+
+3. **Debug E2E tests**  
+   ```bash
+   npm run test:e2e:debug
+   ```
+
+4. **View test report**  
+   ```bash
+   npm run test:e2e:report
+   ```
+
+> **Note**: E2E tests use environment variables from `.env.test`. The `npm run start:e2e` command automatically loads these variables using webpack's `dotenv-webpack` plugin. See [ENV_LOADING_FIX.md](ENV_LOADING_FIX.md) for details.
 
 ## Project Scope
 

@@ -7,9 +7,16 @@ test.describe('Expenses Management', () => {
 
   test.beforeEach(async ({ page }) => {
     // Arrange - Login before each test
+    const testEmail = process.env['E2E_USERNAME'];
+    const testPassword = process.env['E2E_PASSWORD'];
+    
+    if (!testEmail || !testPassword) {
+      throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test file');
+    }
+    
     loginPage = new LoginPage(page);
     await loginPage.navigate();
-    await loginPage.login('test@example.com', 'Password123!');
+    await loginPage.login(testEmail, testPassword);
 
     // Navigate to expenses page
     expensesPage = new ExpensesPage(page);

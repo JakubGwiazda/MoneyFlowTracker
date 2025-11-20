@@ -24,8 +24,12 @@ test.describe('Login Page', () => {
 
   test('should successfully login with valid credentials', async ({ page }) => {
     // Arrange
-    const validEmail = 'test@example.com';
-    const validPassword = 'Password123!';
+    const validEmail = process.env['E2E_USERNAME'];
+    const validPassword = process.env['E2E_PASSWORD'];
+    
+    if (!validEmail || !validPassword) {
+      throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test file');
+    }
 
     // Act
     await loginPage.login(validEmail, validPassword);
@@ -82,7 +86,7 @@ test.describe('Login Page', () => {
 
   test('should not allow login with empty password', async () => {
     // Arrange
-    const email = 'test@example.com';
+    const email = process.env['E2E_USERNAME'] || 'test@example.com';
 
     // Act
     await loginPage.emailInput.fill(email);

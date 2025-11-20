@@ -3,8 +3,14 @@
   "version": "0.0.1",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng serve --configuration=development",
+    "start:local": "ng serve --configuration=local",
+    "start:e2e": "set NG_APP_ENV=e2e&& ng serve --configuration=e2e",
+    "start:prod": "ng serve --configuration=production",
+    "build": "ng build --configuration=production",
+    "build:local": "ng build --configuration=local",
+    "build:e2e": "ng build --configuration=e2e",
+    "build:dev": "ng build --configuration=development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:e2e": "playwright test",
@@ -38,6 +44,7 @@
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
+    "@angular-builders/custom-webpack": "^20.0.0",
     "@angular-devkit/build-angular": "^20.3.7",
     "@angular/cli": "^20.3.7",
     "@angular/compiler-cli": "^20.3.7",
@@ -47,6 +54,8 @@
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "8.28.0",
     "@typescript-eslint/parser": "8.28.0",
+    "dotenv": "^17.2.3",
+    "dotenv-webpack": "^8.1.1",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-import-resolver-typescript": "4.2.5",
