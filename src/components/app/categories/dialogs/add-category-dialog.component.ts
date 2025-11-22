@@ -35,113 +35,8 @@ export type AddCategoryDialogResult = {
     MatSlideToggleModule,
     MatProgressSpinnerModule,
   ],
-  template: `
-    <h2 mat-dialog-title>
-      @if (isEditMode()) {
-        Edytuj kategorię
-      } @else {
-        Dodaj nową kategorię
-      }
-    </h2>
-
-    <mat-dialog-content data-testid="add-category-dialog">
-      <form [formGroup]="form" class="category-form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nazwa kategorii</mat-label>
-          <input 
-            matInput 
-            formControlName="name"
-            placeholder="np. Transport, Jedzenie"
-            autocomplete="off"
-            data-testid="category-name-input"
-          />
-          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
-            <mat-error>Nazwa jest wymagana</mat-error>
-          }
-          @if (form.get('name')?.hasError('maxlength')) {
-            <mat-error>Nazwa może mieć maksymalnie 100 znaków</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Kategoria nadrzędna (opcjonalnie)</mat-label>
-          <mat-select formControlName="parent_id">
-            <mat-option [value]="null">Brak</mat-option>
-            @for (parent of availableParents(); track parent.id) {
-              <mat-option [value]="parent.id">{{ parent.label }}</mat-option>
-            }
-          </mat-select>
-          <mat-hint>Wybierz kategorię nadrzędną, jeśli ta kategoria jest podkategorią</mat-hint>
-        </mat-form-field>
-
-        <div class="form-field-wrapper">
-          <mat-slide-toggle formControlName="is_active">
-            Kategoria aktywna
-          </mat-slide-toggle>
-          <p class="hint-text">
-            Nieaktywne kategorie nie będą widoczne podczas dodawania wydatków
-          </p>
-        </div>
-      </form>
-    </mat-dialog-content>
-
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()" data-testid="category-cancel-button">
-        Anuluj
-      </button>
-      <button 
-        mat-raised-button 
-        color="primary"
-        (click)="onSubmit()"
-        [disabled]="form.invalid || submitting()"
-        data-testid="category-save-button"
-      >
-        @if (submitting()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          @if (isEditMode()) {
-            Zapisz zmiany
-          } @else {
-            Dodaj kategorię
-          }
-        }
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    .category-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem 0;
-      min-width: 400px;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .form-field-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .hint-text {
-      margin: 0;
-      font-size: 0.75rem;
-      color: rgba(0, 0, 0, 0.6);
-    }
-
-    mat-dialog-content {
-      overflow: visible;
-    }
-
-    mat-spinner {
-      display: inline-block;
-      margin-right: 8px;
-    }
-  `],
+  templateUrl: './add-category-dialog.html',
+  styleUrl: './add-category-dialog.scss'
 })
 export class AddCategoryDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<AddCategoryDialogComponent>);
@@ -204,7 +99,7 @@ export class AddCategoryDialogComponent implements OnInit {
     if (this.data.category) {
       // Exclude self
       parents = parents.filter(p => p.id !== this.data.category!.id);
-      
+
       // Exclude direct children (categories where parent_id === current category id)
       parents = parents.filter(p => p.parentId !== this.data.category!.id);
     }
