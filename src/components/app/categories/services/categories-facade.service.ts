@@ -17,6 +17,8 @@ import {
 const DEFAULT_PER_PAGE = 25;
 const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
+type SupabaseQuery = ReturnType<typeof supabaseClient.from>;
+
 function createDefaultFilters(): CategoriesFilterState {
   return {
     search: '',
@@ -45,6 +47,7 @@ export class CategoriesFacadeService {
   private readonly loadingSignal = signal<boolean>(false);
   private readonly errorSignal = signal<string | null>(null);
   private readonly allCategoriesSignal = signal<CategoryOptionViewModel[]>([]);
+  private readonly categoriesLoaded = signal<boolean>(false);
 
   readonly filters = this.filtersSignal.asReadonly();
   readonly categories = this.categoriesSignal.asReadonly();
@@ -95,46 +98,15 @@ export class CategoriesFacadeService {
     this.errorSignal.set(null);
 
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Nie jesteś zalogowany.');
+      const userId = await this.ensureAuthenticatedUser();
+
+      const query = this.buildCategoriesQuery(filters);
+
+      if (controller.signal.aborted) {
+        return;
       }
 
-      // Build Supabase query
-      // RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
-      let query = supabaseClient
-        .from('categories')
-        .select('*', { count: 'exact' });
-
-      // Apply filters
-      if (filters.search) {
-        query = query.ilike('name', `%${filters.search}%`);
-      }
-
-      if (filters.active !== undefined) {
-        query = query.eq('is_active', filters.active);
-      }
-
-      if (filters.parent_id !== undefined) {
-        if (filters.parent_id === null) {
-          query = query.is('parent_id', null);
-        } else {
-          query = query.eq('parent_id', filters.parent_id);
-        }
-      }
-
-      // Apply sorting
-      query = query.order('name', { ascending: true });
-
-      // Apply pagination
-      const from = (filters.page - 1) * filters.per_page;
-      const to = from + filters.per_page - 1;
-      query = query.range(from, to);
-
-      // Execute query
-      const { data, error, count } = await query;
+      const { data, error, count } = await this.executeCategoriesQuery(query);
 
       if (controller.signal.aborted) {
         return;
@@ -143,16 +115,6 @@ export class CategoriesFacadeService {
       if (error) {
         throw new Error('Nie udało się pobrać listy kategorii.');
       }
-
-      // Load all categories for parent name lookup
-      await this.loadAllCategories();
-
-      // Get usage counts
-      const categoryIds = (data || []).map(c => c.id);
-      const usageCounts = await this.getCategoryUsageCounts(categoryIds, user.id);
-
-      // Check for children
-      const childrenMap = await this.getCategoryChildrenMap(categoryIds, user.id);
 
       // Map to CategoryDto format
       const categories: CategoryDto[] = (data || []).map((row) => ({
@@ -164,15 +126,15 @@ export class CategoriesFacadeService {
         user_id: row.user_id,
       }));
 
-      this.categoriesSignal.set(
-        categories.map((category) => 
-          this.mapCategoryToViewModel(
-            category, 
-            usageCounts.get(category.id) || 0,
-            childrenMap.get(category.id) || false
-          )
-        )
-      );
+      const { usageCounts, childrenMap } = await this.enrichCategoriesData(categories, userId, controller);
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      const viewModels = this.mapToViewModels(categories, usageCounts, childrenMap);
+
+      this.categoriesSignal.set(viewModels);
       this.paginationSignal.set(this.buildPaginationState(filters, count || 0));
     } catch (error) {
       if (controller.signal.aborted) {
@@ -190,11 +152,7 @@ export class CategoriesFacadeService {
 
   async loadAllCategories(): Promise<void> {
     try {
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Nie jesteś zalogowany.');
-      }
+      await this.ensureAuthenticatedUser();
 
       const { data: categories, error } = await supabaseClient
         .from('categories')
@@ -225,42 +183,10 @@ export class CategoriesFacadeService {
 
   async createCategory(command: CreateCategoryCommand): Promise<CategoryOperationResult> {
     try {
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Nie jesteś zalogowany.');
-      }
+      const userId = await this.ensureAuthenticatedUser();
 
-      // Check for duplicate name (case-insensitive, within user's scope)
-      // Users can only create their own categories, not system categories
-      const { data: existingCategory } = await supabaseClient
-        .from('categories')
-        .select('id')
-        .ilike('name', command.name)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingCategory) {
-        throw new Error('Kategoria o tej nazwie już istnieje w Twoich kategoriach.');
-      }
-
-      // Validate parent if provided
-      if (command.parent_id) {
-        const { data: parent, error: parentError } = await supabaseClient
-          .from('categories')
-          .select('id, user_id')
-          .eq('id', command.parent_id)
-          .single();
-
-        if (parentError || !parent) {
-          throw new Error('Kategoria nadrzędna nie została znaleziona.');
-        }
-
-        // Validate that parent belongs to the same user (users can't use system categories as parents)
-        if (parent.user_id !== user.id) {
-          throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
-        }
-      }
+      await this.validateCategoryName(command.name, userId);
+      await this.validateParent(command.parent_id || null, userId);
 
       // Insert category with user_id (users can only create their own categories)
       const { data: category, error: insertError } = await supabaseClient
@@ -269,7 +195,7 @@ export class CategoriesFacadeService {
           name: command.name,
           parent_id: command.parent_id || null,
           is_active: command.is_active ?? true,
-          user_id: user.id,
+          user_id: userId,
         })
         .select()
         .single();
@@ -287,11 +213,7 @@ export class CategoriesFacadeService {
 
   async updateCategory(categoryId: string, command: UpdateCategoryCommand): Promise<CategoryOperationResult> {
     try {
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Nie jesteś zalogowany.');
-      }
+      const userId = await this.ensureAuthenticatedUser();
 
       // Check if category exists and belongs to user (RLS will filter, but we check explicitly)
       const { data: existingCategory, error: fetchError } = await supabaseClient
@@ -305,51 +227,18 @@ export class CategoriesFacadeService {
       }
 
       // Users can only update their own categories (not system categories)
-      if (existingCategory.user_id !== user.id) {
+      if (existingCategory.user_id !== userId) {
         throw new Error('Nie możesz edytować tej kategorii.');
       }
 
-      // Check for duplicate name if name is being changed (case-insensitive, within user's scope)
+      // Check for duplicate name if name is being changed
       if (command.name && command.name.toLowerCase() !== existingCategory.name.toLowerCase()) {
-        const { data: duplicateCategory } = await supabaseClient
-          .from('categories')
-          .select('id')
-          .ilike('name', command.name)
-          .eq('user_id', user.id)
-          .neq('id', categoryId)
-          .maybeSingle();
-
-        if (duplicateCategory) {
-          throw new Error('Kategoria o tej nazwie już istnieje w Twoich kategoriach.');
-        }
+        await this.validateCategoryName(command.name, userId, categoryId);
       }
 
       // Validate parent_id if provided
-      if (command.parent_id !== undefined && command.parent_id !== null) {
-        // Check for circular reference
-        if (command.parent_id === categoryId) {
-          throw new Error('Kategoria nie może być swoim własnym rodzicem.');
-        }
-
-        const { data: parent, error: parentError } = await supabaseClient
-          .from('categories')
-          .select('id, parent_id, user_id')
-          .eq('id', command.parent_id)
-          .single();
-
-        if (parentError || !parent) {
-          throw new Error('Kategoria nadrzędna nie została znaleziona.');
-        }
-
-        // Validate that parent belongs to the same user
-        if (parent.user_id !== user.id) {
-          throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
-        }
-
-        // Check if parent has this category as parent
-        if (parent.parent_id === categoryId) {
-          throw new Error('Wybrana kategoria nadrzędna tworzy cykl.');
-        }
+      if (command.parent_id !== undefined) {
+        await this.validateParent(command.parent_id, userId, categoryId);
       }
 
       // Update category (no updated_at in categories table)
@@ -385,11 +274,7 @@ export class CategoriesFacadeService {
 
   async deleteCategory(categoryId: string): Promise<CategoryOperationResult> {
     try {
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      
-      if (authError || !user) {
-        throw new Error('Nie jesteś zalogowany.');
-      }
+      const userId = await this.ensureAuthenticatedUser();
 
       // Check if category exists and belongs to user
       const { data: existingCategory } = await supabaseClient
@@ -403,32 +288,11 @@ export class CategoriesFacadeService {
       }
 
       // Users can only delete their own categories (not system categories)
-      if (existingCategory.user_id !== user.id) {
+      if (existingCategory.user_id !== userId) {
         throw new Error('Nie możesz usunąć tej kategorii.');
       }
 
-      // Check if category is being used
-      const { data: expenses } = await supabaseClient
-        .from('expenses')
-        .select('id')
-        .eq('user_id', user.id)
-        .or(`category_id.eq.${categoryId},predicted_category_id.eq.${categoryId}`)
-        .limit(1);
-
-      if (expenses && expenses.length > 0) {
-        throw new Error('Nie można usunąć kategorii używanej w wydatkach.');
-      }
-
-      // Check if category has children
-      const { data: children } = await supabaseClient
-        .from('categories')
-        .select('id')
-        .eq('parent_id', categoryId)
-        .limit(1);
-
-      if (children && children.length > 0) {
-        throw new Error('Nie można usunąć kategorii zawierającej podkategorie.');
-      }
+      await this.validateDeletable(categoryId, userId);
 
       // Soft delete
       const { error: deleteError } = await supabaseClient
@@ -514,52 +378,101 @@ export class CategoriesFacadeService {
     }
   }
 
+  private async ensureAuthenticatedUser(): Promise<string> {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error('Nie jesteś zalogowany.');
+    }
+
+    return user.id;
+  }
+
+  private buildCategoriesQuery(filters: CategoriesFilterState): SupabaseQuery {
+    // RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
+    let query = supabaseClient
+      .from('categories')
+      .select('*', { count: 'exact' });
+
+    // Apply filters
+    if (filters.search) {
+      query = query.ilike('name', `%${filters.search}%`);
+    }
+
+    if (filters.active !== undefined) {
+      query = query.eq('is_active', filters.active);
+    }
+
+    if (filters.parent_id !== undefined) {
+      if (filters.parent_id === null) {
+        query = query.is('parent_id', null);
+      } else {
+        query = query.eq('parent_id', filters.parent_id);
+      }
+    }
+
+    // Apply sorting
+    query = query.order('name', { ascending: true });
+
+    // Apply pagination
+    const from = (filters.page - 1) * filters.per_page;
+    const to = from + filters.per_page - 1;
+    query = query.range(from, to);
+
+    return query;
+  }
+
+  private async executeCategoriesQuery(query: SupabaseQuery): Promise<{ data: any[]; count: number | null; error: any }> {
+    const { data, error, count } = await query;
+    return { data, error, count };
+  }
+
+  private async enrichCategoriesData(categories: CategoryDto[], userId: string, controller: AbortController): Promise<{ usageCounts: Map<string, number>; childrenMap: Map<string, boolean> }> {
+    if (controller.signal.aborted) {
+      throw new Error('Aborted');
+    }
+
+    // Load all categories for parent name lookup if not loaded
+    if (!this.categoriesLoaded()) {
+      await this.loadAllCategories();
+      this.categoriesLoaded.set(true);
+    }
+
+    // Get usage counts
+    const categoryIds = categories.map(c => c.id);
+    const usageCounts = await this.getCategoryUsageCounts(categoryIds, userId);
+
+    // Check for children
+    const childrenMap = await this.getCategoryChildrenMap(categoryIds, userId);
+
+    return { usageCounts, childrenMap };
+  }
+
+  private mapToViewModels(
+    categories: CategoryDto[],
+    usageCounts: Map<string, number>,
+    childrenMap: Map<string, boolean>
+  ): CategoryListViewModel[] {
+    return categories.map((category) =>
+      this.mapCategoryToViewModel(
+        category,
+        usageCounts.get(category.id) || 0,
+        childrenMap.get(category.id) || false
+      )
+    );
+  }
+
   private buildPaginationState(filters: CategoriesFilterState, total: number): PaginationState {
     const page = filters.page;
     const perPage = filters.per_page;
     const totalPages = Math.ceil(total / perPage);
 
-    const links: PaginationLink[] = [];
-
-    // Add first page link
-    if (page > 1) {
-      links.push({
-        href: `?page=1&per_page=${perPage}`,
-        rel: 'first',
-        page: 1,
-        perPage,
-      });
-    }
-
-    // Add previous page link
-    if (page > 1) {
-      links.push({
-        href: `?page=${page - 1}&per_page=${perPage}`,
-        rel: 'prev',
-        page: page - 1,
-        perPage,
-      });
-    }
-
-    // Add next page link
-    if (page < totalPages) {
-      links.push({
-        href: `?page=${page + 1}&per_page=${perPage}`,
-        rel: 'next',
-        page: page + 1,
-        perPage,
-      });
-    }
-
-    // Add last page link
-    if (page < totalPages) {
-      links.push({
-        href: `?page=${totalPages}&per_page=${perPage}`,
-        rel: 'last',
-        page: totalPages,
-        perPage,
-      });
-    }
+    const links: PaginationLink[] = [
+      ...(page > 1 ? [{ href: `?page=1&per_page=${perPage}`, rel: 'first' as const, page: 1, perPage }] : []),
+      ...(page > 1 ? [{ href: `?page=${page - 1}&per_page=${perPage}`, rel: 'prev' as const, page: page - 1, perPage }] : []),
+      ...(page < totalPages ? [{ href: `?page=${page + 1}&per_page=${perPage}`, rel: 'next' as const, page: page + 1, perPage }] : []),
+      ...(page < totalPages ? [{ href: `?page=${totalPages}&per_page=${perPage}`, rel: 'last' as const, page: totalPages, perPage }] : []),
+    ];
 
     return {
       page,
@@ -571,16 +484,89 @@ export class CategoriesFacadeService {
     } satisfies PaginationState;
   }
 
+  private async validateCategoryName(name: string, userId: string, excludeId?: string): Promise<void> {
+    const query = supabaseClient
+      .from('categories')
+      .select('id')
+      .ilike('name', name)
+      .eq('user_id', userId);
+
+    if (excludeId) {
+      query.neq('id', excludeId);
+    }
+
+    const { data: existingCategory } = await query.maybeSingle();
+
+    if (existingCategory) {
+      throw new Error('Kategoria o tej nazwie już istnieje w Twoich kategoriach.');
+    }
+  }
+
+  private async validateParent(parentId: string | null, userId: string, currentId?: string): Promise<void> {
+    if (!parentId) {
+      return;
+    }
+
+    const { data: parent, error: parentError } = await supabaseClient
+      .from('categories')
+      .select('id, user_id, parent_id')
+      .eq('id', parentId)
+      .single();
+
+    if (parentError || !parent) {
+      throw new Error('Kategoria nadrzędna nie została znaleziona.');
+    }
+
+    // Validate that parent belongs to the same user
+    if (parent.user_id !== userId) {
+      throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
+    }
+
+    // Check for circular reference
+    if (currentId && parentId === currentId) {
+      throw new Error('Kategoria nie może być swoim własnym rodzicem.');
+    }
+
+    // Check if parent has this category as parent (for update)
+    if (currentId && parent.parent_id === currentId) {
+      throw new Error('Wybrana kategoria nadrzędna tworzy cykl.');
+    }
+  }
+
+  private async validateDeletable(categoryId: string, userId: string): Promise<void> {
+    // Check if category is being used
+    const { data: expenses } = await supabaseClient
+      .from('expenses')
+      .select('id')
+      .eq('user_id', userId)
+      .or(`category_id.eq.${categoryId},predicted_category_id.eq.${categoryId}`)
+      .limit(1);
+
+    if (expenses && expenses.length > 0) {
+      throw new Error('Nie można usunąć kategorii używanej w wydatkach.');
+    }
+
+    // Check if category has children
+    const { data: children } = await supabaseClient
+      .from('categories')
+      .select('id')
+      .eq('parent_id', categoryId)
+      .limit(1);
+
+    if (children && children.length > 0) {
+      throw new Error('Nie można usunąć kategorii zawierającej podkategorie.');
+    }
+  }
+
   private mapCategoryToViewModel(
     category: CategoryDto,
     usageCount: number,
     hasChildren: boolean
   ): CategoryListViewModel {
-    const statusLabel = category.is_active ? 'Aktywna' : 'Nieaktywna';
-    const statusTone = category.is_active ? 'success' : 'error';
-    const parentName = category.parent_id 
-      ? this.categoryNameMap.get(category.parent_id) 
-      : undefined;
+    const { is_active, parent_id, user_id } = category;
+    const statusLabel = is_active ? 'Aktywna' : 'Nieaktywna';
+    const statusTone = is_active ? 'success' : 'error';
+    const parentName = parent_id ? this.categoryNameMap.get(parent_id) : undefined;
 
     return {
       ...category,
@@ -589,7 +575,7 @@ export class CategoriesFacadeService {
       hasChildren,
       statusLabel,
       statusTone,
-      isSystem: category.user_id === null,
+      isSystem: user_id === null,
     } satisfies CategoryListViewModel;
   }
 
