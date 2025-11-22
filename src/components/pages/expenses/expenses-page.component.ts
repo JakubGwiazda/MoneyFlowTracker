@@ -13,9 +13,9 @@ import { ExpensesChartsComponent } from '../../app/expenses/ui/expenses-charts.c
 import { PaginationControlsComponent } from '../../app/common/pagination-controls/pagination-controls.component';
 import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
-import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense-dialog.component';
-import { EditExpenseDialogComponent } from '../../app/expenses/dialogs/edit-expense-dialog.component';
-import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expenses/dialogs/confirm-dialog.component';
+import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense/add-expense-dialog.component';
+import { EditExpenseDialogComponent } from '../../app/expenses/dialogs/edit-expense/edit-expense-dialog.component';
+import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/common/dialogs/confirm-dialog/confirm-dialog.component';
 import { ClassificationStatus } from 'src/types';
 
 @Component({

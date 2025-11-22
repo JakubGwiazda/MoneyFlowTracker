@@ -18,7 +18,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import type { ExpensesListViewModel, SortState } from '../../../../lib/models/expenses';
 import { BadgeComponent } from '../../common/badge/badge.component';
-import { RowActionsComponent } from '../../common/row-actions/row-actions.component';
+import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../common/row-actions/row-actions.component';
 
 @Component({
   selector: 'app-expenses-table',
@@ -94,9 +94,11 @@ import { RowActionsComponent } from '../../common/row-actions/row-actions.compon
             <th mat-header-cell *matHeaderCellDef class="w-12 text-right">Akcje</th>
             <td mat-cell *matCellDef="let element" class="text-right">
               <app-row-actions
-                [expense]="element"
+                [actions]="expenseActions"
+                [data]="element"
                 [disabled]="loading()"
-                (actionSelect)="onAction(element.id, $event)"
+                [ariaLabel]="'Opcje wydatku'"
+                (actionSelect)="onAction($event)"
               />
             </td>
           </ng-container>
@@ -191,6 +193,22 @@ export class ExpensesTableComponent implements AfterViewInit {
 
   readonly columns = ['name', 'amount', 'expense_date', 'category', 'classification', 'confidence', 'actions'];
 
+  readonly expenseActions: RowAction<ExpensesListViewModel>[] = [
+    {
+      key: 'edit',
+      label: 'Edytuj',
+      icon: 'edit',
+      color: 'primary'
+    },
+    {
+      key: 'delete',
+      label: 'Usuń',
+      icon: 'delete',
+      color: 'warn',
+      class: 'text-red-600'
+    }
+  ];
+
   constructor() {
     effect(() => {
       this.dataSource.data = this.data();
@@ -216,11 +234,16 @@ export class ExpensesTableComponent implements AfterViewInit {
     this.sortChange.emit({ active: sort.active as SortState['active'], direction: sort.direction as 'asc' | 'desc' });
   }
 
-  onAction(expenseId: string, action: 'edit' | 'delete'): void {
-    switch (action) {
+  onAction(event: RowActionEvent<ExpensesListViewModel>): void {
+    const { action, data } = event;
+    const expenseId = data?.id;
+
+    if (!expenseId) return;
+
+    switch (action.key) {
       case 'edit':
         this.editExpense.emit(expenseId);
-        break; 
+        break;
       case 'delete':
         this.deleteExpense.emit(expenseId);
         break;

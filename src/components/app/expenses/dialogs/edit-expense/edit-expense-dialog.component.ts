@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete/select-autocomplete.component';
-import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../lib/models/expenses';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../../common/select-autocomplete/select-autocomplete.component';
+import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../../lib/models/expenses';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -22,56 +22,7 @@ type DialogData = {
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule, SelectAutocompleteComponent,
      ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
-  template: `
-    <h2 mat-dialog-title>Edycja pozycji</h2>
-    <div mat-dialog-content class="flex flex-col gap-4"> 
-      <form [formGroup]="editForm" class="expense-edit-form">
-        <mat-form-field appearance="outline">
-          <mat-label>Nazwa</mat-label>
-          <input matInput formControlName="name" required maxlength="100" />
-          @if (editForm.controls.name.hasError('required')) {
-            <mat-error>Nazwa jest wymagana</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Kwota</mat-label>
-          <input matInput type="number" min="0" step="0.01" formControlName="amount" required />
-          @if (editForm.controls.amount.hasError('required')) {
-            <mat-error>Kwota jest wymagana</mat-error>
-          }
-          @if (editForm.controls.amount.hasError('min')) {
-            <mat-error>Kwota musi być większa od zera</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Data</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="expense_date" required />
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-          @if (editForm.controls.expense_date.hasError('required')) {
-            <mat-error>Data jest wymagana</mat-error>
-          }
-        </mat-form-field>
-        
-      <app-select-autocomplete formControlName="category_id"
-        [options]="categories()"
-        [fieldLabel]="'Kategoria'"
-        [value]="selectedId()"
-        (valueChange)="onSelect($event)"
-        (queryChange)="data.onCategorySearch?.($event)"
-      />
-      </form>
-    </div>
-
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="dialogRef.close()">Anuluj</button>
-      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="editForm.invalid">
-        Zapisz
-      </button>
-    </mat-dialog-actions>
-  `,
+  templateUrl: './edit-expense.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditExpenseDialogComponent {

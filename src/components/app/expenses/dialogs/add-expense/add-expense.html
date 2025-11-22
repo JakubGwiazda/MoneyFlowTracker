@@ -1,0 +1,87 @@
+<h2 mat-dialog-title>Dodaj wydatek</h2>
+<div mat-dialog-content class="dialog-content" data-testid="add-expense-dialog">
+  <form [formGroup]="form" class="mt-2 expense-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Nazwa</mat-label>
+      <input matInput formControlName="name" required maxlength="100" data-testid="expense-description-input" />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Nazwa jest wymagana</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Kwota</mat-label>
+      <input matInput type="number" min="0" step="0.01" formControlName="amount" required data-testid="expense-amount-input" />
+      @if (form.controls.amount.hasError('required')) {
+        <mat-error>Kwota jest wymagana</mat-error>
+      }
+      @if (form.controls.amount.hasError('min')) {
+        <mat-error>Kwota musi być większa od zera</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="expense_date" required data-testid="expense-date-input" />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      @if (form.controls.expense_date.hasError('required')) {
+        <mat-error>Data jest wymagana</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="button" (click)="addExpenseToList()" [disabled]="form.invalid">
+        Dodaj kolejny wydatek
+      </button>
+    </div>
+  </form>
+
+  @if (expensesList().length > 0) {
+    <div class="expenses-table-container">
+      <h3 class="table-title">Dodane wydatki ({{ expensesList().length }})</h3>
+      <table mat-table [dataSource]="expensesList()" class="expenses-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nazwa</th>
+          <td mat-cell *matCellDef="let expense">{{ expense.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Kwota</th>
+          <td mat-cell *matCellDef="let expense">{{ expense.amount | number:'1.2-2' }} zł</td>
+        </ng-container>
+
+        <ng-container matColumnDef="expense_date">
+          <th mat-header-cell *matHeaderCellDef>Data</th>
+          <td mat-cell *matCellDef="let expense">{{ expense.expense_date | date:'dd.MM.yyyy' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let expense; let i = index">
+            <button mat-icon-button color="warn" (click)="removeExpense(i)" type="button">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  }
+
+  @if (isClassifying()) {
+    <div class="classification-status">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Trwa klasyfikacja i zapis wydatków. Proszę czekać.</span>
+    </div>
+  }
+</div>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="dialogRef.close()" data-testid="expense-cancel-button">Anuluj</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isClassifying()" data-testid="expense-save-button">
+    Zapisz i klasyfikuj
+  </button>
+</mat-dialog-actions>

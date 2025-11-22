@@ -4,7 +4,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 
-import type { ExpenseActionType, ExpensesListViewModel } from '../../../../lib/models/expenses';
+export interface RowAction<T = any> {
+  key: string;
+  label: string;
+  icon: string;
+  color?: 'primary' | 'accent' | 'warn';
+  class?: string;
+  data?: T;
+}
+
+export interface RowActionEvent<T = any> {
+  action: RowAction<T>;
+  data?: T;
+}
 
 @Component({
   selector: 'app-row-actions',
@@ -16,32 +28,41 @@ import type { ExpenseActionType, ExpensesListViewModel } from '../../../../lib/m
       mat-icon-button
       [matMenuTriggerFor]="menu"
       [disabled]="disabled()"
-      aria-label="Opcje wydatku"
+      [attr.aria-label]="ariaLabel()"
     >
       <mat-icon fontIcon="more_vert"></mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="emit('edit')">
-        <mat-icon>edit</mat-icon>
-        <span>Edytuj</span>
-      </button>
-      <mat-divider></mat-divider>
-      <button mat-menu-item class="text-red-600" (click)="emit('delete')">
-        <mat-icon color="warn">delete</mat-icon>
-        <span>Usuń</span>
-      </button>
+      @for (action of actions(); track action.key) {
+        <button
+          mat-menu-item
+          [class]="action.class"
+          (click)="emitAction(action)"
+        >
+          <mat-icon [color]="action.color">{{ action.icon }}</mat-icon>
+          <span>{{ action.label }}</span>
+        </button>
+        @if (!$last) {
+          <mat-divider></mat-divider>
+        }
+      }
     </mat-menu>
   `,
 })
-export class RowActionsComponent {
-  readonly expense = input.required<ExpensesListViewModel>();
+export class RowActionsComponent<T = any> {
+  readonly actions = input.required<RowAction<T>[]>();
+  readonly data = input<T>();
   readonly disabled = input<boolean>(false);
+  readonly ariaLabel = input<string>('Opcje');
 
-  readonly actionSelect = output<ExpenseActionType>();
+  readonly actionSelect = output<RowActionEvent<T>>();
 
-  emit(action: ExpenseActionType): void {
-    this.actionSelect.emit(action);
+  emitAction(action: RowAction<T>): void {
+    this.actionSelect.emit({
+      action,
+      data: this.data()
+    });
   }
 }
 

@@ -1,0 +1,47 @@
+.dialog-content {
+    min-width: 600px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .expense-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    padding-top: 8px;
+  }
+
+  .expenses-table-container {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .table-title {
+    margin: 0;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .expenses-table {
+    width: 100%;
+  }
+
+  .classification-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+  }
