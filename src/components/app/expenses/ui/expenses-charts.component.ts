@@ -7,7 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BarChartModule, PieChartModule } from '@swimlane/ngx-charts';
 import { ChartDataItem, ChartType, ChartViewMode } from '../../../../lib/models/charts';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter.component';
+import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter/date-filter.component';
 
 /**
  * Component for displaying expense data in various chart formats

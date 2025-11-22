@@ -10,7 +10,7 @@ import { ExpensesFacadeService } from '../../app/expenses/services/expenses-faca
 import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from '../../app/expenses/ui/expenses-table.component';
 import { ExpensesChartsComponent } from '../../app/expenses/ui/expenses-charts.component';
-import { PaginationControlsComponent } from '../../app/common/pagination-controls.component';
+import { PaginationControlsComponent } from '../../app/common/pagination-controls/pagination-controls.component';
 import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
 import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense-dialog.component';

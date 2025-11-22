@@ -18,8 +18,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import type {
   DatePreset,
   DatePresetOption,
-} from '../../../lib/models/expenses';
-import { ChipsComponent, type ChipOption, type ChipSelectionChange } from './chips.component';
+} from '../../../../lib/models/expenses';
+import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../chips/chips.component';
 
 export interface DateFilterValue {
   preset: DatePreset;

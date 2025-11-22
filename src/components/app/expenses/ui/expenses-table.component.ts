@@ -17,8 +17,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import type { ExpensesListViewModel, SortState } from '../../../../lib/models/expenses';
-import { BadgeComponent } from '../../common/badge.component';
-import { RowActionsComponent } from '../../common/row-actions.component';
+import { BadgeComponent } from '../../common/badge/badge.component';
+import { RowActionsComponent } from '../../common/row-actions/row-actions.component';
 
 @Component({
   selector: 'app-expenses-table',

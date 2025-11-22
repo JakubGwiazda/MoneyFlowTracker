@@ -11,7 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
 import { CategoriesFacadeService } from '../../app/categories/services/categories-facade.service';
 import { CategoriesTableComponent } from '../../app/categories/ui/categories-table.component';
-import { PaginationControlsComponent } from '../../app/common/pagination-controls.component';
+import { PaginationControlsComponent } from '../../app/common/pagination-controls/pagination-controls.component';
 import { AddCategoryDialogComponent, type AddCategoryDialogResult } from '../../app/categories/dialogs/add-category-dialog.component';
 import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/expenses/dialogs/confirm-dialog.component';
 import type { CategoryListViewModel } from '../../../lib/models/categories';

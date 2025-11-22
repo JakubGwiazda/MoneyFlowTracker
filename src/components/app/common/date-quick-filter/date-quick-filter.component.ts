@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-import type { DatePreset, DatePresetOption } from '../../../lib/models/expenses';
+import type { DatePreset, DatePresetOption } from '../../../../lib/models/expenses';
 import { MatChipsModule } from '@angular/material/chips';
 
 @Component({

@@ -21,9 +21,9 @@ import type {
   ExpensesFilterState,
 } from '../../../../lib/models/expenses';
 import type { ClassificationStatus } from '../../../../types';
-import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../../common/chips.component';
-import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete.component';
-import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter.component';
+import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../../common/chips/chips.component';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete/select-autocomplete.component';
+import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter/date-filter.component';
 
 const DEFAULT_PRESET: DatePreset = 'today';
 

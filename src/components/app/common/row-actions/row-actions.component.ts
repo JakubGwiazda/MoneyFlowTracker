@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 
-import type { ExpenseActionType, ExpensesListViewModel } from '../../../lib/models/expenses';
+import type { ExpenseActionType, ExpensesListViewModel } from '../../../../lib/models/expenses';
 
 @Component({
   selector: 'app-row-actions',

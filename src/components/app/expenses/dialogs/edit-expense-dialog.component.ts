@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete.component';
+import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete/select-autocomplete.component';
 import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../lib/models/expenses';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
