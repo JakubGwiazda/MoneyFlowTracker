@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-
 import type { CategoryListViewModel } from '../../../lib/models/categories';
 import { CreateCategoryCommand } from 'src/types';
 import { AddCategoryDialogComponent, AddCategoryDialogResult } from 'src/app/components/categories/dialogs/add-category-dialog.component';
@@ -35,148 +34,8 @@ import { PaginationControlsComponent } from 'src/app/components/common/paginatio
     CategoriesTableComponent,
     PaginationControlsComponent,
   ],
-  template: `
-    <div class="categories-page-container">
-      <header class="page-header">
-        <div class="header-content">
-          <div>
-            <h2 class="page-title">Zarządzanie kategoriami</h2>
-            <p class="page-description">
-              Twórz i organizuj kategorie do klasyfikacji wydatków
-            </p>
-          </div>
-          <button 
-            mat-raised-button 
-            color="primary"
-            (click)="onAddCategory()"
-            data-testid="add-category-button"
-          >
-            <mat-icon>add</mat-icon>
-            Dodaj kategorię
-          </button>
-        </div>
-      </header>
-
-      <mat-card class="filters-card">
-        <mat-card-content>
-          <div class="filters-container">
-            <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Szukaj kategorii</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="searchQuery"
-                (ngModelChange)="onSearchChange($event)"
-                placeholder="Wpisz nazwę kategorii..."
-                data-testid="categories-search-input"
-              />
-              <mat-icon matPrefix>search</mat-icon>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Status</mat-label>
-              <mat-select 
-                [(ngModel)]="activeFilter"
-                (ngModelChange)="onActiveFilterChange($event)"
-              >
-                <mat-option [value]="undefined">Wszystkie</mat-option>
-                <mat-option [value]="true">Aktywne</mat-option>
-                <mat-option [value]="false">Nieaktywne</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <div class="table-container">
-        <app-categories-table
-          [data]="vm().categories"
-          [loading]="vm().loading"
-          (editCategory)="onEditCategory($event)"
-          (deleteCategory)="onDeleteCategory($event)"
-          (toggleActive)="onToggleActive($event)"
-        />
-      </div>
-
-      @if (vm().categories.length > 0) {
-        <div class="pagination-container">
-          <app-pagination-controls
-            [state]="vm().pagination"
-            [disabled]="vm().loading"
-            (pageChange)="onPageChange($event)"
-            (perPageChange)="onPerPageChange($event)"
-          />
-        </div>
-      }
-    </div>
-  `,
-  styles: [`
-    .categories-page-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-      padding: 1rem;
-      gap: 1rem;
-    }
-
-    .page-header {
-      flex-shrink: 0;
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-    .page-title {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: rgba(0, 0, 0, 0.87);
-    }
-
-    .page-description {
-      margin: 0.5rem 0 0;
-      font-size: 0.875rem;
-      color: rgba(0, 0, 0, 0.6);
-    }
-
-    .filters-card {
-      flex-shrink: 0;
-    }
-
-    .filters-container {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-
-    .search-field {
-      flex: 1;
-      min-width: 300px;
-    }
-
-    .filter-field {
-      width: 200px;
-    }
-
-    .table-container {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      background: white;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .pagination-container {
-      flex-shrink: 0;
-    }
-  `],
+  templateUrl: './categories-page.component.html',
+  styleUrl: './categories.scss',
 })
 export class CategoriesPageComponent implements OnInit {
   private readonly facade = inject(CategoriesFacadeService);

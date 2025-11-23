@@ -1,21 +1,7 @@
 <mat-tab-group class="tab_group" [attr.data-testid]="'expenses-tab-group'">
     <mat-tab label="Wizualizacja wydatków"  [attr.data-testid]="'expenses-chart-tab'">
       <div class="tab-content mt-2">
-        <!-- <app-charts-page
-          [data]="chartData()"
-          [title]="'Wydatki według kategorii'"
-          [xAxisLabel]="'Kategorie'"
-          [yAxisLabel]="'Kwota (PLN)'"
-          [showLegend]="true"
-          [gradient]="false"
-          [animations]="true"
-          [dateFilterValue]="{
-            preset: vm().filters.preset ?? 'today',
-            date_from: vm().filters.date_from,
-            date_to: vm().filters.date_to
-          }"
-          (dateFilterChange)="onChartDateFilterChange($event)"
-        /> -->
+        <app-charts-page />
       </div>
     </mat-tab>
     <mat-tab label="Lista wydatków" [attr.data-testid]="'expenses-list-tab'">        

@@ -6,17 +6,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
-
-import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
-
 import { ClassificationStatus } from 'src/types';
 import { ConfirmDialogComponent, ConfirmDialogData } from 'src/app/components/common/dialogs/confirm-dialog/confirm-dialog.component';
 import { PaginationControlsComponent } from 'src/app/components/common/pagination-controls/pagination-controls.component';
 import { AddExpenseDialogComponent, AddExpenseDialogResult } from 'src/app/components/expenses/dialogs/add-expense/add-expense-dialog.component';
 import { EditExpenseDialogComponent } from 'src/app/components/expenses/dialogs/edit-expense/edit-expense-dialog.component';
 import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
-import { ChartsPageComponent } from 'src/app/pages/charts/charts-page.component';
 import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-table.component';
 
@@ -32,9 +28,7 @@ import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-
     MatExpansionModule,
     ExpensesFilterComponent,
     ExpensesTableComponent,
-    ChartsPageComponent,
     PaginationControlsComponent,
-    CategoriesPageComponent,
   ],
   templateUrl: './expenses-page.component.html',
   styleUrl: './expenses-page.scss',  

@@ -1,0 +1,72 @@
+<div class="categories-page-container">
+    <header class="page-header">
+      <div class="header-content">
+        <div>
+          <h2 class="page-title">Zarządzanie kategoriami</h2>
+          <p class="page-description">
+            Twórz i organizuj kategorie do klasyfikacji wydatków
+          </p>
+        </div>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="onAddCategory()"
+          data-testid="add-category-button"
+        >
+          <mat-icon>add</mat-icon>
+          Dodaj kategorię
+        </button>
+      </div>
+    </header>
+
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Szukaj kategorii</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="searchQuery"
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Wpisz nazwę kategorii..."
+              data-testid="categories-search-input"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select 
+              [(ngModel)]="activeFilter"
+              (ngModelChange)="onActiveFilterChange($event)"
+            >
+              <mat-option [value]="undefined">Wszystkie</mat-option>
+              <mat-option [value]="true">Aktywne</mat-option>
+              <mat-option [value]="false">Nieaktywne</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="table-container">
+      <app-categories-table
+        [data]="vm().categories"
+        [loading]="vm().loading"
+        (editCategory)="onEditCategory($event)"
+        (deleteCategory)="onDeleteCategory($event)"
+        (toggleActive)="onToggleActive($event)"
+      />
+    </div>
+
+    @if (vm().categories.length > 0) {
+      <div class="pagination-container">
+        <app-pagination-controls
+          [state]="vm().pagination"
+          [disabled]="vm().loading"
+          (pageChange)="onPageChange($event)"
+          (perPageChange)="onPerPageChange($event)"
+        />
+      </div>
+    }
+  </div>
