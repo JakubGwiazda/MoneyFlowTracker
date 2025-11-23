@@ -8,8 +8,7 @@ import { RegisterComponent } from './pages/register/register.component';
 import { MainPageComponent } from './pages/main-page/main-page.component';
 
 
-const loadExpensesPage = () =>
-  import('./pages/expenses/expenses-page.component').then((m) => m.ExpensesPageComponent);
+const loadMainPage = () => import('./pages/main-page/main-page.component').then((m) => m.MainPageComponent);
 
 export const appRoutes: Routes = [
   {
@@ -37,8 +36,8 @@ export const appRoutes: Routes = [
     canActivate: [authGuard],
     children: [
       {
-        path: 'expenses',
-        loadComponent: loadExpensesPage,
+        path: '',
+        loadComponent: loadMainPage,
       },
       {
         path: '',
