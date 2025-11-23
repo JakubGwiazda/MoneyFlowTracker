@@ -6,17 +6,19 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
-import { ExpensesFacadeService } from '../../app/expenses/services/expenses-facade.service';
-import { ExpensesFilterComponent } from '../../app/expenses/ui/expenses-filters.component';
-import { ExpensesTableComponent } from '../../app/expenses/ui/expenses-table.component';
-import { ExpensesChartsComponent } from '../../app/expenses/ui/expenses-charts.component';
-import { PaginationControlsComponent } from '../../app/common/pagination-controls/pagination-controls.component';
+
 import { CategoriesPageComponent } from '../categories/categories-page.component';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
-import { AddExpenseDialogComponent, type AddExpenseDialogResult } from '../../app/expenses/dialogs/add-expense/add-expense-dialog.component';
-import { EditExpenseDialogComponent } from '../../app/expenses/dialogs/edit-expense/edit-expense-dialog.component';
-import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/common/dialogs/confirm-dialog/confirm-dialog.component';
+
 import { ClassificationStatus } from 'src/types';
+import { ConfirmDialogComponent, ConfirmDialogData } from 'src/app/components/common/dialogs/confirm-dialog/confirm-dialog.component';
+import { PaginationControlsComponent } from 'src/app/components/common/pagination-controls/pagination-controls.component';
+import { AddExpenseDialogComponent, AddExpenseDialogResult } from 'src/app/components/expenses/dialogs/add-expense/add-expense-dialog.component';
+import { EditExpenseDialogComponent } from 'src/app/components/expenses/dialogs/edit-expense/edit-expense-dialog.component';
+import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
+import { ChartsPageComponent } from 'src/app/pages/charts/charts-page.component';
+import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
+import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-table.component';
 
 @Component({
   selector: 'app-expenses-page',
@@ -30,93 +32,12 @@ import { ClassificationStatus } from 'src/types';
     MatExpansionModule,
     ExpensesFilterComponent,
     ExpensesTableComponent,
-    ExpensesChartsComponent,
+    ChartsPageComponent,
     PaginationControlsComponent,
     CategoriesPageComponent,
   ],
   templateUrl: './expenses-page.component.html',
-  styles: [
-    `
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-      }
-      
-      .expenses-page-container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-      }
-      
-      .page-header {
-        flex-shrink: 0;
-        margin-bottom: 1rem;
-      }
-      
-      .tab_group {
-        width: 90%;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        overflow: hidden;
-      }
-      
-      .tab_group ::ng-deep .mat-mdc-tab-body-wrapper {
-        flex: 1;
-        overflow: hidden;
-      }
-      
-      .tab_group ::ng-deep .mat-mdc-tab-body-content {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-      }
-      
-      .tab-content {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-      }
-      
-      .filters-card {
-        flex-shrink: 0;
-        margin-bottom: 1rem;
-      }
-      
-      .filters-expansion-panel {
-        box-shadow: none;
-        border: 1px solid #e0e0e0;
-      }
-      
-      .filters-expansion-panel .mat-expansion-panel-header {
-        padding: 0 16px;
-        height: 56px;
-      }
-      
-      .filters-expansion-panel .mat-expansion-panel-body {
-        padding: 16px;
-      }
-      
-      .table-container {
-        flex: 1;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-      }
-      
-      .pagination-container {
-        flex-shrink: 0;
-        margin-top: 1rem;
-      }
-    `,
-  ],
+  styleUrl: './expenses-page.scss',  
 })
 export class ExpensesPageComponent implements OnInit{
 

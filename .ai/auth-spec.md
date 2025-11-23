@@ -196,7 +196,6 @@ export const appRoutes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
   { path: 'register', component: RegisterComponent, canActivate: [guestGuard] },
   { path: 'welcome', component: WelcomeComponent },
-  { path: 'purchase', component: PurchaseComponent },
   
   // Chronione trasy (tylko dla zalogowanych)
   {

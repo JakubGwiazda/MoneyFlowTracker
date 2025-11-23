@@ -1,15 +1,15 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../../lib/guards/auth.guard';
-import { guestGuard } from '../../lib/guards/guest.guard';
-import { MainLayoutComponent } from './main-layout.component';
-import { LoginComponent } from '../pages/login.component';
-import { RegisterComponent } from '../pages/register.component';
-import { WelcomeComponent } from '../pages/welcome.component';
-import { PurchaseComponent } from '../pages/purchase.component';
+import { authGuard } from '../lib/guards/auth.guard';
+import { guestGuard } from '../lib/guards/guest.guard';
+import { MainLayoutComponent } from './layout/main-layout.component';
+import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
+import { MainPageComponent } from './pages/main-page/main-page.component';
+
 
 const loadExpensesPage = () =>
-  import('../pages/expenses/expenses-page.component').then((m) => m.ExpensesPageComponent);
+  import('./pages/expenses/expenses-page.component').then((m) => m.ExpensesPageComponent);
 
 export const appRoutes: Routes = [
   {
@@ -29,11 +29,7 @@ export const appRoutes: Routes = [
   },
   {
     path: 'welcome',
-    component: WelcomeComponent,
-  },
-  {
-    path: 'purchase',
-    component: PurchaseComponent,
+    component: MainPageComponent,
   },
   {
     path: 'app',

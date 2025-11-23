@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,21 +9,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AuthService } from '../../lib/services/auth.service';
-
-function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const password = control.get('password');
-  const confirmPassword = control.get('confirmPassword');
-
-  if (!password || !confirmPassword) {
-    return null;
-  }
-
-  return password.value === confirmPassword.value ? null : { passwordMismatch: true };
-}
+import { AuthService } from '../../../lib/services/auth.service';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-login',
   standalone: true,
   imports: [
     CommonModule,
@@ -37,28 +26,21 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     MatIconModule,
   ],
   template: `
-    <div class="register-container">
-      <mat-card class="register-card">
+    <div class="login-container">
+      <mat-card class="login-card">
         <mat-card-header>
           <mat-card-title>
             <h1>MoneyFlowTracker</h1>
           </mat-card-title>
-          <mat-card-subtitle>Utwórz nowe konto</mat-card-subtitle>
+          <mat-card-subtitle>Zaloguj się do swojego konta</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
-          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             @if (errorMessage()) {
-              <div class="error-message" data-testid="register-error-message">
+              <div class="error-message" data-testid="login-error-message">
                 <mat-icon>error</mat-icon>
                 <span>{{ errorMessage() }}</span>
-              </div>
-            }
-
-            @if (successMessage()) {
-              <div class="success-message" data-testid="register-success-message">
-                <mat-icon>check_circle</mat-icon>
-                <span>{{ successMessage() }}</span>
               </div>
             }
 
@@ -70,12 +52,12 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
                 formControlName="email"
                 placeholder="nazwa@example.com"
                 autocomplete="email"
-                data-testid="register-email-input"
+                data-testid="login-email-input"
               />
-              @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+              @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
                 <mat-error>Email jest wymagany</mat-error>
               }
-              @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+              @if (loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched) {
                 <mat-error>Wprowadź poprawny adres email</mat-error>
               }
             </mat-form-field>
@@ -86,9 +68,9 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
                 matInput
                 [type]="hidePassword() ? 'password' : 'text'"
                 formControlName="password"
-                placeholder="Minimum 6 znaków"
-                autocomplete="new-password"
-                data-testid="register-password-input"
+                placeholder="Twoje hasło"
+                autocomplete="current-password"
+                data-testid="login-password-input"
               />
               <button
                 mat-icon-button
@@ -100,39 +82,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
               >
                 <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
-              @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+              @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
                 <mat-error>Hasło jest wymagane</mat-error>
-              }
-              @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
-                <mat-error>Hasło musi zawierać co najmniej 6 znaków</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Powtórz hasło</mat-label>
-              <input
-                matInput
-                [type]="hideConfirmPassword() ? 'password' : 'text'"
-                formControlName="confirmPassword"
-                placeholder="Wprowadź hasło ponownie"
-                autocomplete="new-password"
-                data-testid="register-confirm-password-input"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="hideConfirmPassword.set(!hideConfirmPassword())"
-                [attr.aria-label]="'Hide confirm password'"
-                [attr.aria-pressed]="hideConfirmPassword()"
-              >
-                <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              @if (registerForm.get('confirmPassword')?.hasError('required') && registerForm.get('confirmPassword')?.touched) {
-                <mat-error>Potwierdzenie hasła jest wymagane</mat-error>
-              }
-              @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
-                <mat-error>Hasła nie są identyczne</mat-error>
               }
             </mat-form-field>
 
@@ -140,31 +91,31 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
               mat-raised-button
               color="primary"
               type="submit"
-              [disabled]="registerForm.invalid || loading()"
+              [disabled]="loginForm.invalid || loading()"
               class="submit-button"
-              data-testid="register-submit-button"
+              data-testid="login-submit-button"
             >
               @if (loading()) {
                 <mat-spinner diameter="20"></mat-spinner>
-                <span>Rejestrowanie...</span>
+                <span>Logowanie...</span>
               } @else {
-                <span>Zarejestruj się</span>
+                <span>Zaloguj się</span>
               }
             </button>
           </form>
         </mat-card-content>
 
         <mat-card-actions>
-          <p class="login-link">
-            Masz już konto?
-            <a routerLink="/login" data-testid="register-login-link">Zaloguj się</a>
+          <p class="register-link">
+            Nie masz konta?
+            <a routerLink="/register" data-testid="login-register-link">Zarejestruj się</a>
           </p>
         </mat-card-actions>
       </mat-card>
     </div>
   `,
   styles: [`
-    .register-container {
+    .login-container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -173,7 +124,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
       padding: 20px;
     }
 
-    .register-card {
+    .login-card {
       width: 100%;
       max-width: 420px;
       padding: 32px;
@@ -224,24 +175,6 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
       height: 20px;
     }
 
-    .success-message {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px;
-      background-color: #d1fae5;
-      border: 1px solid #6ee7b7;
-      border-radius: 4px;
-      color: #065f46;
-      font-size: 14px;
-    }
-
-    .success-message mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-
     mat-form-field {
       width: 100%;
     }
@@ -265,67 +198,55 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
       justify-content: center;
     }
 
-    .login-link {
+    .register-link {
       margin: 0;
       font-size: 14px;
       color: #6b7280;
     }
 
-    .login-link a {
+    .register-link a {
       color: #667eea;
       font-weight: 500;
       text-decoration: none;
       margin-left: 4px;
     }
 
-    .login-link a:hover {
+    .register-link a:hover {
       text-decoration: underline;
     }
   `],
 })
-export class RegisterComponent {
-  registerForm: FormGroup;
+export class LoginComponent {
+  loginForm: FormGroup;
   hidePassword = signal(true);
-  hideConfirmPassword = signal(true);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
-  successMessage = signal<string | null>(null);
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
-    this.registerForm = this.fb.group(
-      {
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', [Validators.required]],
-      },
-      { validators: passwordMatchValidator }
-    );
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
+    });
   }
 
   async onSubmit(): Promise<void> {
-    if (this.registerForm.invalid) {
+    if (this.loginForm.invalid) {
       return;
     }
 
     this.loading.set(true);
     this.errorMessage.set(null);
-    this.successMessage.set(null);
 
-    const { email, password } = this.registerForm.value;
-    const result = await this.authService.signUp(email, password);
+    const { email, password } = this.loginForm.value;
+    const result = await this.authService.signIn(email, password);
 
     this.loading.set(false);
 
-    if (result.success) {
-      if (result.error) {
-        // This is a success message about email confirmation
-        this.successMessage.set(result.error);
-      }
-    } else if (result.error) {
+    if (!result.success && result.error) {
       this.errorMessage.set(result.error);
     }
   }

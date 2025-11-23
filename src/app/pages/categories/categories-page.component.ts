@@ -9,13 +9,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
-import { CategoriesFacadeService } from '../../app/categories/services/categories-facade.service';
-import { CategoriesTableComponent } from '../../app/categories/ui/categories-table.component';
-import { PaginationControlsComponent } from '../../app/common/pagination-controls/pagination-controls.component';
-import { AddCategoryDialogComponent, type AddCategoryDialogResult } from '../../app/categories/dialogs/add-category-dialog.component';
-import { ConfirmDialogComponent, type ConfirmDialogData } from '../../app/common/dialogs/confirm-dialog/confirm-dialog.component';
+
 import type { CategoryListViewModel } from '../../../lib/models/categories';
 import { CreateCategoryCommand } from 'src/types';
+import { AddCategoryDialogComponent, AddCategoryDialogResult } from 'src/app/components/categories/dialogs/add-category-dialog.component';
+import { CategoriesFacadeService } from 'src/app/components/categories/services/categories-facade.service';
+import { CategoriesTableComponent } from 'src/app/components/categories/ui/categories-table.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from 'src/app/components/common/dialogs/confirm-dialog/confirm-dialog.component';
+import { PaginationControlsComponent } from 'src/app/components/common/pagination-controls/pagination-controls.component';
 
 @Component({
   selector: 'app-categories-page',
