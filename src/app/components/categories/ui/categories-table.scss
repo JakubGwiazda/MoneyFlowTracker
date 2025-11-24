@@ -30,18 +30,6 @@
   margin-bottom: 1rem;
 }
 
-.empty-state h3 {
-  margin: 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.empty-state p {
-  margin: 0.5rem 0;
-  font-size: 0.875rem;
-}
-
 .table-container {
   width: 100%;
   max-height: 60vh;
@@ -53,19 +41,20 @@
   background: white;
 }
 
+//zostaje
 .category-name {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
-
+//zostaje
 .expand-button {
   width: 32px;
   height: 32px;
   line-height: 32px;
   margin-right: 0.25rem;
 }
-
+//zostaje
 .expand-button mat-icon {
   font-size: 20px;
   width: 20px;
@@ -126,10 +115,3 @@ td.mat-cell {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-tr.mat-row:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-tr.mat-row.child-row:hover {
-  background-color: rgba(0, 0, 0, 0.06);
-}

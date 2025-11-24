@@ -18,30 +18,37 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
       <div>
         <span>Strona {{ state().page }}</span>
         @if (totalItems() !== null) {
-          <span>
-            z {{ totalItems() }}
-          </span>
+          <span> z {{ totalItems() }} </span>
         }
       </div>
-      <div class="pagination d-flex justify-content-end flex-column">
-      <mat-form-field>
-        <mat-select
-          [value]="state().perPage"
-          (valueChange)="onPerPageChange($event)"
-          [disabled]="disabled()"
-          aria-label="Elementów na stronę"
-        >
-          @for (option of perPageOptions; track option) {
-            <mat-option [value]="option">{{ option }}</mat-option>
-          }
-        </mat-select>
+      <div class="d-flex justify-content-end align-items-center gap-2" style="width: 20%;">
+        <mat-form-field>
+          <mat-select
+            [value]="state().perPage"
+            (valueChange)="onPerPageChange($event)"
+            [disabled]="disabled()"
+            aria-label="Elementów na stronę">
+            @for (option of perPageOptions; track option) {
+              <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-select>
         </mat-form-field>
-        <div class="d-flex justify-content-between gap-2">
-          <button mat-stroked-button type="button" (click)="onPrev()" [disabled]="disabled() || !state().hasPrev" data-testid="pagination-previous-button">
+        <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="onPrev()"
+            [disabled]="disabled() || !state().hasPrev"
+            data-testid="pagination-previous-button">
             <mat-icon>chevron_left</mat-icon>
             Poprzednia
           </button>
-          <button mat-stroked-button type="button" (click)="onNext()" [disabled]="disabled() || !state().hasNext" data-testid="pagination-next-button">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="onNext()"
+            [disabled]="disabled() || !state().hasNext"
+            data-testid="pagination-next-button">
             Następna
             <mat-icon>chevron_right</mat-icon>
           </button>
@@ -52,7 +59,7 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
   styles: [
     `
       .pagination {
-        width: 20%;        
+        width: 20%;
       }
     `,
   ],
@@ -88,4 +95,3 @@ export class PaginationControlsComponent {
     this.perPageChange.emit(perPage);
   }
 }
-
