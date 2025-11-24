@@ -3,8 +3,8 @@ import { ExpensesPage, AddExpenseDialog } from '../page-objects';
 import path from 'path';
 
 // Use saved authentication state for all tests in this file
-test.use({ 
-  storageState: path.join(__dirname, '../../playwright/.auth/user.json')
+test.use({
+  storageState: path.join(__dirname, '../../playwright/.auth/user.json'),
 });
 
 test.describe('Expenses Management', () => {
@@ -42,7 +42,7 @@ test.describe('Expenses Management', () => {
     // Arrange
     const addExpenseDialog = new AddExpenseDialog(page);
     const expenseData = {
-      description: 'Test Expense',
+      description: 'Bułka',
       amount: '50.00',
       category: 'Food',
       date: '2024-01-15',
@@ -53,13 +53,11 @@ test.describe('Expenses Management', () => {
     await addExpenseDialog.waitForDialog();
     await addExpenseDialog.fillExpenseForm(expenseData);
     await addExpenseDialog.save();
+    await addExpenseDialog.waitForClassificationInProgressToDisappear();
 
     // Assert
-    await expensesPage.waitForTimeout(1000);
-    const isDisplayed = await expensesPage.isExpenseDisplayed(expenseData.description);
-    expect(isDisplayed).toBeTruthy();
+    await expensesPage.waitForExpenseAddedSnackbar();
   });
-
 
   test('should cancel add expense dialog', async ({ page }) => {
     // Arrange
@@ -74,4 +72,3 @@ test.describe('Expenses Management', () => {
     await expect(addExpenseDialog.dialog).not.toBeVisible();
   });
 });
-

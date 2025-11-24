@@ -1,0 +1,66 @@
+.categories-page-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .page-header {
+    flex-shrink: 0;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .page-description {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .filters-card {
+    flex-shrink: 0;
+  }
+
+  .filters-container {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .search-field {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .filter-field {
+    width: 200px;
+  }
+
+  .table-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .pagination-container {
+    flex-shrink: 0;
+  }

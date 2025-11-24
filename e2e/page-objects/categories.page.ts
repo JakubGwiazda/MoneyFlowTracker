@@ -18,7 +18,6 @@ export class CategoriesPage extends BasePage {
     return this.getByTestId('categories-table');
   }
 
-
   get categoriesTab() {
     return this.getByTestId('categories-tab');
   }
@@ -29,7 +28,7 @@ export class CategoriesPage extends BasePage {
 
   // Actions
   async navigate(): Promise<void> {
-    await this.goto('/app/expenses');
+    await this.goto('/app');
     await this.waitForPageLoad();
     await this.page.getByRole('tab', { name: 'Kategorie' }).click();
   }
@@ -66,4 +65,3 @@ export class CategoriesPage extends BasePage {
     return await row.isVisible();
   }
 }
-

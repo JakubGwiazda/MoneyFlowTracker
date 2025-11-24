@@ -35,7 +35,7 @@ test.describe('Login Page', () => {
     await loginPage.login(validEmail, validPassword);
 
     // Assert
-    await expect(page).toHaveURL(/.*expenses/);
+    await expect(page).toHaveURL(/.*app/);
   });
 
   test('should show error message with invalid credentials', async () => {

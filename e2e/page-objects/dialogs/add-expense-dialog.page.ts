@@ -42,6 +42,10 @@ export class AddExpenseDialog extends BasePage {
     return this.getByTestId('expense-error-message');
   }
 
+  get classificationInProgressInfo() {
+    return this.getByTestId('classification-inprogress-info');
+  }
+
   // Actions
   async waitForDialog(): Promise<void> {
     await this.dialog.waitFor({ state: 'visible' });
@@ -73,5 +77,8 @@ export class AddExpenseDialog extends BasePage {
   async getErrorMessageText(): Promise<string | null> {
     return await this.errorMessage.textContent();
   }
-}
 
+  async waitForClassificationInProgressToDisappear(): Promise<void> {
+    await this.classificationInProgressInfo.waitFor({ state: 'hidden' });
+  }
+}

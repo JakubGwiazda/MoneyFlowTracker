@@ -56,7 +56,7 @@ export class ExpensesPage extends BasePage {
 
   // Actions
   async navigate(): Promise<void> {
-    await this.goto('/app/expenses');
+    await this.goto('/app');
     await this.waitForPageLoad();
     await this.page.getByRole('tab', { name: 'Lista wydatków' }).click();
   }
@@ -109,5 +109,11 @@ export class ExpensesPage extends BasePage {
     const row = await this.getExpenseRowByDescription(description);
     return await row.isVisible();
   }
-}
 
+  async waitForExpenseAddedSnackbar(): Promise<void> {
+    await this.page
+      .locator('.mat-mdc-snack-bar-container')
+      .filter({ hasText: 'Dodano 1 wydatek i sklasyfikowano.' })
+      .waitFor({ state: 'visible' });
+  }
+}

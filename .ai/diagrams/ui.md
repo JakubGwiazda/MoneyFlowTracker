@@ -25,7 +25,6 @@ flowchart TD
         LOGIN["LoginComponent<br/>📝 Formularz logowania"]
         REGISTER["RegisterComponent<br/>📝 Formularz rejestracji"]
         WELCOME["WelcomeComponent<br/>🏠 Strona powitalna"]
-        PURCHASE["PurchaseComponent<br/>🛒 Strona zakupów"]
     end
 
     %% ===== STRONY CHRONIONE =====
