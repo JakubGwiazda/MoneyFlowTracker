@@ -5,11 +5,7 @@ import type { Database } from '../../../../db/database.types';
 import { ClassificationService } from '../../../../lib/services/classification.service';
 import { ClassificationResult } from '../../../../lib/models/openrouter';
 
-import type {
-  CreateExpenseCommand,
-  ExpenseDto,
-  UpdateExpenseCommand,
-} from '../../../../types';
+import type { CreateExpenseCommand, ExpenseDto, UpdateExpenseCommand } from '../../../../types';
 import type {
   ExpensesFilterState,
   CategoryOptionViewModel,
@@ -25,7 +21,7 @@ export class ExpensesApiService {
    */
   queryExpenses(filters: ExpensesFilterState): Observable<{ data: ExpenseDto[]; count: number }> {
     return from(this.getCurrentUser()).pipe(
-      switchMap((user) => {
+      switchMap(user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -73,20 +69,22 @@ export class ExpensesApiService {
           throw new Error('Nie udało się pobrać listy wydatków.');
         }
 
-        const expenses: ExpenseDto[] = (data || []).map((row: Database['public']['Tables']['expenses']['Row']) => ({
-          id: row.id,
-          user_id: row.user_id,
-          name: row.name,
-          amount: row.amount,
-          expense_date: row.expense_date,
-          category_id: row.category_id,
-          predicted_category_id: row.predicted_category_id,
-          prediction_confidence: row.prediction_confidence,
-          classification_status: row.classification_status,
-          corrected_category_id: row.corrected_category_id,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
-        }));
+        const expenses: ExpenseDto[] = (data || []).map(
+          (row: Database['public']['Tables']['expenses']['Row']) => ({
+            id: row.id,
+            user_id: row.user_id,
+            name: row.name,
+            amount: row.amount,
+            expense_date: row.expense_date,
+            category_id: row.category_id,
+            predicted_category_id: row.predicted_category_id,
+            prediction_confidence: row.prediction_confidence,
+            classification_status: row.classification_status,
+            corrected_category_id: row.corrected_category_id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+          })
+        );
 
         return { data: expenses, count: count || 0 };
       })
@@ -98,7 +96,7 @@ export class ExpensesApiService {
    */
   createExpense(command: CreateExpenseCommand): Observable<ExpenseDto> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async (user) => {
+      switchMap(async user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -136,7 +134,7 @@ export class ExpensesApiService {
    */
   updateExpense(expenseId: string, command: UpdateExpenseCommand): Observable<ExpenseDto> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async (user) => {
+      switchMap(async user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -191,7 +189,7 @@ export class ExpensesApiService {
    */
   deleteExpense(expenseId: string): Observable<void> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async (user) => {
+      switchMap(async user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -214,7 +212,7 @@ export class ExpensesApiService {
    */
   reclassifyExpense(expenseId: string): Observable<void> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async (user) => {
+      switchMap(async user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -243,23 +241,27 @@ export class ExpensesApiService {
   loadCategories(query?: string): Observable<CategoryOptionViewModel[]> {
     const search = query?.trim() ?? '';
 
-    return from(supabaseClient
-      .from('categories')
-      .select('id, name, is_active')
-      .eq('is_active', true)
-      .ilike('name', search ? `%${search}%` : '%')
-      .order('name')
+    return from(
+      supabaseClient
+        .from('categories')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .ilike('name', search ? `%${search}%` : '%')
+        .order('name')
     ).pipe(
       map(({ data: categories, error }) => {
         if (error) {
           throw new Error('Nie udało się pobrać listy kategorii.');
         }
 
-        return (categories || []).map((category) => ({
-          id: category.id,
-          label: category.name,
-          isActive: category.is_active,
-        } satisfies CategoryOptionViewModel));
+        return (categories || []).map(
+          category =>
+            ({
+              id: category.id,
+              label: category.name,
+              isActive: category.is_active,
+            }) satisfies CategoryOptionViewModel
+        );
       })
     );
   }
@@ -267,12 +269,22 @@ export class ExpensesApiService {
   /**
    * Gets categories for AI classification
    */
-  getCategoriesForClassification(): Observable<{ id: string; name: string; parent_id: null; is_active: boolean; created_at: string; user_id: null }[]> {
-    return from(supabaseClient
-      .from('categories')
-      .select('id, name, is_active')
-      .eq('is_active', true)
-      .order('name')
+  getCategoriesForClassification(): Observable<
+    {
+      id: string;
+      name: string;
+      parent_id: null;
+      is_active: boolean;
+      created_at: string;
+      user_id: null;
+    }[]
+  > {
+    return from(
+      supabaseClient
+        .from('categories')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name')
     ).pipe(
       map(({ data: categories, error }) => {
         if (error) {
@@ -285,7 +297,7 @@ export class ExpensesApiService {
           parent_id: null,
           is_active: cat.is_active,
           created_at: new Date().toISOString(),
-          user_id: null
+          user_id: null,
         }));
       })
     );
@@ -296,7 +308,7 @@ export class ExpensesApiService {
    */
   suggestCategory(description: string): Observable<ClassificationResult> {
     return this.getCategoriesForClassification().pipe(
-      switchMap((categoryDtos) => {
+      switchMap(categoryDtos => {
         return this.classificationService.classifyExpense(description, categoryDtos);
       })
     );
@@ -307,7 +319,7 @@ export class ExpensesApiService {
    */
   batchClassifyAndCreateExpenses(expenses: BatchClassifyExpenseInput[]): Observable<void> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async (user) => {
+      switchMap(async user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
@@ -322,7 +334,7 @@ export class ExpensesApiService {
         const expensesToClassify = expenses.map(exp => ({
           description: exp.description,
           amount: exp.amount,
-          date: exp.date
+          date: exp.date,
         }));
 
         // Batch classify
@@ -351,11 +363,13 @@ export class ExpensesApiService {
         if (uniqueNewCategories.length > 0) {
           const { data: newCategories, error: createCategoriesError } = await supabaseClient
             .from('categories')
-            .insert(uniqueNewCategories.map(name => ({
-              name,
-              is_active: true,
-              user_id: user.id
-            })))
+            .insert(
+              uniqueNewCategories.map(name => ({
+                name,
+                is_active: true,
+                user_id: user.id,
+              }))
+            )
             .select('id, name');
 
           if (createCategoriesError) {
@@ -425,7 +439,10 @@ export class ExpensesApiService {
    * Gets current authenticated user
    */
   private async getCurrentUser() {
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser();
 
     if (authError) {
       throw new Error('Nie jesteś zalogowany.');
