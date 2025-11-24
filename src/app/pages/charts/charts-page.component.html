@@ -1,36 +1,33 @@
 <mat-card class="filters-card">
-    <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Filtry wyszukiwania
-        </mat-panel-title>
-        <mat-panel-description>
-          Kliknij aby rozwinąć/zwinąć filtry
-        </mat-panel-description>
-      </mat-expansion-panel-header>     
-      <div>
-        <app-date-filter
-          [value]="dateFilterValue()"
-          [label]="'Okres danych'"
-          (dateChange)="onDateFilterChange($event)"
-        />
-      </div>       
-    </mat-expansion-panel>
-  </mat-card>
-  <div class="chart-controls mt-4">
-    <mat-button-toggle-group 
-      [value]="selectedChartType()" 
-      (change)="onChartTypeChange($event.value)"
-      aria-label="Chart type">
-      @for (mode of chartViewModes(); track mode.type) {
-        <mat-button-toggle 
-          [value]="mode.type"
-          [matTooltip]="mode.label">
-          <mat-icon>{{ mode.icon }}</mat-icon>
-        </mat-button-toggle>
-      }
-    </mat-button-toggle-group>
-  </div>
+  <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
+      <mat-panel-description>
+        Kliknij aby rozwinąć/zwinąć filtry
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <div>
+      <app-date-filter
+        [value]="dateFilterValue()"
+        [label]="'Okres danych'"
+        (dateChange)="onDateFilterChange($event)"
+      />
+    </div>
+  </mat-expansion-panel>
+</mat-card>
+<div class="chart-controls mt-4">
+  <mat-button-toggle-group
+    [value]="selectedChartType()"
+    (change)="onChartTypeChange($event.value)"
+    aria-label="Chart type"
+  >
+    @for (mode of chartViewModes(); track mode.type) {
+      <mat-button-toggle [value]="mode.type" [matTooltip]="mode.label">
+        <mat-icon>{{ mode.icon }}</mat-icon>
+      </mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+</div>
 <div>
   @if (hasData()) {
     <div class="chart-container" data-testid="expenses-chart">
@@ -52,7 +49,8 @@
             [legendTitle]="'Kategorie'"
             (select)="onSelect($event)"
             (activate)="onActivate($event)"
-            (deactivate)="onDeactivate($event)">
+            (deactivate)="onDeactivate($event)"
+          >
           </ngx-charts-bar-vertical>
         }
         @case (ChartType.PIE) {
@@ -69,7 +67,8 @@
             [tooltipDisabled]="false"
             (select)="onSelect($event)"
             (activate)="onActivate($event)"
-            (deactivate)="onDeactivate($event)">
+            (deactivate)="onDeactivate($event)"
+          >
           </ngx-charts-pie-chart>
         }
       }
