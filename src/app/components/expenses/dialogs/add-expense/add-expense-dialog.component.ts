@@ -44,7 +44,9 @@ export type AddExpenseDialogResult = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddExpenseDialogComponent {
-  readonly dialogRef = inject(MatDialogRef<AddExpenseDialogComponent, AddExpenseDialogResult | undefined>);
+  readonly dialogRef = inject(
+    MatDialogRef<AddExpenseDialogComponent, AddExpenseDialogResult | undefined>
+  );
   private readonly fb = inject(FormBuilder);
   private readonly expensesFacade = inject(ExpensesFacadeService);
 
@@ -90,12 +92,11 @@ export class AddExpenseDialogComponent {
   }
 
   async onSave(): Promise<void> {
-    if(this.expensesList().length !== 0){
+    if (this.expensesList().length !== 0) {
       this.isClassifying.set(true);
       await this.classifyAndSaveExpenses(this.expensesList());
-    }else{
-
-      if(this.form.invalid){
+    } else {
+      if (this.form.invalid) {
         return;
       }
 
@@ -104,7 +105,7 @@ export class AddExpenseDialogComponent {
       const name = (value.name ?? '').trim();
       const amount = value.amount ?? 0;
       const expense_date = this.toIsoDate(value.expense_date as Date);
-  
+
       const expense: ExpenseToAdd = {
         name,
         amount: Number(amount),
@@ -116,7 +117,6 @@ export class AddExpenseDialogComponent {
   }
 
   private async classifyAndSaveExpenses(expenses: ExpenseToAdd[]): Promise<void> {
-
     try {
       await this.expensesFacade.batchClassifyAndCreateExpenses(expenses);
       this.dialogRef.close({ expenses });
@@ -134,4 +134,3 @@ export class AddExpenseDialogComponent {
       .slice(0, 10);
   }
 }
-
