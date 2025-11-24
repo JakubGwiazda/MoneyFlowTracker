@@ -7,7 +7,12 @@ import type {
   UpdateExpenseCommand,
 } from '../../../../types';
 
-import { CategoriesFacadeService } from '../../categories/services/categories-facade.service';
+export type ChartsFilterState = {
+  preset?: DatePreset;
+  date_from?: string;
+  date_to?: string;
+};
+
 import { ExpensesApiService } from './expenses-api.service';
 
 import type {
@@ -35,9 +40,9 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ExpensesFacadeService {
   private currentRequest: AbortController | null = null;
+  private currentChartsRequest: AbortController | null = null;
   private readonly categoryLabelMap = new Map<string, string>();
   private readonly expensesApi = inject(ExpensesApiService);
-  private readonly categoriesFacade = inject(CategoriesFacadeService);
 
   private readonly filtersSignal = signal<ExpensesFilterState>(createDefaultFilters());
   private readonly expensesSignal = signal<ExpensesListViewModel[]>([]);
@@ -52,12 +57,24 @@ export class ExpensesFacadeService {
   private readonly errorSignal = signal<string | null>(null);
   private readonly categoryOptionsSignal = signal<CategoryOptionViewModel[]>([]);
 
+  // Charts-specific state
+  private readonly chartFiltersSignal = signal<ChartsFilterState>({ preset: 'today' });
+  private readonly chartExpensesSignal = signal<ExpensesListViewModel[]>([]);
+  private readonly chartLoadingSignal = signal<boolean>(false);
+  private readonly chartErrorSignal = signal<string | null>(null);
+
   readonly filters = this.filtersSignal.asReadonly();
   readonly expenses = this.expensesSignal.asReadonly();
   readonly pagination = this.paginationSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
   readonly categoryOptions = this.categoryOptionsSignal.asReadonly();
+
+  // Charts-specific read-only signals
+  readonly chartFilters = this.chartFiltersSignal.asReadonly();
+  readonly chartExpenses = this.chartExpensesSignal.asReadonly();
+  readonly chartLoading = this.chartLoadingSignal.asReadonly();
+  readonly chartError = this.chartErrorSignal.asReadonly();
 
   readonly sortState = computed<SortState | null>(() => {
     const { sort } = this.filtersSignal();
@@ -80,6 +97,34 @@ export class ExpensesFacadeService {
     error: this.errorSignal(),
     sort: this.sortState(),
   }));
+
+  /**
+   * Aggregated expenses by category for chart visualization (using chart data)
+   */
+  readonly chartExpensesByCategory = computed<ExpensesByCategoryData[]>(() => {
+    const expenses = this.chartExpensesSignal();
+    const aggregationMap = new Map<string, { name: string; total: number }>();
+
+    for (const expense of expenses) {
+      const categoryId = expense.category_id || 'uncategorized';
+      const categoryName = expense.categoryName || 'Bez kategorii';
+
+      const existing = aggregationMap.get(categoryId);
+      if (existing) {
+        existing.total += expense.amount;
+      } else {
+        aggregationMap.set(categoryId, {
+          name: categoryName,
+          total: expense.amount,
+        });
+      }
+    }
+
+    return Array.from(aggregationMap.values()).map((item) => ({
+      name: item.name,
+      value: item.total,
+    }));
+  });
 
   /**
    * Aggregated expenses by category for chart visualization
@@ -114,6 +159,12 @@ export class ExpensesFacadeService {
       // Auto-refresh when filters change.
       const filters = this.filtersSignal();
       void this.refresh('filters', filters);
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      // Auto-refresh chart data when chart filters change.
+      const chartFilters = this.chartFiltersSignal();
+      void this.refreshForCharts('filters', chartFilters);
     }, { allowSignalWrites: true });
   }
 
@@ -154,6 +205,15 @@ export class ExpensesFacadeService {
     this.filtersSignal.update((current) => ({ ...current, per_page: perPage, page: 1 }));
   }
 
+  setChartFilters(update: Partial<ChartsFilterState>): void {
+    this.chartFiltersSignal.update((current) => ({ ...current, ...update }));
+  }
+
+  resetChartFilters(preset?: DatePreset): void {
+    const nextDefault: ChartsFilterState = { preset: preset || 'today' };
+    this.chartFiltersSignal.set(nextDefault);
+  }
+
   async refresh(trigger: RefreshTrigger = 'manual', filtersOverride?: ExpensesFilterState): Promise<void> {
     const filters = filtersOverride ?? this.filtersSignal();
 
@@ -188,6 +248,53 @@ export class ExpensesFacadeService {
       if (this.currentRequest === controller) {
         this.loadingSignal.set(false);
         this.currentRequest = null;
+      }
+    }
+  }
+
+  async refreshForCharts(trigger: RefreshTrigger = 'manual', filtersOverride?: ChartsFilterState): Promise<void> {
+    const filters = filtersOverride ?? this.chartFiltersSignal();
+
+    if (filters.date_from && filters.date_to && filters.date_from > filters.date_to) {
+      this.chartErrorSignal.set('Zakres dat jest nieprawidłowy.');
+      return;
+    }
+
+    this.abortChartRequest();
+    const controller = new AbortController();
+    this.currentChartsRequest = controller;
+
+    this.chartLoadingSignal.set(true);
+    this.chartErrorSignal.set(null);
+
+    try {
+      // Create a full filter state for API call (add pagination defaults for all data)
+      const apiFilters = {
+        ...filters,
+        page: 1,
+        per_page: 1000, // Large number to get all data for charts
+        sort: undefined,
+        status: undefined,
+        category_id: undefined,
+      };
+
+      const { data: expenses } = await firstValueFrom(this.expensesApi.queryExpenses(apiFilters)) || { data: [] };
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      this.chartExpensesSignal.set(expenses.map((expense) => mapExpenseToViewModel(expense, this.categoryLabelMap)));
+    } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      this.chartErrorSignal.set(resolveErrorMessage(error));
+    } finally {
+      if (this.currentChartsRequest === controller) {
+        this.chartLoadingSignal.set(false);
+        this.currentChartsRequest = null;
       }
     }
   }
@@ -284,6 +391,13 @@ export class ExpensesFacadeService {
     if (this.currentRequest) {
       this.currentRequest.abort();
       this.currentRequest = null;
+    }
+  }
+
+  private abortChartRequest(): void {
+    if (this.currentChartsRequest) {
+      this.currentChartsRequest.abort();
+      this.currentChartsRequest = null;
     }
   }
 

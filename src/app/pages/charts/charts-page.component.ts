@@ -40,7 +40,7 @@ import { ExpensesFacadeService } from '../../components/expenses/services/expens
   styleUrl: './charts.scss',
 })
 export class ChartsPageComponent implements OnInit {
-  private readonly facade = inject(ExpensesFacadeService);
+  private readonly expensesFacade = inject(ExpensesFacadeService);
   // Chart type enum for template usage
   protected readonly ChartType = ChartType;
 
@@ -65,7 +65,7 @@ export class ChartsPageComponent implements OnInit {
   private readonly _dateFilterValue = signal<DateFilterValue>({ preset: 'today' });
 
   // Computed signals
-  protected readonly data = computed(() => this.facade.expensesByCategory());
+  protected readonly data = computed(() => this.expensesFacade.chartExpensesByCategory());
   protected readonly hasData = computed(() => this.data().length > 0);
   protected readonly selectedChartType = computed(() => this._selectedChartType());
   protected readonly chartViewModes = computed(() => this._chartViewModes());
@@ -81,7 +81,7 @@ export class ChartsPageComponent implements OnInit {
    */
   private async loadChartData(): Promise<void> {
     try {
-      await this.facade.refresh('initial');
+      await this.expensesFacade.refreshForCharts('initial');
     } catch (error) {
       console.error('Failed to load chart data:', error);
     }
@@ -122,12 +122,11 @@ export class ChartsPageComponent implements OnInit {
     // Update internal filter state
     this._dateFilterValue.set(change);
 
-    // Apply filters to facade which will trigger data reload
-    this.facade.setFilters({
+    // Apply filters to expenses facade which will trigger data reload
+    this.expensesFacade.setChartFilters({
       preset: change.preset as any,
       date_from: change.date_from,
       date_to: change.date_to,
-      page: 1
     });
   }
 }
