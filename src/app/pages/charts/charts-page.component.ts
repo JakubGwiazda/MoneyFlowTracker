@@ -7,17 +7,21 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BarChartModule, PieChartModule } from '@swimlane/ngx-charts';
 import { ChartType, ChartViewMode } from '../../../lib/models/charts';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../components/common/date-filter/date-filter.component';
+import {
+  DateFilterComponent,
+  type DateFilterValue,
+  type DateFilterChange,
+} from '../../components/common/date-filter/date-filter.component';
 import { ExpensesFacadeService } from '../../components/expenses/services/expenses-facade.service';
 
 /**
  * Component for displaying expense data in various chart formats
  * Supports bar charts (US-008) and pie charts (US-009)
- * 
+ *
  * @example
  * ```html
- * <app-expenses-charts 
- *   [data]="chartData()" 
+ * <app-expenses-charts
+ *   [data]="chartData()"
  *   [title]="'Expenses by Category'"
  * />
  * ```
@@ -52,13 +56,13 @@ export class ChartsPageComponent implements OnInit {
   protected readonly showLabels = signal(true);
   protected readonly gradient = signal(false);
   protected readonly animations = signal(true);
-  protected readonly colorScheme = signal('cool');
+  protected readonly colorScheme = signal('picnic');
 
   // View state
   private readonly _selectedChartType = signal<ChartType>(ChartType.BAR);
   private readonly _chartViewModes = signal<ChartViewMode[]>([
     { type: ChartType.BAR, label: 'Wykres słupkowy', icon: 'bar_chart' },
-    { type: ChartType.PIE, label: 'Wykres kołowy', icon: 'pie_chart' }
+    { type: ChartType.PIE, label: 'Wykres kołowy', icon: 'pie_chart' },
   ]);
 
   // Internal date filter state
