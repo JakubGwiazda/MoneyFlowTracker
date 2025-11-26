@@ -33,8 +33,7 @@ export interface ChipSelectionChange<T = unknown> {
       [multiple]="false"
       [disabled]="disabled()"
       [value]="selectedValue() ?? ''"
-      (change)="onSelectionChange($event)"
-    >
+      (change)="onSelectionChange($event)">
       @for (option of options(); track option.label) {
         <mat-chip-option [value]="option.value ?? ''" class="px-2 py-1 text-sm">
           {{ option.label }}
@@ -47,8 +46,8 @@ export interface ChipSelectionChange<T = unknown> {
       .custom {
         width: fit-content;
       }
-    `
-  ]
+    `,
+  ],
 })
 export class ChipsComponent<T = unknown> {
   readonly options = input.required<ChipOption<T>[]>();
@@ -59,9 +58,10 @@ export class ChipsComponent<T = unknown> {
 
   onSelectionChange(change: MatChipListboxChange): void {
     const value = change.value;
+    const selectedOption = this.options().find(option => (option.value ?? '') === value);
+
     this.selectionChange.emit({
-      selected: value ? value as T : undefined
+      selected: selectedOption?.value,
     });
   }
 }
-

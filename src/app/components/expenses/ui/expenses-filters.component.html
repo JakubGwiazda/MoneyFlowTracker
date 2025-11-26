@@ -1,11 +1,11 @@
 <form class="mt-4" [formGroup]="form">
-  <div class="d-flex justify-content-between">
+  <div class="d-flex">
     <app-date-filter
       [value]="dateFilterValue()"
       [disabled]="loading()"
       [label]="'Okres danych'"
       (dateChange)="onDateFilterChange($event)" />
-    <div>
+    <div class="ms-3 me-3">
       <p class="label_text">Status klasyfikacji</p>
       <app-chips
         [options]="statusChipOptions"
@@ -21,16 +21,5 @@
       (valueChange)="onCategorySelected($event)"
       (queryChange)="categorySearch.emit($event)"
       data-testid="expenses-category-filter" />
-  </div>
-  <div>
-    <button
-      mat-button
-      type="button"
-      class="self-center"
-      (click)="onResetFilters()"
-      [disabled]="loading()"
-      data-testid="expenses-clear-filters-button">
-      Resetuj filtry
-    </button>
   </div>
 </form>

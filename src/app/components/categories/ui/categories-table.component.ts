@@ -25,7 +25,7 @@ import { CategoriesTableService } from './categories-table.service';
   ],
   providers: [CategoriesTableService],
   templateUrl: './categories-table.html',
-  styleUrl: './categories-table.scss'
+  styleUrl: './categories-table.scss',
 })
 export class CategoriesTableComponent {
   readonly data = input.required<readonly CategoryListViewModel[]>();
@@ -53,4 +53,3 @@ export class CategoriesTableComponent {
     this.tableService.toggleExpand(categoryId);
   }
 }
-

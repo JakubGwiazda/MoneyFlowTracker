@@ -22,7 +22,7 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
         }
       </div>
       <div class="d-flex justify-content-end align-items-center gap-2" style="width: 20%;">
-        <mat-form-field>
+        <mat-form-field class="records_number">
           <mat-select
             [value]="state().perPage"
             (valueChange)="onPerPageChange($event)"
@@ -60,6 +60,10 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
     `
       .pagination {
         width: 20%;
+      }
+
+      .records_number {
+        min-width: 80px;
       }
     `,
   ],
