@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ViewChild,
+  computed,
   effect,
   input,
   output,
@@ -162,7 +163,6 @@ import {
       .table-container {
         width: 100%;
         overflow: auto;
-        max-height: calc(100vh - 600px);
       }
 
       .expenses-table {
@@ -179,6 +179,7 @@ export class ExpensesTableComponent implements AfterViewInit {
   readonly data = input.required<ExpensesListViewModel[]>();
   readonly loading = input<boolean>(false);
   readonly sortState = input<SortState | null>(null);
+  readonly filtersExpanded = input<boolean>(true);
 
   readonly sortChange = output<SortState | null>();
   readonly editExpense = output<string>();

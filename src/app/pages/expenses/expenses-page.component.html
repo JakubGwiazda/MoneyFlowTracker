@@ -1,7 +1,10 @@
-<div class="expenses-page-container">
-  <div class="tab-content mt-2">
+<div class="expenses-page-container d-flex flex-column" style="height: calc(100vh - 200px)">
+  <div class="tab-content mt-2 flex-shrink-0">
     <mat-card>
-      <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+      <mat-expansion-panel
+        class="filters-expansion-panel"
+        [expanded]="filtersExpanded()"
+        (expandedChange)="onFiltersPanelExpandedChange($event)">
         <mat-expansion-panel-header>
           <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
           <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
@@ -27,22 +30,23 @@
         Dodaj wydatek
       </button>
     </div>
-    <div class="table-container">
-      <app-expenses-table
-        [data]="vm().expenses"
-        [loading]="vm().loading"
-        [sortState]="vm().sort"
-        (sortChange)="onSortChange($event)"
-        (editExpense)="onEditExpense($event)"
-        (deleteExpense)="onDeleteExpense($event)" />
-    </div>
+  </div>
+  <div class="table-container flex-grow-1 overflow-auto">
+    <app-expenses-table
+      [data]="vm().expenses"
+      [loading]="vm().loading"
+      [sortState]="vm().sort"
+      [filtersExpanded]="filtersExpanded()"
+      (sortChange)="onSortChange($event)"
+      (editExpense)="onEditExpense($event)"
+      (deleteExpense)="onDeleteExpense($event)" />
+  </div>
 
-    <div class="pagination-container">
-      <app-pagination-controls
-        [state]="vm().pagination"
-        [disabled]="vm().loading"
-        (pageChange)="onPageChange($event)"
-        (perPageChange)="onPerPageChange($event)" />
-    </div>
+  <div class="pagination-container flex-shrink-0">
+    <app-pagination-controls
+      [state]="vm().pagination"
+      [disabled]="vm().loading"
+      (pageChange)="onPageChange($event)"
+      (perPageChange)="onPerPageChange($event)" />
   </div>
 </div>

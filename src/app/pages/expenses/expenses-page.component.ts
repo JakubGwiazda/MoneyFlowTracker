@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -51,6 +51,8 @@ export class ExpensesPageComponent implements OnInit {
   readonly vm = this.facade.viewModel;
   readonly categoryOptions = this.facade.categoryOptions;
   readonly chartData = this.facade.expensesByCategory;
+
+  readonly filtersExpanded = signal(true);
 
   private readonly expenseLookup = computed(() => {
     const vm = this.vm();
@@ -177,6 +179,10 @@ export class ExpensesPageComponent implements OnInit {
 
   onPerPageChange(perPage: number): void {
     this.facade.setPerPage(perPage);
+  }
+
+  onFiltersPanelExpandedChange(expanded: boolean): void {
+    this.filtersExpanded.set(expanded);
   }
 
   private async openExpenseDialog(expenseId?: string): Promise<void> {
