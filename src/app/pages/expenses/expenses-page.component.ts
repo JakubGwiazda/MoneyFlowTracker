@@ -8,9 +8,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
 import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
 import { ClassificationStatus } from 'src/types';
-import { ConfirmDialogComponent, ConfirmDialogData } from 'src/app/components/common/dialogs/confirm-dialog/confirm-dialog.component';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from 'src/app/components/common/dialogs/confirm-dialog/confirm-dialog.component';
 import { PaginationControlsComponent } from 'src/app/components/common/pagination-controls/pagination-controls.component';
-import { AddExpenseDialogComponent, AddExpenseDialogResult } from 'src/app/components/expenses/dialogs/add-expense/add-expense-dialog.component';
+import {
+  AddExpenseDialogComponent,
+  AddExpenseDialogResult,
+} from 'src/app/components/expenses/dialogs/add-expense/add-expense-dialog.component';
 import { EditExpenseDialogComponent } from 'src/app/components/expenses/dialogs/edit-expense/edit-expense-dialog.component';
 import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
 import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
@@ -31,10 +37,9 @@ import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-
     PaginationControlsComponent,
   ],
   templateUrl: './expenses-page.component.html',
-  styleUrl: './expenses-page.scss',  
+  styleUrl: './expenses-page.scss',
 })
-export class ExpensesPageComponent implements OnInit{
-
+export class ExpensesPageComponent implements OnInit {
   private readonly facade = inject(ExpensesFacadeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -65,7 +70,7 @@ export class ExpensesPageComponent implements OnInit{
       preset: change.preset as any,
       date_from: change.date_from,
       date_to: change.date_to,
-      page: 1
+      page: 1,
     });
   }
 
@@ -98,39 +103,58 @@ export class ExpensesPageComponent implements OnInit{
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (result: { name: string; amount: number; expense_date: string; category_id: string; classification_status: ClassificationStatus } | undefined) => {
-      if (result === undefined) {
-        return;
-      }
+    dialogRef
+      .afterClosed()
+      .subscribe(
+        async (
+          result:
+            | {
+                name: string;
+                amount: number;
+                expense_date: string;
+                category_id: string;
+                classification_status: ClassificationStatus;
+              }
+            | undefined
+        ) => {
+          if (result === undefined) {
+            return;
+          }
 
-      try {
-        await this.facade.updateExpense(expenseId, {
-          name: result.name,
-          amount: result.amount,
-          expense_date: result.expense_date,
-          category_id: result.category_id,
-          classification_status: result.classification_status,
-        });
-        this.snackBar.open('Pozycja została zaktualizowana.', 'Zamknij', { duration: 3000 });
-      } catch (error) {
-        console.error(error);
-        this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', { duration: 3000 });
-      }
-    });
+          try {
+            await this.facade.updateExpense(expenseId, {
+              name: result.name,
+              amount: result.amount,
+              expense_date: result.expense_date,
+              category_id: result.category_id,
+              classification_status: result.classification_status,
+            });
+            this.snackBar.open('Pozycja została zaktualizowana.', 'Zamknij', { duration: 3000 });
+          } catch (error) {
+            console.error(error);
+            this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', {
+              duration: 3000,
+            });
+          }
+        }
+      );
   }
 
   onDeleteExpense(expenseId: string): void {
-    const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
-      width: '360px',
-      data: {
-        title: 'Usuń wydatek',
-        message: 'Czy na pewno chcesz trwale usunąć ten wydatek? Tej operacji nie można cofnąć.',
-        confirmLabel: 'Usuń',
-        confirmColor: 'warn',
-      },
-    });
+    const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(
+      ConfirmDialogComponent,
+      {
+        width: '360px',
+        data: {
+          title: 'Usuń wydatek',
+          message: 'Czy na pewno chcesz trwale usunąć ten wydatek? Tej operacji nie można cofnąć.',
+          confirmLabel: 'Usuń',
+          confirmColor: 'warn',
+        },
+      }
+    );
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
+    dialogRef.afterClosed().subscribe(async confirmed => {
       if (!confirmed) {
         return;
       }
@@ -160,10 +184,13 @@ export class ExpensesPageComponent implements OnInit{
     //   return;
     // }
 
-    const dialogRef = this.dialog.open<AddExpenseDialogComponent, unknown, AddExpenseDialogResult>(AddExpenseDialogComponent, {
-      width: '800px',
-      maxHeight: '90vh',
-    });
+    const dialogRef = this.dialog.open<AddExpenseDialogComponent, unknown, AddExpenseDialogResult>(
+      AddExpenseDialogComponent,
+      {
+        width: '800px',
+        maxHeight: '70vh',
+      }
+    );
 
     const result = await firstValueFrom(dialogRef.afterClosed());
     if (!result || result.expenses.length === 0) {
@@ -184,4 +211,3 @@ export class ExpensesPageComponent implements OnInit{
     }
   }
 }
-

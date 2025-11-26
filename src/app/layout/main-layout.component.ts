@@ -37,9 +37,6 @@ import { AuthService } from 'src/lib/services/auth.service';
   styles: [
     `
       .main-layout {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
       }
 
       .main-header {
@@ -49,11 +46,7 @@ import { AuthService } from 'src/lib/services/auth.service';
       }
 
       .main-content {
-        flex: 1;
         padding: 16px 32px;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
       }
 
       .user-menu-button {
