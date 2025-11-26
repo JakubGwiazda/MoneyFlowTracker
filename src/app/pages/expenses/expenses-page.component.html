@@ -1,51 +1,48 @@
 <div class="expenses-page-container">
-  <header>
-    <h1 >Lista wydatków</h1>
-    <p>
-      Zarządzaj wydatkami, filtruj według daty i statusu klasyfikacji, a także dodawaj nowe pozycje.
-    </p>
-  </header>
-      <div class="tab-content mt-2">
-        <mat-card>
-          <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                Filtry wyszukiwania
-              </mat-panel-title>
-              <mat-panel-description>
-                Kliknij aby rozwinąć/zwinąć filtry
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            
-            <app-expenses-filters
-              [value]="vm().filters"
-              [loading]="vm().loading"
-              [categories]="categoryOptions()"
-              (filterChange)="onFilterChange($event)"
-              (addExpenseClick)="onAddExpense()"
-              (categorySearch)="onCategorySearch($event)"
-            />
-          </mat-expansion-panel>
-        </mat-card>
+  <div class="tab-content mt-2">
+    <mat-card>
+      <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
+          <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
+        </mat-expansion-panel-header>
 
-        <div class="table-container">
-          <app-expenses-table
-            [data]="vm().expenses"
-            [loading]="vm().loading"
-            [sortState]="vm().sort"
-            (sortChange)="onSortChange($event)"
-            (editExpense)="onEditExpense($event)"
-            (deleteExpense)="onDeleteExpense($event)"
-          />
-        </div>
-        
-        <div class="pagination-container">
-          <app-pagination-controls
-            [state]="vm().pagination"
-            [disabled]="vm().loading"
-            (pageChange)="onPageChange($event)"
-            (perPageChange)="onPerPageChange($event)"
-          />
-        </div>
-      </div>
+        <app-expenses-filters
+          [value]="vm().filters"
+          [loading]="vm().loading"
+          [categories]="categoryOptions()"
+          (filterChange)="onFilterChange($event)"
+          (categorySearch)="onCategorySearch($event)" />
+      </mat-expansion-panel>
+    </mat-card>
+    <div class="actions-section mt-3 mb-3">
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onAddExpense()"
+        class="flex items-center gap-2 me-3"
+        data-testid="add-expense-button">
+        <mat-icon>add</mat-icon>
+        Dodaj wydatek
+      </button>
+    </div>
+    <div class="table-container">
+      <app-expenses-table
+        [data]="vm().expenses"
+        [loading]="vm().loading"
+        [sortState]="vm().sort"
+        (sortChange)="onSortChange($event)"
+        (editExpense)="onEditExpense($event)"
+        (deleteExpense)="onDeleteExpense($event)" />
+    </div>
+
+    <div class="pagination-container">
+      <app-pagination-controls
+        [state]="vm().pagination"
+        [disabled]="vm().loading"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)" />
+    </div>
+  </div>
 </div>

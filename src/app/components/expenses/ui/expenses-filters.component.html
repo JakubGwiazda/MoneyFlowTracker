@@ -1,55 +1,36 @@
 <form class="mt-4" [formGroup]="form">
-    <div class="d-flex justify-content-between">
+  <div class="d-flex justify-content-between">
+    <app-date-filter
+      [value]="dateFilterValue()"
+      [disabled]="loading()"
+      [label]="'Okres danych'"
+      (dateChange)="onDateFilterChange($event)" />
     <div>
-      <app-date-filter
-        [value]="dateFilterValue()"
+      <p class="label_text">Status klasyfikacji</p>
+      <app-chips
+        [options]="statusChipOptions"
+        [selectedValue]="form.controls.status.value"
         [disabled]="loading()"
-        (dateChange)="onDateFilterChange($event)"
-      />
+        (selectionChange)="onStatusSelectionChange($event)" />
     </div>
-    <div>
-        <p class="label_text">Status klasyfikacji</p>
-        <app-chips
-          [options]="statusChipOptions"
-          [selectedValue]="form.controls.status.value"
-          [disabled]="loading()"
-          (selectionChange)="onStatusSelectionChange($event)"
-        />
-    </div>
-</div>
-      <section class="mt-3 w-25">
-        <app-select-autocomplete
-          [options]="categoryOptions()"
-          [fieldLabel]="'Kategoria'"
-          [value]="form.controls.category_id.value"
-          [disabled]="loading()"
-          (valueChange)="onCategorySelected($event)"
-          (queryChange)="categorySearch.emit($event)"
-          data-testid="expenses-category-filter"
-        />
-      </section>
-      <div >
-        <button
-          mat-raised-button
-          color="primary"
-          type="button"
-          (click)="addExpenseClick.emit()"
-          [disabled]="loading()"
-          class="flex items-center gap-2 me-3"
-          data-testid="add-expense-button"
-        >
-          <mat-icon>add</mat-icon>
-          Dodaj wydatek
-        </button>
-        <button
-        mat-button
-        type="button"
-        class="self-center"
-        (click)="onResetFilters()"
-        [disabled]="loading()"
-        data-testid="expenses-clear-filters-button"
-      >
-        Resetuj filtry
-      </button>
-    </div>
-  </form>
+    <app-select-autocomplete
+      [options]="categoryOptions()"
+      [fieldLabel]="'Kategoria'"
+      [value]="form.controls.category_id.value"
+      [disabled]="loading()"
+      (valueChange)="onCategorySelected($event)"
+      (queryChange)="categorySearch.emit($event)"
+      data-testid="expenses-category-filter" />
+  </div>
+  <div>
+    <button
+      mat-button
+      type="button"
+      class="self-center"
+      (click)="onResetFilters()"
+      [disabled]="loading()"
+      data-testid="expenses-clear-filters-button">
+      Resetuj filtry
+    </button>
+  </div>
+</form>

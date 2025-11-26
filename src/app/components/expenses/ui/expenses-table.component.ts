@@ -162,7 +162,7 @@ import {
       .table-container {
         width: 100%;
         overflow: auto;
-        max-height: calc(100vh - 700px);
+        max-height: calc(100vh - 600px);
       }
 
       .expenses-table {

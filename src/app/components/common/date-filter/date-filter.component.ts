@@ -15,11 +15,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
-import type {
-  DatePreset,
-  DatePresetOption,
-} from '../../../../lib/models/expenses';
-import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../chips/chips.component';
+import type { DatePreset, DatePresetOption } from '../../../../lib/models/expenses';
+import {
+  ChipsComponent,
+  type ChipOption,
+  type ChipSelectionChange,
+} from '../chips/chips.component';
 
 export interface DateFilterValue {
   preset: DatePreset;
@@ -54,14 +55,23 @@ const DEFAULT_PRESET: DatePreset = 'today';
         [options]="dateChipOptions"
         [selectedValue]="selectedPreset()"
         [disabled]="disabled()"
-        (selectionChange)="onDateSelectionChange($event)"
-      />
+        (selectionChange)="onDateSelectionChange($event)" />
       @if (selectedPreset() === 'custom') {
         <mat-form-field appearance="outline" class="mt-4 w-100">
           <mat-label>Zakres dat</mat-label>
           <mat-date-range-input [rangePicker]="picker" [formGroup]="form">
-            <input matStartDate formControlName="date_from" placeholder="Od" data-testid="expenses-date-from-filter" (dateChange)="onDateRangeChange()"/>
-            <input matEndDate formControlName="date_to" placeholder="Do" data-testid="expenses-date-to-filter" (dateChange)="onDateRangeChange()"/>
+            <input
+              matStartDate
+              formControlName="date_from"
+              placeholder="Od"
+              data-testid="expenses-date-from-filter"
+              (dateChange)="onDateRangeChange()" />
+            <input
+              matEndDate
+              formControlName="date_to"
+              placeholder="Do"
+              data-testid="expenses-date-to-filter"
+              (dateChange)="onDateRangeChange()" />
           </mat-date-range-input>
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
@@ -76,20 +86,20 @@ const DEFAULT_PRESET: DatePreset = 'today';
         font-weight: 500;
         margin: 0;
       }
-      
+
       .w-100 {
         width: 100%;
       }
-    `
+    `,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DateFilterComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly value = input<DateFilterValue>({ preset: 'today' });
   readonly disabled = input<boolean>(false);
-  readonly label = input<string>('Data');
+  readonly label = input<string>();
   readonly dateChange = output<DateFilterChange>();
 
   readonly form = this.fb.group({
@@ -99,7 +109,7 @@ export class DateFilterComponent {
 
   readonly selectedPreset = signal<DatePreset>('today');
 
-  readonly dateChipOptions: ChipOption<DatePreset>[] = this.buildPresets().map((preset) => ({
+  readonly dateChipOptions: ChipOption<DatePreset>[] = this.buildPresets().map(preset => ({
     id: preset.id,
     value: preset.id,
     label: preset.label,
@@ -120,7 +130,7 @@ export class DateFilterComponent {
         },
         {
           emitEvent: false,
-        },
+        }
       );
       this.syncingInput = false;
     });
@@ -135,7 +145,7 @@ export class DateFilterComponent {
           date_from: null,
           date_to: null,
         },
-        { emitEvent: false },
+        { emitEvent: false }
       );
 
       this.emitDateChange({
@@ -152,7 +162,7 @@ export class DateFilterComponent {
         date_from: this.parseDate(range.from),
         date_to: this.parseDate(range.to),
       },
-      { emitEvent: false },
+      { emitEvent: false }
     );
 
     this.emitDateChange({
@@ -179,7 +189,8 @@ export class DateFilterComponent {
   }
 
   onDateSelectionChange(event: ChipSelectionChange<DatePreset | undefined | null>): void {
-    const selectedPreset = event.selected === null || event.selected === undefined ? 'today' : event.selected;
+    const selectedPreset =
+      event.selected === null || event.selected === undefined ? 'today' : event.selected;
 
     if (selectedPreset) {
       this.onPresetChange(selectedPreset);
@@ -195,7 +206,7 @@ export class DateFilterComponent {
         date_from: this.parseDate(range.from),
         date_to: this.parseDate(range.to),
       },
-      { emitEvent: false },
+      { emitEvent: false }
     );
 
     this.emitDateChange({
@@ -253,7 +264,7 @@ export class DateFilterComponent {
   }
 
   private resolvePresetRange(preset: DatePreset): { from: string; to: string } {
-    const match = this.dateChipOptions.find((option) => option.id === preset)?.range;
+    const match = this.dateChipOptions.find(option => option.id === preset)?.range;
     if (match) {
       return match;
     }

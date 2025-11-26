@@ -1,12 +1,4 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,9 +12,20 @@ import type {
   ExpensesFilterState,
 } from '../../../../lib/models/expenses';
 import type { ClassificationStatus } from '../../../../types';
-import { ChipsComponent, type ChipOption, type ChipSelectionChange } from '../../common/chips/chips.component';
-import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../common/select-autocomplete/select-autocomplete.component';
-import { DateFilterComponent, type DateFilterValue, type DateFilterChange } from '../../common/date-filter/date-filter.component';
+import {
+  ChipsComponent,
+  type ChipOption,
+  type ChipSelectionChange,
+} from '../../common/chips/chips.component';
+import {
+  SelectAutocompleteComponent,
+  type SelectAutocompleteOption,
+} from '../../common/select-autocomplete/select-autocomplete.component';
+import {
+  DateFilterComponent,
+  type DateFilterValue,
+  type DateFilterChange,
+} from '../../common/date-filter/date-filter.component';
 
 const DEFAULT_PRESET: DatePreset = 'today';
 
@@ -48,8 +51,8 @@ const DEFAULT_PRESET: DatePreset = 'today';
         font-weight: 500;
         margin: 0;
       }
-    `
-  ]
+    `,
+  ],
 })
 export class ExpensesFilterComponent {
   private readonly fb = inject(FormBuilder);
@@ -58,7 +61,6 @@ export class ExpensesFilterComponent {
   readonly loading = input<boolean>(false);
   readonly categories = input.required<CategoryOptionViewModel[]>();
   readonly filterChange = output<Partial<ExpensesFilterState>>();
-  readonly addExpenseClick = output<void>();
   readonly categorySearch = output<string>();
 
   readonly form = this.fb.group({
@@ -66,9 +68,8 @@ export class ExpensesFilterComponent {
     category_id: this.fb.control<string | null>(null),
   });
 
-
   readonly categoryOptions = computed((): SelectAutocompleteOption[] =>
-    this.categories().map((category) => ({
+    this.categories().map(category => ({
       id: category.id,
       label: category.label,
     }))
@@ -102,7 +103,7 @@ export class ExpensesFilterComponent {
         },
         {
           emitEvent: false,
-        },
+        }
       );
       this.syncingInput = false;
     });
@@ -123,12 +124,13 @@ export class ExpensesFilterComponent {
     });
   }
 
-  onStatusSelectionChange(event: ChipSelectionChange<ClassificationStatus | undefined | null>): void {
+  onStatusSelectionChange(
+    event: ChipSelectionChange<ClassificationStatus | undefined | null>
+  ): void {
     const status = event.selected === null ? undefined : event.selected;
     this.form.controls.status.setValue(status, { emitEvent: false });
     this.emitFilterPatch({ status, page: 1 });
   }
-
 
   onCategorySelected(categoryId: string | null): void {
     this.form.controls.category_id.setValue(categoryId, { emitEvent: false });
@@ -142,7 +144,7 @@ export class ExpensesFilterComponent {
         status: undefined,
         category_id: null,
       },
-      { emitEvent: false },
+      { emitEvent: false }
     );
 
     // Reset date filter will emit its own change
@@ -160,6 +162,4 @@ export class ExpensesFilterComponent {
 
     this.filterChange.emit(patch);
   }
-
 }
-

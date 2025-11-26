@@ -21,6 +21,8 @@ import { EditExpenseDialogComponent } from 'src/app/components/expenses/dialogs/
 import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
 import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-table.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-expenses-page',
@@ -32,9 +34,11 @@ import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-
     MatTabsModule,
     MatCardModule,
     MatExpansionModule,
+    MatButtonModule,
     ExpensesFilterComponent,
     ExpensesTableComponent,
     PaginationControlsComponent,
+    MatIcon,
   ],
   templateUrl: './expenses-page.component.html',
   styleUrl: './expenses-page.scss',
@@ -103,41 +107,39 @@ export class ExpensesPageComponent implements OnInit {
       },
     });
 
-    dialogRef
-      .afterClosed()
-      .subscribe(
-        async (
-          result:
-            | {
-                name: string;
-                amount: number;
-                expense_date: string;
-                category_id: string;
-                classification_status: ClassificationStatus;
-              }
-            | undefined
-        ) => {
-          if (result === undefined) {
-            return;
-          }
-
-          try {
-            await this.facade.updateExpense(expenseId, {
-              name: result.name,
-              amount: result.amount,
-              expense_date: result.expense_date,
-              category_id: result.category_id,
-              classification_status: result.classification_status,
-            });
-            this.snackBar.open('Pozycja została zaktualizowana.', 'Zamknij', { duration: 3000 });
-          } catch (error) {
-            console.error(error);
-            this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', {
-              duration: 3000,
-            });
-          }
+    dialogRef.afterClosed().subscribe(
+      async (
+        result:
+          | {
+              name: string;
+              amount: number;
+              expense_date: string;
+              category_id: string;
+              classification_status: ClassificationStatus;
+            }
+          | undefined
+      ) => {
+        if (result === undefined) {
+          return;
         }
-      );
+
+        try {
+          await this.facade.updateExpense(expenseId, {
+            name: result.name,
+            amount: result.amount,
+            expense_date: result.expense_date,
+            category_id: result.category_id,
+            classification_status: result.classification_status,
+          });
+          this.snackBar.open('Pozycja została zaktualizowana.', 'Zamknij', { duration: 3000 });
+        } catch (error) {
+          console.error(error);
+          this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', {
+            duration: 3000,
+          });
+        }
+      }
+    );
   }
 
   onDeleteExpense(expenseId: string): void {
