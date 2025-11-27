@@ -2,10 +2,7 @@ import { Injectable, computed, effect, signal, inject } from '@angular/core';
 import { tap, catchError, throwError, firstValueFrom } from 'rxjs';
 
 import { ClassificationResult } from '../../../../lib/models/openrouter';
-import type {
-  CreateExpenseCommand,
-  UpdateExpenseCommand,
-} from '../../../../types';
+import type { CreateExpenseCommand, UpdateExpenseCommand } from '../../../../types';
 
 export type ChartsFilterState = {
   preset?: DatePreset;
@@ -120,7 +117,7 @@ export class ExpensesFacadeService {
       }
     }
 
-    return Array.from(aggregationMap.values()).map((item) => ({
+    return Array.from(aggregationMap.values()).map(item => ({
       name: item.name,
       value: item.total,
     }));
@@ -148,28 +145,34 @@ export class ExpensesFacadeService {
       }
     }
 
-    return Array.from(aggregationMap.values()).map((item) => ({
+    return Array.from(aggregationMap.values()).map(item => ({
       name: item.name,
       value: item.total,
     }));
   });
 
   constructor() {
-    effect(() => {
-      // Auto-refresh when filters change.
-      const filters = this.filtersSignal();
-      void this.refresh('filters', filters);
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        // Auto-refresh when filters change.
+        const filters = this.filtersSignal();
+        void this.refresh('filters', filters);
+      },
+      { allowSignalWrites: true }
+    );
 
-    effect(() => {
-      // Auto-refresh chart data when chart filters change.
-      const chartFilters = this.chartFiltersSignal();
-      void this.refreshForCharts('filters', chartFilters);
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        // Auto-refresh chart data when chart filters change.
+        const chartFilters = this.chartFiltersSignal();
+        void this.refreshForCharts('filters', chartFilters);
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   setFilters(update: Partial<ExpensesFilterState>): void {
-    this.filtersSignal.update((current) => normalizeFilters({ ...current, ...update }));
+    this.filtersSignal.update(current => normalizeFilters({ ...current, ...update }));
   }
 
   resetFilters(preset?: DatePreset): void {
@@ -182,7 +185,7 @@ export class ExpensesFacadeService {
   }
 
   setSort(sort: SortState | null): void {
-    this.filtersSignal.update((current) => ({
+    this.filtersSignal.update(current => ({
       ...current,
       sort: sort ? composeSortParam(sort) : undefined,
       page: 1,
@@ -194,7 +197,7 @@ export class ExpensesFacadeService {
       return;
     }
 
-    this.filtersSignal.update((current) => ({ ...current, page }));
+    this.filtersSignal.update(current => ({ ...current, page }));
   }
 
   setPerPage(perPage: number): void {
@@ -202,11 +205,11 @@ export class ExpensesFacadeService {
       return;
     }
 
-    this.filtersSignal.update((current) => ({ ...current, per_page: perPage, page: 1 }));
+    this.filtersSignal.update(current => ({ ...current, per_page: perPage, page: 1 }));
   }
 
   setChartFilters(update: Partial<ChartsFilterState>): void {
-    this.chartFiltersSignal.update((current) => ({ ...current, ...update }));
+    this.chartFiltersSignal.update(current => ({ ...current, ...update }));
   }
 
   resetChartFilters(preset?: DatePreset): void {
@@ -214,7 +217,10 @@ export class ExpensesFacadeService {
     this.chartFiltersSignal.set(nextDefault);
   }
 
-  async refresh(trigger: RefreshTrigger = 'manual', filtersOverride?: ExpensesFilterState): Promise<void> {
+  async refresh(
+    trigger: RefreshTrigger = 'manual',
+    filtersOverride?: ExpensesFilterState
+  ): Promise<void> {
     const filters = filtersOverride ?? this.filtersSignal();
 
     if (filters.date_from && filters.date_to && filters.date_from > filters.date_to) {
@@ -230,13 +236,17 @@ export class ExpensesFacadeService {
     this.errorSignal.set(null);
 
     try {
-      const { data: expenses, count } = await firstValueFrom(this.expensesApi.queryExpenses(filters)) || { data: [], count: 0 };
+      const { data: expenses, count } = (await firstValueFrom(
+        this.expensesApi.queryExpenses(filters)
+      )) || { data: [], count: 0 };
 
       if (controller.signal.aborted) {
         return;
       }
 
-      this.expensesSignal.set(expenses.map((expense) => mapExpenseToViewModel(expense, this.categoryLabelMap)));
+      this.expensesSignal.set(
+        expenses.map(expense => mapExpenseToViewModel(expense, this.categoryLabelMap))
+      );
       this.paginationSignal.set(buildPaginationState(filters, count));
     } catch (error) {
       if (controller.signal.aborted) {
@@ -252,9 +262,13 @@ export class ExpensesFacadeService {
     }
   }
 
-  async refreshForCharts(trigger: RefreshTrigger = 'manual', filtersOverride?: ChartsFilterState): Promise<void> {
-    const filters = filtersOverride ?? this.chartFiltersSignal();
+  async refreshForCharts(
+    trigger: RefreshTrigger = 'manual',
+    filtersOverride?: ChartsFilterState
+  ): Promise<void> {
 
+    const filters = filtersOverride ?? this.chartFiltersSignal();
+    
     if (filters.date_from && filters.date_to && filters.date_from > filters.date_to) {
       this.chartErrorSignal.set('Zakres dat jest nieprawidłowy.');
       return;
@@ -278,13 +292,17 @@ export class ExpensesFacadeService {
         category_id: undefined,
       };
 
-      const { data: expenses } = await firstValueFrom(this.expensesApi.queryExpenses(apiFilters)) || { data: [] };
+      const { data: expenses } = (await firstValueFrom(
+        this.expensesApi.queryExpenses(apiFilters)
+      )) || { data: [] };
 
       if (controller.signal.aborted) {
         return;
       }
 
-      this.chartExpensesSignal.set(expenses.map((expense) => mapExpenseToViewModel(expense, this.categoryLabelMap)));
+      this.chartExpensesSignal.set(
+        expenses.map(expense => mapExpenseToViewModel(expense, this.categoryLabelMap))
+      );
     } catch (error) {
       if (controller.signal.aborted) {
         return;
@@ -309,7 +327,10 @@ export class ExpensesFacadeService {
     }
   }
 
-  async updateExpense(expenseId: string, command: UpdateExpenseCommand): Promise<ExpenseDialogResult> {
+  async updateExpense(
+    expenseId: string,
+    command: UpdateExpenseCommand
+  ): Promise<ExpenseDialogResult> {
     try {
       await firstValueFrom(this.expensesApi.updateExpense(expenseId, command));
       await this.refresh('manual');
@@ -341,7 +362,7 @@ export class ExpensesFacadeService {
 
   async loadCategories(query?: string): Promise<void> {
     try {
-      const options = await firstValueFrom(this.expensesApi.loadCategories(query)) || [];
+      const options = (await firstValueFrom(this.expensesApi.loadCategories(query))) || [];
 
       for (const option of options) {
         this.categoryLabelMap.set(option.id, option.label);
@@ -371,13 +392,15 @@ export class ExpensesFacadeService {
   /**
    * Klasyfikuje i tworzy wiele wydatków jednocześnie
    */
-  async batchClassifyAndCreateExpenses(expenses: Array<{ name: string; amount: number; expense_date: string }>): Promise<void> {
+  async batchClassifyAndCreateExpenses(
+    expenses: Array<{ name: string; amount: number; expense_date: string }>
+  ): Promise<void> {
     try {
       // Convert dialog format to API format
       const apiExpenses: BatchClassifyExpenseInput[] = expenses.map(expense => ({
         description: expense.name,
         amount: expense.amount,
-        date: expense.expense_date
+        date: expense.expense_date,
       }));
 
       await firstValueFrom(this.expensesApi.batchClassifyAndCreateExpenses(apiExpenses));
@@ -400,15 +423,4 @@ export class ExpensesFacadeService {
       this.currentChartsRequest = null;
     }
   }
-
-
-
-
-
-
-
-
-
-
 }
-

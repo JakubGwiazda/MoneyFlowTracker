@@ -66,7 +66,11 @@ export class ChartsPageComponent implements OnInit {
   ]);
 
   // Internal date filter state
-  private readonly _dateFilterValue = signal<DateFilterValue>({ preset: 'today' });
+  private readonly _dateFilterValue = signal<DateFilterValue>({
+    preset: 'today',
+    date_from: this.toIsoDate(new Date()),
+    date_to: this.toIsoDate(new Date()),
+  });
 
   // Computed signals
   protected readonly data = computed(() => this.expensesFacade.chartExpensesByCategory());
@@ -85,6 +89,13 @@ export class ChartsPageComponent implements OnInit {
    */
   private async loadChartData(): Promise<void> {
     try {
+      // Synchronize date filters with facade before loading data
+      this.expensesFacade.setChartFilters({
+        preset: this._dateFilterValue().preset as any,
+        date_from: this._dateFilterValue().date_from,
+        date_to: this._dateFilterValue().date_to,
+      });
+
       await this.expensesFacade.refreshForCharts('initial');
     } catch (error) {
       console.error('Failed to load chart data:', error);
@@ -103,6 +114,12 @@ export class ChartsPageComponent implements OnInit {
    */
   protected onSelect(event: any): void {
     console.log('Chart item selected:', event);
+  }
+
+  private toIsoDate(date: Date): string {
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+      .toISOString()
+      .slice(0, 10);
   }
 
   /**
