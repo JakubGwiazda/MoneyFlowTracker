@@ -1,145 +1,117 @@
-.table-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
 
-  .loading-overlay {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    gap: 1rem;
-  }
+.loading-overlay p {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.6);
+}
 
-  .loading-overlay p {
-    margin: 0;
-    color: rgba(0, 0, 0, 0.6);
-  }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+}
 
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    text-align: center;
-    color: rgba(0, 0, 0, 0.6);
-  }
+.empty-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: rgba(0, 0, 0, 0.3);
+  margin-bottom: 1rem;
+}
 
-  .empty-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: rgba(0, 0, 0, 0.3);
-    margin-bottom: 1rem;
-  }
+.table-container {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
 
-  .empty-state h3 {
-    margin: 0.5rem 0;
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.87);
-  }
+.categories-table {
+  width: 100%;
+  background: white;
+}
 
-  .empty-state p {
-    margin: 0.5rem 0;
-    font-size: 0.875rem;
-  }
+//zostaje
+.category-name {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+//zostaje
+.expand-button {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  margin-right: 0.25rem;
+}
+//zostaje
+.expand-button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+}
 
-  .table-container {
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: auto;
-    flex: 1;
-    max-height: 600px;
-  }
+.expand-placeholder {
+  display: inline-block;
+  width: 40px;
+}
 
-  .categories-table {
-    width: 100%;
-    background: white;
-  }
+.child-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: rgba(0, 0, 0, 0.54);
+  margin-left: 0.25rem;
+}
 
-  .category-name {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
+.child-row {
+  background-color: rgba(0, 0, 0, 0.02);
+}
 
-  .expand-button {
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    margin-right: 0.25rem;
-  }
+.text-muted {
+  color: rgba(0, 0, 0, 0.38);
+}
 
-  .expand-button mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-  }
+.usage-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
 
-  .expand-placeholder {
-    display: inline-block;
-    width: 40px;
-  }
+.usage-count {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
 
-  .child-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    color: rgba(0, 0, 0, 0.54);
-    margin-left: 0.25rem;
-  }
+.actions-header {
+  text-align: right;
+}
 
-  .child-row {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
+.actions-cell {
+  text-align: right;
+}
 
-  .text-muted {
-    color: rgba(0, 0, 0, 0.38);
-  }
+th.mat-header-cell {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 
-  .usage-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .usage-count {
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.87);
-  }
-
-  .actions-header {
-    text-align: right;
-  }
-
-  .actions-cell {
-    text-align: right;
-  }
-
-  th.mat-header-cell {
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.87);
-    background: white;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  td.mat-cell {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  }
-
-  tr.mat-row:hover {
-    background-color: rgba(0, 0, 0, 0.04);
-  }
-
-  tr.mat-row.child-row:hover {
-    background-color: rgba(0, 0, 0, 0.06);
-  }
+td.mat-cell {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}

@@ -2,16 +2,13 @@
   <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
     <mat-expansion-panel-header>
       <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
-      <mat-panel-description>
-        Kliknij aby rozwinąć/zwinąć filtry
-      </mat-panel-description>
+      <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
     </mat-expansion-panel-header>
     <div>
       <app-date-filter
         [value]="dateFilterValue()"
         [label]="'Okres danych'"
-        (dateChange)="onDateFilterChange($event)"
-      />
+        (dateChange)="onDateFilterChange($event)" />
     </div>
   </mat-expansion-panel>
 </mat-card>
@@ -19,8 +16,7 @@
   <mat-button-toggle-group
     [value]="selectedChartType()"
     (change)="onChartTypeChange($event.value)"
-    aria-label="Chart type"
-  >
+    aria-label="Chart type">
     @for (mode of chartViewModes(); track mode.type) {
       <mat-button-toggle [value]="mode.type" [matTooltip]="mode.label">
         <mat-icon>{{ mode.icon }}</mat-icon>
@@ -45,12 +41,13 @@
             [gradient]="gradient()"
             [scheme]="colorScheme()"
             [animations]="animations()"
+            [tooltipDisabled]="true"
             [legend]="showLegend()"
             [legendTitle]="'Kategorie'"
             (select)="onSelect($event)"
             (activate)="onActivate($event)"
-            (deactivate)="onDeactivate($event)"
-          >
+            [showDataLabel]="true"
+            (deactivate)="onDeactivate($event)">
           </ngx-charts-bar-vertical>
         }
         @case (ChartType.PIE) {
@@ -62,13 +59,13 @@
             [gradient]="gradient()"
             [scheme]="colorScheme()"
             [animations]="animations()"
+            [trimLabels]="false"
             [doughnut]="false"
             [arcWidth]="0.25"
             [tooltipDisabled]="false"
             (select)="onSelect($event)"
             (activate)="onActivate($event)"
-            (deactivate)="onDeactivate($event)"
-          >
+            (deactivate)="onDeactivate($event)">
           </ngx-charts-pie-chart>
         }
       }

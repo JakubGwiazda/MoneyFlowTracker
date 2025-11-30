@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ViewChild,
+  computed,
   effect,
   input,
   output,
@@ -18,7 +19,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import type { ExpensesListViewModel, SortState } from '../../../../lib/models/expenses';
 import { BadgeComponent } from '../../common/badge/badge.component';
-import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../common/row-actions/row-actions.component';
+import {
+  RowActionsComponent,
+  type RowAction,
+  type RowActionEvent,
+} from '../../common/row-actions/row-actions.component';
 
 @Component({
   selector: 'app-expenses-table',
@@ -38,8 +43,14 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
   ],
   template: `
     <div class="table-wrapper">
-      <div class="table-scroll-container">
-        <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)" data-testid="expenses-table">
+      <div class="table-container">
+        <table
+          class="expenses-table"
+          mat-table
+          [dataSource]="dataSource"
+          matSort
+          (matSortChange)="onSort($event)"
+          data-testid="expenses-table">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
             <td mat-cell *matCellDef="let element">
@@ -50,15 +61,19 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
           </ng-container>
 
           <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">Kwota (PLN)</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">
+              Kwota (PLN)
+            </th>
             <td mat-cell *matCellDef="let element" class="text-right font-semibold text-sm">
-              {{ element.amount | number:'1.2-2' }}
+              {{ element.amount | number: '1.2-2' }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="expense_date">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="expense_date">Data</th>
-            <td mat-cell *matCellDef="let element">{{ element.expense_date | date:'dd.MM.yyyy' }}</td>
+            <td mat-cell *matCellDef="let element">
+              {{ element.expense_date | date: 'dd.MM.yyyy' }}
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="category">
@@ -66,8 +81,12 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
             <td mat-cell *matCellDef="let element">
               <div class="flex flex-col">
                 <span class="text-sm text-gray-800">{{ element.categoryName }}</span>
-                @if (element.predictedCategoryName && element.classification_status === 'predicted') {
-                  <span class="text-xs text-blue-500">Sugestia: {{ element.predictedCategoryName }}</span>
+                @if (
+                  element.predictedCategoryName && element.classification_status === 'predicted'
+                ) {
+                  <span class="text-xs text-blue-500"
+                    >Sugestia: {{ element.predictedCategoryName }}</span
+                  >
                 }
               </div>
             </td>
@@ -80,14 +99,21 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
                 [label]="element.statusLabel"
                 [tone]="element.statusTone"
                 [pending]="element.classification_status === 'pending'"
-                [tooltip]="element.classification_status === 'predicted' ? 'Pewność: ' + element.confidenceDisplay : null"
-              />
+                [tooltip]="
+                  element.classification_status === 'predicted'
+                    ? 'Pewność: ' + element.confidenceDisplay
+                    : null
+                " />
             </td>
           </ng-container>
 
           <ng-container matColumnDef="confidence">
             <th mat-header-cell *matHeaderCellDef>Pewność</th>
-            <td mat-cell *matCellDef="let element">{{element.classification_status === 'corrected' ?  'n/d' : element.confidenceDisplay}}</td>
+            <td mat-cell *matCellDef="let element">
+              {{
+                element.classification_status === 'corrected' ? 'n/d' : element.confidenceDisplay
+              }}
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
@@ -98,8 +124,7 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
                 [data]="element"
                 [disabled]="loading()"
                 [ariaLabel]="'Opcje wydatku'"
-                (actionSelect)="onAction($event)"
-              />
+                (actionSelect)="onAction($event)" />
             </td>
           </ng-container>
 
@@ -122,44 +147,6 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
   `,
   styles: [
     `
-      :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-      }
-      
-      .table-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-        position: relative;
-      }
-      
-      .table-scroll-container {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-      }
-      
-      :host table {
-        width: 100%;
-      }
-      
-      :host th.mat-sort-header-sorted {
-        color: #2563eb;
-      }
-      
-      :host .mat-mdc-header-row {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background-color: #fafafa;
-      }
-      
       .loading-overlay {
         position: absolute;
         top: 0;
@@ -172,6 +159,18 @@ import { RowActionsComponent, type RowAction, type RowActionEvent } from '../../
         background-color: rgba(255, 255, 255, 0.7);
         z-index: 20;
       }
+
+      .table-container {
+        width: 100%;
+        overflow: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+      }
+
+      .expenses-table {
+        width: 100%;
+        background: white;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -182,6 +181,7 @@ export class ExpensesTableComponent implements AfterViewInit {
   readonly data = input.required<ExpensesListViewModel[]>();
   readonly loading = input<boolean>(false);
   readonly sortState = input<SortState | null>(null);
+  readonly filtersExpanded = input<boolean>(true);
 
   readonly sortChange = output<SortState | null>();
   readonly editExpense = output<string>();
@@ -191,22 +191,30 @@ export class ExpensesTableComponent implements AfterViewInit {
 
   readonly dataSource = new MatTableDataSource<ExpensesListViewModel>([]);
 
-  readonly columns = ['name', 'amount', 'expense_date', 'category', 'classification', 'confidence', 'actions'];
+  readonly columns = [
+    'name',
+    'amount',
+    'expense_date',
+    'category',
+    'classification',
+    'confidence',
+    'actions',
+  ];
 
   readonly expenseActions: RowAction<ExpensesListViewModel>[] = [
     {
       key: 'edit',
       label: 'Edytuj',
       icon: 'edit',
-      color: 'primary'
+      color: 'primary',
     },
     {
       key: 'delete',
       label: 'Usuń',
       icon: 'delete',
       color: 'warn',
-      class: 'text-red-600'
-    }
+      class: 'text-red-600',
+    },
   ];
 
   constructor() {
@@ -231,7 +239,10 @@ export class ExpensesTableComponent implements AfterViewInit {
       return;
     }
 
-    this.sortChange.emit({ active: sort.active as SortState['active'], direction: sort.direction as 'asc' | 'desc' });
+    this.sortChange.emit({
+      active: sort.active as SortState['active'],
+      direction: sort.direction as 'asc' | 'desc',
+    });
   }
 
   onAction(event: RowActionEvent<ExpensesListViewModel>): void {
@@ -250,4 +261,3 @@ export class ExpensesTableComponent implements AfterViewInit {
     }
   }
 }
-
