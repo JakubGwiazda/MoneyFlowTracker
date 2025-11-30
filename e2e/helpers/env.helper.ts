@@ -57,10 +57,11 @@ export function checkE2EEnvironment(): boolean {
 
   if (missing.length > 0) {
     console.warn('⚠️  Missing environment variables in .env.test:');
-    missing.forEach((varName) => {
+    missing.forEach(varName => {
       console.warn(`   - ${varName}`);
     });
-    console.warn('\n📝 Copy env.test.example to .env.test and fill in the values.');
+    console.warn('\n📝 Create .env.test file with the required environment variables.');
+    console.warn('   See .github/E2E_GITHUB_SETUP.md for details.');
     return false;
   }
 
@@ -81,5 +82,3 @@ export function printE2EConfig(): void {
   console.log(`   E2E_USERNAME: ${config.testUsername || '(not set)'}`);
   console.log(`   E2E_PASSWORD: ${config.testPassword ? '********' : '(not set)'}`);
 }
-
-
