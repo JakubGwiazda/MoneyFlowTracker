@@ -13,7 +13,7 @@ permissions:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    environment: test # Add this line to use Environment secrets
+    environment: test
     env:
       NODE_ENV: test
       CI: true
