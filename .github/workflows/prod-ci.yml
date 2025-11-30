@@ -23,11 +23,30 @@ jobs:
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Create .env.test file
+        run: |
+          echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
+          echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env.test
+
       - name: Run unit tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
 
       - name: Run e2e tests
         run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
