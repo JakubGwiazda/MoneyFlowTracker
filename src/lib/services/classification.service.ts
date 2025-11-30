@@ -502,6 +502,11 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
   }
 
   private handleHttpError(error: HttpErrorResponse | TimeoutError | any): Observable<never> {
+    // Jeśli błąd jest już ClassificationError, przepuść go bez zmian
+    if (error instanceof ClassificationError) {
+      return throwError(() => error);
+    }
+
     let classificationError: ClassificationError;
 
     if (error instanceof TimeoutError) {
