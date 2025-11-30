@@ -4,13 +4,44 @@ const path = require('path');
 const fs = require('fs');
 
 module.exports = (config, options, targetOptions) => {
+  // Log configuration for debugging
+  console.log('========== WEBPACK CONFIG START ==========');
+  console.log('Webpack options:', JSON.stringify(options, null, 2));
+  console.log('Webpack targetOptions:', JSON.stringify(targetOptions, null, 2));
+
+  // Check if this is a test/Karma build
+  const isTest =
+    options?.test ||
+    targetOptions?.test ||
+    (config.mode === 'development' && options?.main?.includes('test.ts'));
+
+  // For tests, inject empty environment variables
+  if (isTest) {
+    console.log('✓ Detected test environment - Injecting empty env variables for tests');
+    const definePluginConfig = {
+      'process.env.SUPABASE_URL': JSON.stringify(''),
+      'process.env.SUPABASE_KEY': JSON.stringify(''),
+      'process.env.OPENROUTER_API_KEY': JSON.stringify(''),
+    };
+
+    // Ensure plugins array exists
+    if (!config.plugins) {
+      config.plugins = [];
+    }
+
+    config.plugins.push(new webpack.DefinePlugin(definePluginConfig));
+    console.log('✓ DefinePlugin added successfully for tests');
+    console.log('========== WEBPACK CONFIG END ==========\n');
+    return config;
+  }
+
   // Determine which .env file to use
   // Try multiple sources: NG_APP_ENV env var, targetOptions, options
   const ngAppEnv = process.env.NG_APP_ENV;
   const configuration = ngAppEnv || targetOptions?.configuration || options?.configuration;
-  
+
   let envFile = '.env'; // default
-  
+
   if (configuration === 'e2e') {
     envFile = '.env.test';
   } else if (configuration === 'production') {
@@ -18,31 +49,47 @@ module.exports = (config, options, targetOptions) => {
   } else if (configuration === 'local') {
     envFile = '.env.local';
   }
-  
+
   const envPath = path.resolve(__dirname, envFile);
-  
+
   // Load environment variables from file
   let envVars = {};
-  if (fs.existsSync(envPath)) {
-    const result = dotenv.config({ path: envPath });
-    if (result.error) {
-      console.error('Error loading env file:', result.error);
+  try {
+    if (fs.existsSync(envPath)) {
+      const result = dotenv.config({ path: envPath });
+      if (result.error) {
+        console.error('Error loading env file:', result.error);
+      } else {
+        envVars = result.parsed || {};
+      }
     } else {
-      envVars = result.parsed || {};
+      console.log(`Environment file ${envFile} does not exist, using empty values`);
+      // For tests, we don't need to show this warning
+      if (configuration !== 'test' && !targetOptions?.test) {
+        console.log(`Tip: Create ${envFile} file with your environment variables`);
+      }
     }
-  } else {
-    console.log('File does not exist, using empty values');
+  } catch (error) {
+    console.log('Failed to load environment file, using empty values:', error.message);
+    envVars = {};
   }
   console.log('=========================================\n');
-  
+
   // Inject variables using DefinePlugin (without NODE_ENV to avoid conflicts)
   const definePluginConfig = {
     'process.env.SUPABASE_URL': JSON.stringify(envVars.SUPABASE_URL || ''),
     'process.env.SUPABASE_KEY': JSON.stringify(envVars.SUPABASE_KEY || ''),
     'process.env.OPENROUTER_API_KEY': JSON.stringify(envVars.OPENROUTER_API_KEY || ''),
   };
-  
+
+  // Ensure plugins array exists
+  if (!config.plugins) {
+    config.plugins = [];
+  }
+
   config.plugins.push(new webpack.DefinePlugin(definePluginConfig));
+  console.log('✓ DefinePlugin added successfully for environment:', configuration || 'default');
+  console.log('========== WEBPACK CONFIG END ==========\n');
 
   return config;
 };

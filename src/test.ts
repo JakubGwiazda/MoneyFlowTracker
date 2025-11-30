@@ -6,6 +6,15 @@ import {
   platformBrowserDynamicTesting,
 } from '@angular/platform-browser-dynamic/testing';
 
+// Mock Navigator LockManager to prevent LockManager errors in tests
+Object.defineProperty(navigator, 'locks', {
+  value: {
+    request: jasmine.createSpy('request').and.returnValue(Promise.resolve()),
+    query: jasmine.createSpy('query').and.returnValue(Promise.resolve({ held: [], pending: [] })),
+  },
+  writable: true,
+});
+
 type SpecsContext = {
   keys(): string[];
   <T>(id: string): T;
@@ -17,7 +26,7 @@ type WebpackContextFactory = (
     recursive?: boolean;
     regExp?: RegExp;
     mode?: 'sync' | 'lazy' | 'eager' | 'weak';
-  },
+  }
 ) => SpecsContext;
 
 declare global {
@@ -26,38 +35,11 @@ declare global {
   }
 }
 
-declare const require: {
-  context(
-    path: string,
-    deep?: boolean,
-    filter?: RegExp,
-  ): SpecsContext;
-} | undefined;
+// Import all spec files explicitly to avoid bundler issues
+import './lib/services/auth.service.spec.ts';
+import './lib/services/classification.service.spec.ts';
+import './lib/services/expenses.service.spec.ts';
+import './lib/services/rate-limiter.service.spec.ts';
+import './lib/validators/expenses.spec.ts';
 
-getTestBed().initTestEnvironment(
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting(),
-);
-
-const loadSpecs = (): void => {
-  if (import.meta.webpackContext) {
-    const context = import.meta.webpackContext('./', {
-      recursive: true,
-      regExp: /\.spec\.ts$/,
-      mode: 'sync',
-    });
-    context.keys().forEach(context);
-    return;
-  }
-
-  if (require?.context) {
-    const context = require.context('./', true, /\.spec\.ts$/);
-    context.keys().forEach(context);
-    return;
-  }
-
-  throw new Error('Unable to locate a spec loader for the current bundler.');
-};
-
-loadSpecs();
-
+getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());

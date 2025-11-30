@@ -127,7 +127,19 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"],
-            "karmaConfig": "karma.conf.cjs"
+            "karmaConfig": "karma.conf.cjs",
+            "fileReplacements": [
+              {
+                "replace": "src/environments/environment.ts",
+                "with": "src/environments/environment.test.ts"
+              }
+            ]
+          },
+          "configurations": {
+            "ci": {
+              "browsers": "ChromeHeadlessCI",
+              "watch": false
+            }
           }
         }
       }

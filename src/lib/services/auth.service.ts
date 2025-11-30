@@ -176,23 +176,24 @@ export class AuthService {
   }
 
   async signOut(): Promise<void> {
-    try {
-      await supabaseClient.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
 
-      this.authStateSignal.update(state => ({
-        ...state,
-        user: null,
-        session: null,
-        error: null,
-      }));
-
-      await this.router.navigate(['/login']);
-    } catch (error) {
+    if (error) {
       this.authStateSignal.update(state => ({
         ...state,
         error: this.resolveErrorMessage(error),
       }));
+      return;
     }
+
+    this.authStateSignal.update(state => ({
+      ...state,
+      user: null,
+      session: null,
+      error: null,
+    }));
+
+    await this.router.navigate(['/login']);
   }
 
   private resolveErrorMessage(error: unknown): string {
