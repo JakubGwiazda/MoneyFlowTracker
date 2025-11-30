@@ -1,5 +1,26 @@
 # Fix: NavigatorLockAcquireTimeoutError
 
+## Historia poprawek
+
+### Fix #3 (2025-11-30)
+
+**Problem:** Błąd pojawiał się mimo cache'owania sesji  
+**Przyczyna:** Serwisy domenowe (`ExpensesApiService`, `CategoriesFacadeService`) wywoływały `supabaseClient.auth.getUser()` przy każdym żądaniu. `getUser()` również korzysta z Navigator LockManager, co powodowało zakleszczenia przy równoległych zapytaniach  
+**Rozwiązanie:** Wszystkie serwisy pobierają teraz użytkownika wyłącznie z `AuthService` (cache sygnału). Usunięto bezpośrednie wywołania `supabaseClient.auth.getUser()`
+
+### Fix #2 (2025-11-30)
+
+**Problem:** Błąd wrócił pomimo wcześniejszej poprawki  
+**Przyczyna:** `getAccessToken()` nadal wywoływał `supabaseClient.auth.getSession()`, co powodowało lock conflicts gdy wiele serwisów/komponentów wywoływało `getAccessToken()` równocześnie podczas inicjalizacji  
+**Rozwiązanie:** Dodano cache'owanie sesji w `AuthState` i zmieniono `getAccessToken()` aby używał `authState().session` zamiast wywoływać `getSession()`
+
+### Fix #1 (wcześniej)
+
+**Problem:** Wielokrotne równoczesne wywołania `getSession()` z różnych miejsc  
+**Rozwiązanie:** Wprowadzono singleton pattern w `AuthService.initializeAuth()` i zrefaktorowano guardy do używania cache z `AuthService`
+
+---
+
 ## Problem
 
 Aplikacja zgłaszała błąd w konsoli przeglądarki:
@@ -43,11 +64,12 @@ export const supabaseClient = createClient<Database>(
       storage: window.localStorage,
       flowType: 'pkce',
     },
-  },
+  }
 );
 ```
 
 **Zmiany:**
+
 - Dodano explicite konfigurację auth options
 - Ustawiono `storageKey` na 'sb-auth-token'
 - Włączono PKCE flow dla lepszego bezpieczeństwa
@@ -56,6 +78,13 @@ export const supabaseClient = createClient<Database>(
 ### 2. AuthService - singleton pattern dla sesji (`src/lib/services/auth.service.ts`)
 
 ```typescript
+export type AuthState = {
+  user: User | null;
+  session: any | null; // ← Dodane cache'owanie sesji
+  loading: boolean;
+  error: string | null;
+};
+
 export class AuthService {
   private initializationPromise: Promise<void> | null = null;
 
@@ -66,8 +95,26 @@ export class AuthService {
     }
 
     this.initializationPromise = (async () => {
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-      // ... initialization logic
+      const {
+        data: { session },
+        error,
+      } = await supabaseClient.auth.getSession();
+
+      this.authStateSignal.update(state => ({
+        ...state,
+        user: session?.user || null,
+        session: session, // ← Cache session object
+        loading: false,
+      }));
+
+      // Listen to auth state changes
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        this.authStateSignal.update(state => ({
+          ...state,
+          user: session?.user || null,
+          session: session, // ← Update cached session
+        }));
+      });
     })();
 
     return this.initializationPromise;
@@ -85,17 +132,21 @@ export class AuthService {
 
   async getAccessToken(): Promise<string | null> {
     await this.waitForInitialization();
-    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    // Get session from our cached state (NO API CALL!)
+    const session = this.authState().session;
     return session?.access_token || null;
   }
 }
 ```
 
 **Zmiany:**
+
+- Dodano `session` do `AuthState` - cache'uje całą sesję, nie tylko user
 - Dodano `initializationPromise` - zapobiega wielokrotnym równoczesnym wywołaniom `getSession()`
 - Dodano `isAuthenticated()` - sprawdza stan z cache bez wywołania API
 - Dodano `waitForInitialization()` - zapewnia, że inicjalizacja się zakończyła
-- Dodano `getAccessToken()` - zwraca token z cache po inicjalizacji
+- **KRYTYCZNE**: `getAccessToken()` używa `authState().session` zamiast wywoływać `getSession()` ponownie!
 
 ### 3. AuthGuard - używa cache z AuthService (`src/lib/guards/auth.guard.ts`)
 
@@ -110,12 +161,13 @@ export const authGuard: CanActivateFn = () => {
         return router.parseUrl('/login');
       }
       return true;
-    }),
+    })
   );
 };
 ```
 
 **Zmiany:**
+
 - Zastąpiono bezpośrednie wywołanie `supabaseClient.auth.getSession()`
 - Używa `AuthService.isAuthenticated()` - sprawdza cache zamiast API
 - Czeka na inicjalizację przed sprawdzeniem stanu
@@ -133,12 +185,13 @@ export const guestGuard: CanActivateFn = () => {
         return router.parseUrl('/app');
       }
       return true;
-    }),
+    })
   );
 };
 ```
 
 **Zmiany:**
+
 - Zastąpiono bezpośrednie wywołanie `supabaseClient.auth.getSession()`
 - Używa `AuthService.isAuthenticated()` - sprawdza cache zamiast API
 - Czeka na inicjalizację przed sprawdzeniem stanu
@@ -151,25 +204,21 @@ export class ClassificationService {
 
   private callEdgeFunction(payload: OpenRouterRequest): Observable<OpenRouterResponse> {
     return from(this.authService.getAccessToken()).pipe(
-      switchMap((accessToken) => {
+      switchMap(accessToken => {
         if (!accessToken) {
-          return throwError(() => new ClassificationError(
-            'Nie jesteś zalogowany. Zaloguj się ponownie.',
-            'AUTH_ERROR'
-          ));
+          return throwError(
+            () =>
+              new ClassificationError('Nie jesteś zalogowany. Zaloguj się ponownie.', 'AUTH_ERROR')
+          );
         }
-        
-        return this.http.post<OpenRouterResponse>(
-          this.edgeFunctionUrl,
-          payload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        );
-      }),
+
+        return this.http.post<OpenRouterResponse>(this.edgeFunctionUrl, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      })
       // ... rest of the pipe
     );
   }
@@ -177,6 +226,7 @@ export class ClassificationService {
 ```
 
 **Zmiany:**
+
 - Zastąpiono bezpośrednie wywołanie `supabaseClient.auth.getSession()`
 - Używa `AuthService.getAccessToken()` - pobiera token z cache
 - Uproszczono obsługę błędów (nie ma już `error` z getSession)
@@ -202,19 +252,19 @@ Po wprowadzeniu zmian:
 ## Dodatkowe uwagi
 
 - Supabase automatycznie cache'uje sesję w localStorage
-- `getSession()` w `getAccessToken()` jest bezpieczny, bo:
-  - Jest wywoływany po inicjalizacji
-  - Supabase zwraca dane z cache, a nie robi nowego API call
-  - Nie konkuruje z innymi wywołaniami getSession()
-  
+- **KRYTYCZNE**: `getAccessToken()` NIE MOŻE wywoływać `supabaseClient.auth.getSession()` ponownie!
+  - Musi używać cached session z `authState().session`
+  - W przeciwnym razie wielokrotne równoczesne wywołania `getAccessToken()` spowodują lock conflict
+- **KRYTYCZNE**: Żaden serwis/komponent nie powinien wywoływać `supabaseClient.auth.getUser()` bezpośrednio – korzystaj z `AuthService`
 - Jeśli w przyszłości pojawi się podobny problem, należy:
-  1. Sprawdzić, czy nie ma nowych miejsc wywołujących `supabaseClient.auth.getSession()`
-  2. Upewnić się, że wszystkie komponenty używają AuthService
-  3. Rozważyć dodanie debounce dla częstych operacji
+  1. Sprawdzić, czy nie ma nowych miejsc wywołujących `supabaseClient.auth.getSession()` lub `supabaseClient.auth.getUser()`
+  2. Upewnić się, że wszystkie komponenty używają AuthService jako jedynego źródła prawdy
+  3. Sprawdzić, czy `getAccessToken()` używa cached session, nie wywołuje `getSession()`
+  4. Upewnić się, że serwisy domenowe pobierają użytkownika z AuthService
+  5. Rozważyć dodanie debounce dla częstych operacji
 
 ## Dokumentacja referencyjna
 
 - [Supabase Auth Configuration](https://supabase.com/docs/reference/javascript/initializing)
 - [Navigator LockManager API](https://developer.mozilla.org/en-US/docs/Web/API/LockManager)
 - [Angular Guards Best Practices](https://angular.io/guide/router#guards)
-

@@ -23,10 +23,7 @@ module.exports = function configureKarma(config) {
     coverageReporter: {
       dir: join(__dirname, './coverage/money-flow-tracker'),
       subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' },
-      ],
+      reporters: [{ type: 'html' }, { type: 'text-summary' }],
     },
     reporters: ['progress', 'kjhtml'],
     browsers: ['ChromeHeadless'],
@@ -34,6 +31,8 @@ module.exports = function configureKarma(config) {
     restartOnFileChange: true,
     singleRun: false,
     logLevel: config.LOG_INFO,
+    browserDisconnectTimeout: 60000,
+    browserNoActivityTimeout: 60000,
+    captureTimeout: 60000,
   });
 };
-

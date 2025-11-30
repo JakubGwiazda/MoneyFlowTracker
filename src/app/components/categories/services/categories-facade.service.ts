@@ -1,10 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject } from '@angular/core';
 import { supabaseClient } from '../../../../db/supabase.client';
-import type {
-  CreateCategoryCommand,
-  UpdateCategoryCommand,
-  CategoryDto,
-} from '../../../../types';
+import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '../../../../types';
 import {
   type CategoriesFilterState,
   type CategoryListViewModel,
@@ -13,6 +9,7 @@ import {
   type CategoryOptionViewModel,
   type CategoryOperationResult,
 } from '../../../../lib/models/categories';
+import { AuthService } from '../../../../lib/services/auth.service';
 
 const DEFAULT_PER_PAGE = 25;
 const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
@@ -40,6 +37,7 @@ const EMPTY_PAGINATION: PaginationState = {
 export class CategoriesFacadeService {
   private currentRequest: AbortController | null = null;
   private readonly categoryNameMap = new Map<string, string>();
+  private readonly authService = inject(AuthService);
 
   private readonly filtersSignal = signal<CategoriesFilterState>(createDefaultFilters());
   private readonly categoriesSignal = signal<CategoryListViewModel[]>([]);
@@ -65,7 +63,7 @@ export class CategoriesFacadeService {
   }));
 
   setFilters(update: Partial<CategoriesFilterState>): void {
-    this.filtersSignal.update((current) => ({ ...current, ...update, page: 1 }));
+    this.filtersSignal.update(current => ({ ...current, ...update, page: 1 }));
     void this.refresh();
   }
 
@@ -74,7 +72,7 @@ export class CategoriesFacadeService {
       return;
     }
 
-    this.filtersSignal.update((current) => ({ ...current, page }));
+    this.filtersSignal.update(current => ({ ...current, page }));
     void this.refresh();
   }
 
@@ -83,7 +81,7 @@ export class CategoriesFacadeService {
       return;
     }
 
-    this.filtersSignal.update((current) => ({ ...current, per_page: perPage, page: 1 }));
+    this.filtersSignal.update(current => ({ ...current, per_page: perPage, page: 1 }));
     void this.refresh();
   }
 
@@ -117,7 +115,7 @@ export class CategoriesFacadeService {
       }
 
       // Map to CategoryDto format
-      const categories: CategoryDto[] = (data || []).map((row) => ({
+      const categories: CategoryDto[] = (data || []).map(row => ({
         id: row.id,
         name: row.name,
         parent_id: row.parent_id,
@@ -126,7 +124,11 @@ export class CategoriesFacadeService {
         user_id: row.user_id,
       }));
 
-      const { usageCounts, childrenMap } = await this.enrichCategoriesData(categories, userId, controller);
+      const { usageCounts, childrenMap } = await this.enrichCategoriesData(
+        categories,
+        userId,
+        controller
+      );
 
       if (controller.signal.aborted) {
         return;
@@ -163,13 +165,16 @@ export class CategoriesFacadeService {
         throw new Error('Nie udało się pobrać listy kategorii.');
       }
 
-      const options = (categories || []).map((category) => ({
-        id: category.id,
-        label: category.name,
-        parentId: category.parent_id,
-        isActive: category.is_active,
-        isSystem: category.user_id === null,
-      } satisfies CategoryOptionViewModel));
+      const options = (categories || []).map(
+        category =>
+          ({
+            id: category.id,
+            label: category.name,
+            parentId: category.parent_id,
+            isActive: category.is_active,
+            isSystem: category.user_id === null,
+          }) satisfies CategoryOptionViewModel
+      );
 
       for (const option of options) {
         this.categoryNameMap.set(option.id, option.label);
@@ -211,7 +216,10 @@ export class CategoriesFacadeService {
     }
   }
 
-  async updateCategory(categoryId: string, command: UpdateCategoryCommand): Promise<CategoryOperationResult> {
+  async updateCategory(
+    categoryId: string,
+    command: UpdateCategoryCommand
+  ): Promise<CategoryOperationResult> {
     try {
       const userId = await this.ensureAuthenticatedUser();
 
@@ -297,7 +305,7 @@ export class CategoriesFacadeService {
       // Soft delete
       const { error: deleteError } = await supabaseClient
         .from('categories')
-        .update({ 
+        .update({
           is_active: false,
         })
         .eq('id', categoryId);
@@ -313,7 +321,10 @@ export class CategoriesFacadeService {
     }
   }
 
-  private async getCategoryUsageCounts(categoryIds: string[], userId: string): Promise<Map<string, number>> {
+  private async getCategoryUsageCounts(
+    categoryIds: string[],
+    userId: string
+  ): Promise<Map<string, number>> {
     const map = new Map<string, number>();
 
     if (categoryIds.length === 0) {
@@ -342,7 +353,10 @@ export class CategoriesFacadeService {
     return map;
   }
 
-  private async getCategoryChildrenMap(categoryIds: string[], userId: string): Promise<Map<string, boolean>> {
+  private async getCategoryChildrenMap(
+    categoryIds: string[],
+    userId: string
+  ): Promise<Map<string, boolean>> {
     const map = new Map<string, boolean>();
 
     if (categoryIds.length === 0) {
@@ -379,9 +393,10 @@ export class CategoriesFacadeService {
   }
 
   private async ensureAuthenticatedUser(): Promise<string> {
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    await this.authService.waitForInitialization();
+    const user = this.authService.authState().user;
 
-    if (authError || !user) {
+    if (!user) {
       throw new Error('Nie jesteś zalogowany.');
     }
 
@@ -390,9 +405,7 @@ export class CategoriesFacadeService {
 
   private buildCategoriesQuery(filters: CategoriesFilterState): SupabaseQuery {
     // RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
-    let query = supabaseClient
-      .from('categories')
-      .select('*', { count: 'exact' });
+    let query = supabaseClient.from('categories').select('*', { count: 'exact' });
 
     // Apply filters
     if (filters.search) {
@@ -422,12 +435,18 @@ export class CategoriesFacadeService {
     return query;
   }
 
-  private async executeCategoriesQuery(query: SupabaseQuery): Promise<{ data: any[]; count: number | null; error: any }> {
+  private async executeCategoriesQuery(
+    query: SupabaseQuery
+  ): Promise<{ data: any[]; count: number | null; error: any }> {
     const { data, error, count } = await query;
     return { data, error, count };
   }
 
-  private async enrichCategoriesData(categories: CategoryDto[], userId: string, controller: AbortController): Promise<{ usageCounts: Map<string, number>; childrenMap: Map<string, boolean> }> {
+  private async enrichCategoriesData(
+    categories: CategoryDto[],
+    userId: string,
+    controller: AbortController
+  ): Promise<{ usageCounts: Map<string, number>; childrenMap: Map<string, boolean> }> {
     if (controller.signal.aborted) {
       throw new Error('Aborted');
     }
@@ -453,7 +472,7 @@ export class CategoriesFacadeService {
     usageCounts: Map<string, number>,
     childrenMap: Map<string, boolean>
   ): CategoryListViewModel[] {
-    return categories.map((category) =>
+    return categories.map(category =>
       this.mapCategoryToViewModel(
         category,
         usageCounts.get(category.id) || 0,
@@ -468,10 +487,39 @@ export class CategoriesFacadeService {
     const totalPages = Math.ceil(total / perPage);
 
     const links: PaginationLink[] = [
-      ...(page > 1 ? [{ href: `?page=1&per_page=${perPage}`, rel: 'first' as const, page: 1, perPage }] : []),
-      ...(page > 1 ? [{ href: `?page=${page - 1}&per_page=${perPage}`, rel: 'prev' as const, page: page - 1, perPage }] : []),
-      ...(page < totalPages ? [{ href: `?page=${page + 1}&per_page=${perPage}`, rel: 'next' as const, page: page + 1, perPage }] : []),
-      ...(page < totalPages ? [{ href: `?page=${totalPages}&per_page=${perPage}`, rel: 'last' as const, page: totalPages, perPage }] : []),
+      ...(page > 1
+        ? [{ href: `?page=1&per_page=${perPage}`, rel: 'first' as const, page: 1, perPage }]
+        : []),
+      ...(page > 1
+        ? [
+            {
+              href: `?page=${page - 1}&per_page=${perPage}`,
+              rel: 'prev' as const,
+              page: page - 1,
+              perPage,
+            },
+          ]
+        : []),
+      ...(page < totalPages
+        ? [
+            {
+              href: `?page=${page + 1}&per_page=${perPage}`,
+              rel: 'next' as const,
+              page: page + 1,
+              perPage,
+            },
+          ]
+        : []),
+      ...(page < totalPages
+        ? [
+            {
+              href: `?page=${totalPages}&per_page=${perPage}`,
+              rel: 'last' as const,
+              page: totalPages,
+              perPage,
+            },
+          ]
+        : []),
     ];
 
     return {
@@ -484,7 +532,11 @@ export class CategoriesFacadeService {
     } satisfies PaginationState;
   }
 
-  private async validateCategoryName(name: string, userId: string, excludeId?: string): Promise<void> {
+  private async validateCategoryName(
+    name: string,
+    userId: string,
+    excludeId?: string
+  ): Promise<void> {
     const query = supabaseClient
       .from('categories')
       .select('id')
@@ -502,7 +554,11 @@ export class CategoriesFacadeService {
     }
   }
 
-  private async validateParent(parentId: string | null, userId: string, currentId?: string): Promise<void> {
+  private async validateParent(
+    parentId: string | null,
+    userId: string,
+    currentId?: string
+  ): Promise<void> {
     if (!parentId) {
       return;
     }
@@ -591,4 +647,3 @@ export class CategoriesFacadeService {
     return 'Wystąpił nieoczekiwany błąd.';
   }
 }
-

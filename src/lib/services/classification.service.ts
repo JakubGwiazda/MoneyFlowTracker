@@ -11,20 +11,20 @@ import {
   ClassificationError,
   ExpenseToClassify,
   ValidationResult,
-  ResponseFormat
+  ResponseFormat,
 } from '../models/openrouter';
 import { CategoryDto } from '../../types';
 import { RateLimiterService } from './rate-limiter.service';
 import { AuthService } from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClassificationService {
   private readonly http = inject(HttpClient);
   private readonly rateLimiter = inject(RateLimiterService);
   private readonly authService = inject(AuthService);
-  
+
   private readonly edgeFunctionUrl: string;
   private readonly defaultTimeout = 30000;
   private readonly maxRetries = 3;
@@ -48,10 +48,13 @@ export class ClassificationService {
     // Rate limiting
     if (!this.rateLimiter.canMakeRequest('classification')) {
       const waitTime = this.rateLimiter.getTimeUntilNextRequest('classification');
-      return throwError(() => new ClassificationError(
-        `Przekroczono limit zapytań. Spróbuj ponownie za ${Math.ceil(waitTime / 1000)} sekund.`,
-        'RATE_LIMIT_ERROR'
-      ));
+      return throwError(
+        () =>
+          new ClassificationError(
+            `Przekroczono limit zapytań. Spróbuj ponownie za ${Math.ceil(waitTime / 1000)} sekund.`,
+            'RATE_LIMIT_ERROR'
+          )
+      );
     }
 
     // Budowanie payloadu
@@ -60,21 +63,21 @@ export class ClassificationService {
       messages: [
         {
           role: 'system',
-          content: this.buildSystemPrompt(existingCategories)
+          content: this.buildSystemPrompt(existingCategories),
         },
         {
           role: 'user',
-          content: this.buildUserPrompt(description)
-        }
+          content: this.buildUserPrompt(description),
+        },
       ],
       response_format: this.buildResponseFormat(),
       temperature: options?.temperature ?? 0.2,
-      max_tokens: options?.maxTokens ?? 500
+      max_tokens: options?.maxTokens ?? 500,
     };
 
     // Wywołanie edge function
     this.rateLimiter.recordRequest('classification');
-    
+
     return this.callEdgeFunction(payload).pipe(
       map(response => this.parseModelResponse(response)),
       map(result => this.enrichResult(result, existingCategories))
@@ -91,45 +94,50 @@ export class ClassificationService {
   ): Observable<ClassificationResult[]> {
     // Walidacja
     if (!expenses || expenses.length === 0) {
-      return throwError(() => new ClassificationError(
-        'Lista wydatków jest pusta',
-        'VALIDATION_ERROR'
-      ));
+      return throwError(
+        () => new ClassificationError('Lista wydatków jest pusta', 'VALIDATION_ERROR')
+      );
     }
 
     // Rate limiting dla batch
     if (!this.rateLimiter.canMakeRequest('batch-classification')) {
       const waitTime = this.rateLimiter.getTimeUntilNextRequest('batch-classification');
-      return throwError(() => new ClassificationError(
-        `Przekroczono limit zapytań. Spróbuj ponownie za ${Math.ceil(waitTime / 1000)} sekund.`,
-        'RATE_LIMIT_ERROR'
-      ));
+      return throwError(
+        () =>
+          new ClassificationError(
+            `Przekroczono limit zapytań. Spróbuj ponownie za ${Math.ceil(waitTime / 1000)} sekund.`,
+            'RATE_LIMIT_ERROR'
+          )
+      );
     }
 
     // Budowanie payloadu dla batch
     const expensesText = expenses
-      .map((exp, idx) => `${idx + 1}. Opis: "${exp.description}", Kwota: ${exp.amount} PLN${exp.date ? `, Data: ${exp.date}` : ''}`)
-    .join('\n');
+      .map(
+        (exp, idx) =>
+          `${idx + 1}. Opis: "${exp.description}", Kwota: ${exp.amount} PLN${exp.date ? `, Data: ${exp.date}` : ''}`
+      )
+      .join('\n');
 
     const payload: OpenRouterRequest = {
       model: options?.model || this.defaultModel,
       messages: [
         {
           role: 'system',
-          content: this.buildBatchSystemPrompt(existingCategories)
+          content: this.buildBatchSystemPrompt(existingCategories),
         },
         {
           role: 'user',
-          content: this.buildBatchUserPrompt(expensesText, expenses.length)
-        }
+          content: this.buildBatchUserPrompt(expensesText, expenses.length),
+        },
       ],
       response_format: this.buildBatchResponseFormat(expenses.length),
       temperature: options?.temperature ?? 0.2,
-      max_tokens: options?.maxTokens ?? 2000
+      max_tokens: options?.maxTokens ?? 2000,
     };
 
     this.rateLimiter.recordRequest('batch-classification');
-    
+
     return this.callEdgeFunction(payload).pipe(
       map(response => this.parseBatchModelResponse(response, expenses.length)),
       map(results => results.map(result => this.enrichResult(result, existingCategories)))
@@ -160,7 +168,7 @@ export class ClassificationService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -170,7 +178,7 @@ export class ClassificationService {
     const categoriesList = categories
       .map(cat => `- ID: ${cat.id}, Nazwa: "${cat.name}"`)
       .join('\n');
-      
+
     return `Jesteś ekspertem w klasyfikacji wydatków finansowych.
     TWOJE ZADANIE:
     Na podstawie opisu pojedynczego wydatku dopasuj go do jednej z istniejących kategorii lub, jeśli żadne dopasowanie nie jest wystarczająco pewne, zaproponuj nową kategorię.
@@ -198,7 +206,7 @@ export class ClassificationService {
     6. Użyj kategorii „Inne” **tylko wtedy**, gdy żadna z istniejących nie pasuje, a nowa kategoria byłaby zbyt wąska lub unikalna.
     7. Zawsze podaj krótkie (1–2 zdania) uzasadnienie wyboru.
     8. Zwróć wynik **w formacie JSON**:
-    `;   
+    `;
   }
 
   private buildUserPrompt(description: string): string {
@@ -213,7 +221,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
     const categoriesList = categories
       .map(cat => `- ID: ${cat.id}, Nazwa: "${cat.name}"`)
       .join('\n');
-      
+
     return `Jesteś ekspertem w klasyfikacji wydatków finansowych.
     TWOJE ZADANIE:
     Na podstawie listy wydatków dopasuj każdy z nich do jednej z istniejących kategorii lub, jeśli żadne dopasowanie nie jest wystarczająco pewne, zaproponuj nową kategorię.
@@ -244,7 +252,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
     9. Zachowaj kolejność wydatków - wynik dla wydatku nr 1 musi być pierwszy w tablicy, itd.
     10. Proponowane nazwy nowych kategorii muszą być unikalne i nie powinny być takie same jak nazwy istniejących kategorii.
     11. W przypadku nowych kategorii w polu ID oraz category name zwróć null, a uzupelnij pole newCategoryName nazwą nowej kategorii.
-    `;   
+    `;
   }
 
   private buildBatchUserPrompt(expensesText: string, count: number): string {
@@ -267,35 +275,36 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
           properties: {
             categoryId: {
               type: ['string', 'null'],
-              description: 'ID dopasowanej kategorii z listy istniejących kategorii'
+              description: 'ID dopasowanej kategorii z listy istniejących kategorii',
             },
             categoryName: {
               type: 'string',
-              description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii'
+              description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii',
             },
             confidence: {
               type: 'number',
               minimum: 0,
               maximum: 1,
-              description: 'Pewność dopasowania w skali 0-1'
+              description: 'Pewność dopasowania w skali 0-1',
             },
             isNewCategory: {
               type: 'boolean',
-              description: 'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej'
+              description:
+                'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej',
             },
             newCategoryName: {
               type: 'string',
-              description: 'Proponowana nazwa nowej kategorii'
+              description: 'Proponowana nazwa nowej kategorii',
             },
             reasoning: {
               type: 'string',
-              description: 'Krótkie wyjaśnienie decyzji klasyfikacyjnej'
-            }
+              description: 'Krótkie wyjaśnienie decyzji klasyfikacyjnej',
+            },
           },
           required: ['categoryId', 'categoryName', 'confidence', 'isNewCategory', 'reasoning'],
-          additionalProperties: false
-        }
-      }
+          additionalProperties: false,
+        },
+      },
     };
   }
 
@@ -317,65 +326,69 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
                 properties: {
                   categoryId: {
                     type: ['string', 'null'],
-                    description: 'ID dopasowanej kategorii lub null dla nowej kategorii'
+                    description: 'ID dopasowanej kategorii lub null dla nowej kategorii',
                   },
                   categoryName: {
                     type: 'string',
-                    description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii'
+                    description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii',
                   },
                   confidence: {
                     type: 'number',
                     minimum: 0,
                     maximum: 1,
-                    description: 'Pewność dopasowania w skali 0-1'
+                    description: 'Pewność dopasowania w skali 0-1',
                   },
                   isNewCategory: {
                     type: 'boolean',
-                    description: 'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej'
+                    description:
+                      'true jeśli proponowana jest nowa kategoria, false jeśli dopasowano do istniejącej',
                   },
                   reasoning: {
                     type: 'string',
-                    description: 'Krótkie wyjaśnienie decyzji klasyfikacyjnej'
+                    description: 'Krótkie wyjaśnienie decyzji klasyfikacyjnej',
                   },
-                  newCategoryName:{
+                  newCategoryName: {
                     type: 'string',
-                    description: 'Proponowana nazwa nowej kategorii'
-                  }
+                    description: 'Proponowana nazwa nowej kategorii',
+                  },
                 },
-                required: ['categoryId', 'categoryName', 'confidence', 'isNewCategory', 'reasoning','newCategoryName'],
-                additionalProperties: false
-              }
-            }
+                required: [
+                  'categoryId',
+                  'categoryName',
+                  'confidence',
+                  'isNewCategory',
+                  'reasoning',
+                  'newCategoryName',
+                ],
+                additionalProperties: false,
+              },
+            },
           },
           required: ['results'],
-          additionalProperties: false
-        }
-      }
+          additionalProperties: false,
+        },
+      },
     };
   }
 
   private callEdgeFunction(payload: OpenRouterRequest): Observable<OpenRouterResponse> {
     // Pobierz aktualny token sesji użytkownika z cache
     return from(this.authService.getAccessToken()).pipe(
-      switchMap((accessToken) => {
+      switchMap(accessToken => {
         if (!accessToken) {
-          return throwError(() => new ClassificationError(
-            'Nie jesteś zalogowany. Zaloguj się ponownie.',
-            'AUTH_ERROR'
-          ));
+          return throwError(
+            () =>
+              new ClassificationError('Nie jesteś zalogowany. Zaloguj się ponownie.', 'AUTH_ERROR')
+          );
         }
-  
+
         // Użyj tokenu sesji użytkownika zamiast anon key
-        return this.http.post<OpenRouterResponse>(
-          this.edgeFunctionUrl,
-          payload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}` // ← To jest klucz!
-            }
-          }
-        );
+        return this.http.post<OpenRouterResponse>(this.edgeFunctionUrl, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`, // ← To jest klucz!
+          },
+        });
       }),
       timeout(this.defaultTimeout),
       retry({
@@ -386,7 +399,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
           }
           return throwError(() => error);
         },
-        resetOnSuccess: true
+        resetOnSuccess: true,
       }),
       catchError(this.handleHttpError.bind(this))
     );
@@ -412,7 +425,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
         confidence: parsed.confidence,
         isNewCategory: parsed.isNewCategory,
         newCategoryName: parsed.newCategoryName,
-        reasoning: parsed.reasoning
+        reasoning: parsed.reasoning,
       };
     } catch (error) {
       throw new ClassificationError(
@@ -449,7 +462,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
         confidence: result.confidence,
         isNewCategory: result.isNewCategory,
         newCategoryName: result.newCategoryName,
-        reasoning: result.reasoning
+        reasoning: result.reasoning,
       }));
     } catch (error) {
       throw new ClassificationError(
@@ -477,10 +490,7 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
 
   private validateInput(description: string): void {
     if (!description || description.trim().length === 0) {
-      throw new ClassificationError(
-        'Opis wydatku jest wymagany',
-        'VALIDATION_ERROR'
-      );
+      throw new ClassificationError('Opis wydatku jest wymagany', 'VALIDATION_ERROR');
     }
 
     if (description.length > 500) {
@@ -492,6 +502,11 @@ Zwróć wynik **tylko w formacie JSON**, bez żadnych dodatkowych komentarzy, op
   }
 
   private handleHttpError(error: HttpErrorResponse | TimeoutError | any): Observable<never> {
+    // Jeśli błąd jest już ClassificationError, przepuść go bez zmian
+    if (error instanceof ClassificationError) {
+      return throwError(() => error);
+    }
+
     let classificationError: ClassificationError;
 
     if (error instanceof TimeoutError) {
