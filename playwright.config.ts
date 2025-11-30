@@ -16,11 +16,11 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env['test'],
+  forbidOnly: !!process.env['CI'],
   /* Retry on CI only */
-  retries: process.env['test'] ? 2 : 0,
+  retries: process.env['CI'] ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env['test'] ? 1 : undefined,
+  workers: process.env['CI'] ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['html'], ['list']],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -33,6 +33,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     /* Video recording on failure */
     video: 'retain-on-failure',
+    /* Increase timeouts for CI environment (slower hardware) */
+    actionTimeout: process.env['CI'] ? 20000 : 10000,
+    navigationTimeout: process.env['CI'] ? 45000 : 15000,
   },
 
   /* Configure projects for major browsers */
@@ -54,7 +57,9 @@ export default defineConfig({
   webServer: {
     command: 'ng serve --configuration=e2e',
     url: 'http://localhost:4200',
-    reuseExistingServer: !process.env['test'],
-    timeout: 120 * 1000,
+    reuseExistingServer: !process.env['CI'],
+    timeout: 180 * 1000, // 3 minutes - CI needs more time for initial build
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });
