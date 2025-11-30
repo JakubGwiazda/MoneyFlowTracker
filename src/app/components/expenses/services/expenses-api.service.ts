@@ -4,6 +4,7 @@ import { supabaseClient } from '../../../../db/supabase.client';
 import type { Database } from '../../../../db/database.types';
 import { ClassificationService } from '../../../../lib/services/classification.service';
 import { ClassificationResult } from '../../../../lib/models/openrouter';
+import { AuthService } from '../../../../lib/services/auth.service';
 
 import type { CreateExpenseCommand, ExpenseDto, UpdateExpenseCommand } from '../../../../types';
 import type {
@@ -15,6 +16,7 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class ExpensesApiService {
   private readonly classificationService = inject(ClassificationService);
+  private readonly authService = inject(AuthService);
 
   /**
    * Queries expenses with filtering, sorting, and pagination
@@ -359,12 +361,35 @@ export class ExpensesApiService {
           categoryNameToIdMap.set(cat.name, cat.id);
         });
 
-        // Create new categories
+        // Check if any of the "new" categories already exist for this user
+        let categoriesToCreate = uniqueNewCategories;
         if (uniqueNewCategories.length > 0) {
+          const { data: existingUserCategories, error: checkError } = await supabaseClient
+            .from('categories')
+            .select('id, name')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .in('name', uniqueNewCategories);
+
+          if (checkError) {
+            throw new Error('Nie udało się sprawdzić istniejących kategorii użytkownika.');
+          }
+
+          // Add existing user categories to map and filter out categories that already exist
+          existingUserCategories?.forEach(cat => {
+            categoryNameToIdMap.set(cat.name, cat.id);
+          });
+
+          const existingCategoryNames = new Set(existingUserCategories?.map(cat => cat.name) || []);
+          categoriesToCreate = uniqueNewCategories.filter(name => !existingCategoryNames.has(name));
+        }
+
+        // Create only categories that don't already exist for this user
+        if (categoriesToCreate.length > 0) {
           const { data: newCategories, error: createCategoriesError } = await supabaseClient
             .from('categories')
             .insert(
-              uniqueNewCategories.map(name => ({
+              categoriesToCreate.map(name => ({
                 name,
                 is_active: true,
                 user_id: user.id,
@@ -439,12 +464,10 @@ export class ExpensesApiService {
    * Gets current authenticated user
    */
   private async getCurrentUser() {
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser();
+    await this.authService.waitForInitialization();
+    const user = this.authService.authState().user;
 
-    if (authError) {
+    if (!user) {
       throw new Error('Nie jesteś zalogowany.');
     }
 

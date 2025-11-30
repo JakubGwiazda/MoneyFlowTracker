@@ -5,6 +5,7 @@ import type { User, AuthError } from '@supabase/supabase-js';
 
 export type AuthState = {
   user: User | null;
+  session: any | null;
   loading: boolean;
   error: string | null;
 };
@@ -13,6 +14,7 @@ export type AuthState = {
 export class AuthService {
   private readonly authStateSignal = signal<AuthState>({
     user: null,
+    session: null,
     loading: true,
     error: null,
   });
@@ -32,27 +34,32 @@ export class AuthService {
 
     this.initializationPromise = (async () => {
       try {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        const {
+          data: { session },
+          error,
+        } = await supabaseClient.auth.getSession();
 
         if (error) {
           throw error;
         }
 
-        this.authStateSignal.update((state) => ({
+        this.authStateSignal.update(state => ({
           ...state,
           user: session?.user || null,
+          session: session,
           loading: false,
         }));
 
         // Listen to auth state changes (only once)
         supabaseClient.auth.onAuthStateChange((_event, session) => {
-          this.authStateSignal.update((state) => ({
+          this.authStateSignal.update(state => ({
             ...state,
             user: session?.user || null,
+            session: session,
           }));
         });
       } catch (error) {
-        this.authStateSignal.update((state) => ({
+        this.authStateSignal.update(state => ({
           ...state,
           loading: false,
           error: this.resolveErrorMessage(error),
@@ -86,14 +93,14 @@ export class AuthService {
    */
   async getAccessToken(): Promise<string | null> {
     await this.waitForInitialization();
-    
-    // Get session from Supabase's internal cache (doesn't trigger API call)
-    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    // Get session from our cached state (no API call)
+    const session = this.authState().session;
     return session?.access_token || null;
   }
 
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-    this.authStateSignal.update((state) => ({ ...state, loading: true, error: null }));
+    this.authStateSignal.update(state => ({ ...state, loading: true, error: null }));
 
     try {
       const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -105,9 +112,10 @@ export class AuthService {
         throw error;
       }
 
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         user: data.user,
+        session: data.session,
         loading: false,
       }));
 
@@ -115,7 +123,7 @@ export class AuthService {
       return { success: true };
     } catch (error) {
       const errorMessage = this.resolveErrorMessage(error);
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         loading: false,
         error: errorMessage,
@@ -126,7 +134,7 @@ export class AuthService {
   }
 
   async signUp(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-    this.authStateSignal.update((state) => ({ ...state, loading: true, error: null }));
+    this.authStateSignal.update(state => ({ ...state, loading: true, error: null }));
 
     try {
       const { data, error } = await supabaseClient.auth.signUp({
@@ -146,9 +154,10 @@ export class AuthService {
         };
       }
 
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         user: data.user,
+        session: data.session,
         loading: false,
       }));
 
@@ -156,7 +165,7 @@ export class AuthService {
       return { success: true };
     } catch (error) {
       const errorMessage = this.resolveErrorMessage(error);
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         loading: false,
         error: errorMessage,
@@ -170,15 +179,16 @@ export class AuthService {
     try {
       await supabaseClient.auth.signOut();
 
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         user: null,
+        session: null,
         error: null,
       }));
 
       await this.router.navigate(['/login']);
     } catch (error) {
-      this.authStateSignal.update((state) => ({
+      this.authStateSignal.update(state => ({
         ...state,
         error: this.resolveErrorMessage(error),
       }));
@@ -206,4 +216,3 @@ export class AuthService {
     }
   }
 }
-
