@@ -13,6 +13,7 @@ permissions:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    environment: test
     env:
       NODE_ENV: test
       CI: true
