@@ -17,6 +17,9 @@ jobs:
       NODE_ENV: test
       CI: true
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
 
@@ -33,6 +36,9 @@ jobs:
       NODE_ENV: production
       CI: true
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
 
