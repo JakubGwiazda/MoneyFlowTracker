@@ -17,30 +17,36 @@ runs:
         echo "Current directory: $(pwd)"
         echo "package-lock.json exists: $(test -f package-lock.json && echo 'YES' || echo 'NO')"
       shell: bash
-      working-directory: ${{ github.workspace }}
-
-    - name: Debug before install
-      run: |
-        echo "=== Checking files ==="
-        ls -la | grep package
-        echo ""
-        echo "=== package.json exists? ==="
-        cat package.json | head -n 20
-        echo ""
-        echo "=== package-lock.json exists? ==="
-        test -f package-lock.json && echo "YES" || echo "NO"
-      shell: bash
-      working-directory: ${{ github.workspace }}
 
     - name: Install dependencies
-      run: |
-        echo "=== Running npm install ==="
-        npm install --legacy-peer-deps --no-audit
-        echo ""
-        echo "=== Install completed, checking results ==="
-        ls -la node_modules/ | head -n 20
+      run: npm ci --loglevel verbose
       shell: bash
-      working-directory: ${{ github.workspace }}
+
+    - name: Debug installation
+      run: |
+        echo "=== DEBUG INSTALLATION ==="
+        echo "PWD: $(pwd)"
+        echo "Files in current dir:"
+        ls -la
+        echo ""
+        echo "package.json exists: $(test -f package.json && echo 'YES' || echo 'NO')"
+        echo "package-lock.json exists: $(test -f package-lock.json && echo 'YES' || echo 'NO')"
+        echo "Size of package-lock.json: $(wc -l < package-lock.json 2>/dev/null || echo 'N/A') lines"
+        echo ""
+        echo "Top level deps:"
+        npm ls --depth=0 2>&1 || echo "npm ls failed"
+        echo ""
+        echo "node_modules status:"
+        if [ -d node_modules ]; then
+          echo "node_modules exists"
+          echo "node_modules size: $(du -sh node_modules 2>/dev/null || echo 'N/A')"
+          echo "Contents of node_modules/.bin (first few):"
+          ls -la node_modules/.bin/ 2>/dev/null | head -10 || echo "No .bin dir or empty"
+        else
+          echo "node_modules does NOT exist"
+        fi
+        echo "========================"
+      shell: bash
 
     - name: Verify Angular CLI installation
       run: |
@@ -50,7 +56,6 @@ runs:
         echo "Checking @angular/cli package..."
         test -d node_modules/@angular/cli && echo "✅ @angular/cli directory exists" || echo "❌ @angular/cli not installed!"
         echo ""
-        echo "Angular CLI version:"
-        npx ng version || npm list @angular/cli
+        echo "Testing ng command..."
+        npx ng version || echo "❌ ng command failed!"
       shell: bash
-      working-directory: ${{ github.workspace }}
