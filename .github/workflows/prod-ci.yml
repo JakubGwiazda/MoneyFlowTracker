@@ -10,15 +10,11 @@ on:
 permissions:
   contents: read
 
-env:
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-  OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
 jobs:
   angular:
     name: Angular Build
     runs-on: ubuntu-latest
+    environment: test # Use the 'test' environment to inject pre-configured variables (SUPABASE_URL, etc.)
     strategy:
       matrix:
         node-version: [20] # Changed to 20 for Angular 20 compatibility (Node 22 causes Webpack plugin issues)
@@ -38,7 +34,9 @@ jobs:
 
       # {4}
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm cache clean --force
+          npm ci --prefer-offline false
       # {5}
       - name: Run tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless

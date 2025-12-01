@@ -8,6 +8,8 @@ module.exports = (config, options, targetOptions) => {
   console.log('========== WEBPACK CONFIG START ==========');
   console.log('Webpack options:', JSON.stringify(options, null, 2));
   console.log('Webpack targetOptions:', JSON.stringify(targetOptions, null, 2));
+  console.log('Config mode:', config?.mode || 'undefined');
+  console.log('Config plugins length:', config?.plugins?.length || 'undefined');
 
   // Check if this is a test/Karma build
   const isTest =
@@ -39,6 +41,8 @@ module.exports = (config, options, targetOptions) => {
   // Try multiple sources: NG_APP_ENV env var, targetOptions, options
   const ngAppEnv = process.env.NG_APP_ENV;
   const configuration = ngAppEnv || targetOptions?.configuration || options?.configuration;
+  console.log('NG_APP_ENV:', ngAppEnv || 'undefined');
+  console.log('Configuration resolved to:', configuration || 'undefined');
 
   let envFile = '.env'; // default
 
