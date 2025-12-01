@@ -8,7 +8,6 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
-        cache: 'none'
 
     - name: Install dependencies
       run: npm ci
