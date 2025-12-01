@@ -7,55 +7,13 @@ runs:
     - name: Use Node.js from .nvmrc
       uses: actions/setup-node@v6
       with:
-        node-version-file: '.nvmrc'
-        cache: 'npm'
+        node-version: 22
 
-    - name: Verify npm and node versions
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Verify installation
       run: |
-        echo "Node version: $(node --version)"
-        echo "npm version: $(npm --version)"
-        echo "Current directory: $(pwd)"
-        echo "package-lock.json exists: $(test -f package-lock.json && echo 'YES' || echo 'NO')"
-      shell: bash
-
-    - name: Install dependencies
-      run: npm ci --loglevel verbose
-      shell: bash
-
-    - name: Debug installation
-      run: |
-        echo "=== DEBUG INSTALLATION ==="
-        echo "PWD: $(pwd)"
-        echo "Files in current dir:"
-        ls -la
-        echo ""
-        echo "package.json exists: $(test -f package.json && echo 'YES' || echo 'NO')"
-        echo "package-lock.json exists: $(test -f package-lock.json && echo 'YES' || echo 'NO')"
-        echo "Size of package-lock.json: $(wc -l < package-lock.json 2>/dev/null || echo 'N/A') lines"
-        echo ""
-        echo "Top level deps:"
-        npm ls --depth=0 2>&1 || echo "npm ls failed"
-        echo ""
-        echo "node_modules status:"
-        if [ -d node_modules ]; then
-          echo "node_modules exists"
-          echo "node_modules size: $(du -sh node_modules 2>/dev/null || echo 'N/A')"
-          echo "Contents of node_modules/.bin (first few):"
-          ls -la node_modules/.bin/ 2>/dev/null | head -10 || echo "No .bin dir or empty"
-        else
-          echo "node_modules does NOT exist"
-        fi
-        echo "========================"
-      shell: bash
-
-    - name: Verify Angular CLI installation
-      run: |
-        echo "Checking node_modules..."
-        ls -la node_modules/.bin/ng 2>/dev/null || echo "❌ ng binary not found!"
-        echo ""
-        echo "Checking @angular/cli package..."
-        test -d node_modules/@angular/cli && echo "✅ @angular/cli directory exists" || echo "❌ @angular/cli not installed!"
-        echo ""
-        echo "Testing ng command..."
-        npx ng version || echo "❌ ng command failed!"
+        npm list @angular/cli
+        npx ng version
       shell: bash
