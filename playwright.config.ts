@@ -26,7 +26,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://127.0.0.1:4200',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Take screenshot on failure */
@@ -55,8 +55,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'ng serve --configuration=e2e',
-    url: 'http://localhost:4200',
+    command: 'ng serve --configuration=e2e --host 0.0.0.0',
+    url: 'http://127.0.0.1:4200', // Use IPv4 explicitly instead of localhost
     reuseExistingServer: !process.env['CI'],
     timeout: 180 * 1000, // 3 minutes - CI needs more time for initial build
     stdout: 'pipe',
