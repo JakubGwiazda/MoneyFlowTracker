@@ -55,11 +55,13 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'ng serve --configuration=e2e --host 0.0.0.0',
+    command: process.env['CI']
+      ? 'npx ng serve --configuration=e2e --host 0.0.0.0 --poll=2000'
+      : 'ng serve --configuration=e2e --host 0.0.0.0',
     url: 'http://127.0.0.1:4200', // Use IPv4 explicitly instead of localhost
     reuseExistingServer: !process.env['CI'],
     timeout: 180 * 1000, // 3 minutes - CI needs more time for initial build
-    stdout: 'pipe',
-    stderr: 'pipe',
+    stdout: 'inherit', // Show server output in console
+    stderr: 'inherit', // Show server errors in console
   },
 });

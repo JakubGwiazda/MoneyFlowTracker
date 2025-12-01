@@ -50,11 +50,6 @@ jobs:
       - name: Run unit tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
 
-      - name: Debug - Try to build the app first
-        run: |
-          echo "Building application for e2e..."
-          npm run build:e2e || echo "Build failed, continuing anyway..."
-
       - name: Debug - Check if Angular CLI is available
         run: |
           npx ng version
