@@ -10,22 +10,26 @@ on:
 permissions:
   contents: read
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+  OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
 jobs:
   angular:
     name: Angular Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version:
-          [22]
-          # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [20] # Changed to 20 for Angular 20 compatibility (Node 22 causes Webpack plugin issues)
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       # {2}
       - name: Checkout the source code
         uses: actions/checkout@v6
 
       # {3}
-      - name: Setup Node.js 6
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
@@ -41,4 +45,4 @@ jobs:
 
       # {6}
       - name: Build
-        run: npm run build
+        run: npm run build:prod # Changed to build:prod for production configuration
