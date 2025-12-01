@@ -58,19 +58,24 @@ module.exports = (config, options, targetOptions) => {
     if (fs.existsSync(envPath)) {
       const result = dotenv.config({ path: envPath });
       if (result.error) {
-        console.error('Error loading env file:', result.error);
+        console.error('❌ Error loading env file:', result.error);
       } else {
         envVars = result.parsed || {};
+        console.log(
+          `✓ Loaded ${Object.keys(envVars).length} environment variables from ${envFile}`
+        );
+        console.log('✓ Variables loaded:', Object.keys(envVars).join(', '));
       }
     } else {
-      console.log(`Environment file ${envFile} does not exist, using empty values`);
+      console.log(`⚠️  Environment file ${envFile} does not exist at ${envPath}`);
+      console.log(`   Using empty values for configuration: ${configuration}`);
       // For tests, we don't need to show this warning
       if (configuration !== 'test' && !targetOptions?.test) {
-        console.log(`Tip: Create ${envFile} file with your environment variables`);
+        console.log(`   Tip: Create ${envFile} file with your environment variables`);
       }
     }
   } catch (error) {
-    console.log('Failed to load environment file, using empty values:', error.message);
+    console.error('❌ Failed to load environment file:', error.message);
     envVars = {};
   }
   console.log('=========================================\n');
