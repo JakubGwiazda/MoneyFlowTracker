@@ -9,9 +9,9 @@ const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
  * Runs once before all tests to create an authenticated session
  * Saves the authentication state to a file for reuse in tests
  */
-setup('authenticate', async ({ page }) => {
+setup('authenticate', async ({ page, baseURL }) => {
   console.log('Setting up authentication for tests...');
-  console.log('Base URL:', page.context()._options.baseURL || 'http://localhost:4200');
+  console.log('Base URL:', baseURL || 'http://localhost:4200');
 
   // Check if credentials are available
   if (!TEST_USER.email || !TEST_USER.password) {
@@ -25,11 +25,14 @@ setup('authenticate', async ({ page }) => {
 
   // Navigate to login page first and check if it loads
   console.log('Navigating to /login...');
-  await page.goto('/login', { waitUntil: 'networkidle', timeout: 60000 });
+  await page.goto('/login', { waitUntil: 'networkidle', timeout: 90000 });
 
   // Log page title and URL for debugging
   console.log('Page loaded. URL:', page.url());
   console.log('Page title:', await page.title());
+
+  // Wait for Angular to bootstrap (especially important on CI)
+  await page.waitForTimeout(2000);
 
   // Check for console errors
   page.on('console', msg => console.log('Browser console:', msg.type(), msg.text()));
@@ -38,16 +41,24 @@ setup('authenticate', async ({ page }) => {
   // Take screenshot before attempting login
   await page.screenshot({ path: 'playwright/.auth/before-login.png' });
 
-  // Check if login form is visible
+  // Wait for login form to be visible (with extended timeout for CI)
   const emailField = page.getByLabel('Email');
-  const isVisible = await emailField.isVisible().catch(() => false);
-  console.log('Email field visible:', isVisible);
+  console.log('Waiting for email field to be visible...');
 
-  if (!isVisible) {
+  try {
+    await emailField.waitFor({ state: 'visible', timeout: 30000 });
+    console.log('✓ Email field is visible');
+  } catch (error) {
+    console.error('✗ Email field not found within timeout');
     // Get page content for debugging
     const content = await page.content();
     console.log('Page HTML length:', content.length);
     console.log('Page HTML preview:', content.substring(0, 500));
+
+    // Check for common issues
+    const bodyText = await page.locator('body').textContent();
+    console.log('Body text:', bodyText);
+
     throw new Error('Login form not found on page');
   }
 

@@ -60,8 +60,8 @@ export default defineConfig({
       : 'ng serve --configuration=e2e --host 0.0.0.0',
     url: 'http://127.0.0.1:4200', // Use IPv4 explicitly instead of localhost
     reuseExistingServer: !process.env['CI'],
-    timeout: 180 * 1000, // 3 minutes - CI needs more time for initial build
-    stdout: 'inherit', // Show server output in console
-    stderr: 'inherit', // Show server errors in console
+    timeout: 240 * 1000, // 4 minutes - CI needs more time for initial build with env vars
+    stdout: 'pipe', // Show server output in console
+    stderr: 'pipe', // Show server errors in console
   },
 });

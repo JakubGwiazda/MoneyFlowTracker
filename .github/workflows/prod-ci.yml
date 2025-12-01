@@ -60,6 +60,10 @@ jobs:
         run: npm run test:e2e
         env:
           DEBUG: pw:webserver,pw:api
+          # Make environment variables available to Angular build process
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
       - name: Upload Playwright report on failure
         if: failure()

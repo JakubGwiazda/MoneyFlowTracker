@@ -68,7 +68,7 @@ module.exports = (config, options, targetOptions) => {
       }
     } else {
       console.log(`⚠️  Environment file ${envFile} does not exist at ${envPath}`);
-      console.log(`   Using empty values for configuration: ${configuration}`);
+      console.log(`   Using values from process.env if available`);
       // For tests, we don't need to show this warning
       if (configuration !== 'test' && !targetOptions?.test) {
         console.log(`   Tip: Create ${envFile} file with your environment variables`);
@@ -78,13 +78,26 @@ module.exports = (config, options, targetOptions) => {
     console.error('❌ Failed to load environment file:', error.message);
     envVars = {};
   }
+
+  // Prefer process.env over file vars (important for CI/CD)
+  // This allows GitHub Actions to pass secrets directly
+  const finalEnvVars = {
+    SUPABASE_URL: process.env.SUPABASE_URL || envVars.SUPABASE_URL || '',
+    SUPABASE_KEY: process.env.SUPABASE_KEY || envVars.SUPABASE_KEY || '',
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || envVars.OPENROUTER_API_KEY || '',
+  };
+
+  console.log('✓ Final environment variables (showing presence, not values):');
+  console.log('  SUPABASE_URL:', finalEnvVars.SUPABASE_URL ? '✓ present' : '✗ missing');
+  console.log('  SUPABASE_KEY:', finalEnvVars.SUPABASE_KEY ? '✓ present' : '✗ missing');
+  console.log('  OPENROUTER_API_KEY:', finalEnvVars.OPENROUTER_API_KEY ? '✓ present' : '✗ missing');
   console.log('=========================================\n');
 
   // Inject variables using DefinePlugin (without NODE_ENV to avoid conflicts)
   const definePluginConfig = {
-    'process.env.SUPABASE_URL': JSON.stringify(envVars.SUPABASE_URL || ''),
-    'process.env.SUPABASE_KEY': JSON.stringify(envVars.SUPABASE_KEY || ''),
-    'process.env.OPENROUTER_API_KEY': JSON.stringify(envVars.OPENROUTER_API_KEY || ''),
+    'process.env.SUPABASE_URL': JSON.stringify(finalEnvVars.SUPABASE_URL),
+    'process.env.SUPABASE_KEY': JSON.stringify(finalEnvVars.SUPABASE_KEY),
+    'process.env.OPENROUTER_API_KEY': JSON.stringify(finalEnvVars.OPENROUTER_API_KEY),
   };
 
   // Ensure plugins array exists
