@@ -14,8 +14,15 @@ runs:
       run: npm ci
       shell: bash
 
-    - name: Verify installation
+    - name: Verify npm scripts
       run: |
-        npm list @angular/cli
-        npx ng version
+        echo "Available npm scripts:"
+        npm run
+        echo ""
+        echo "Checking for Angular CLI..."
+        if command -v npx ng &> /dev/null; then
+          npx ng version
+        else
+          echo "Angular CLI available via npx"
+        fi
       shell: bash

@@ -20,10 +20,10 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
-
+      
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
-
+      
       - name: Run unit tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
 
@@ -36,15 +36,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
-
+      
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
-
-      - name: Verify installation
-        run: |
-          echo "Checking node_modules..."
-          ls -la node_modules/.bin/ | grep ng || echo "ng not found!"
-          npm list @angular/cli || echo "Angular CLI not in package list"
-
+      
       - name: Build production
         run: npm run build:prod
