@@ -9,10 +9,7 @@ const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
  * Runs once before all tests to create an authenticated session
  * Saves the authentication state to a file for reuse in tests
  */
-setup('authenticate', async ({ page, baseURL }) => {
-  console.log('Setting up authentication for tests...');
-  console.log('Base URL:', baseURL || 'http://localhost:4200');
-
+setup('authenticate', async ({ page }) => {
   // Check if credentials are available
   if (!TEST_USER.email || !TEST_USER.password) {
     throw new Error('E2E_USERNAME and E2E_PASSWORD must be set in .env.test file');
@@ -23,16 +20,8 @@ setup('authenticate', async ({ page, baseURL }) => {
     hasPassword: !!TEST_USER.password,
   });
 
-  // Navigate to login page first and check if it loads
-  console.log('Navigating to /login...');
-  await page.goto('/login', { waitUntil: 'networkidle', timeout: 90000 });
+  await page.goto('/login', { waitUntil: 'networkidle', timeout: 60000 });
 
-  // Log page title and URL for debugging
-  console.log('Page loaded. URL:', page.url());
-  console.log('Page title:', await page.title());
-
-  // Wait for Angular to bootstrap (especially important on CI)
-  await page.waitForTimeout(2000);
 
   // Check for console errors
   page.on('console', msg => console.log('Browser console:', msg.type(), msg.text()));
@@ -41,24 +30,13 @@ setup('authenticate', async ({ page, baseURL }) => {
   // Take screenshot before attempting login
   await page.screenshot({ path: 'playwright/.auth/before-login.png' });
 
-  // Wait for login form to be visible (with extended timeout for CI)
+  // Check if login form is visible
   const emailField = page.getByLabel('Email');
-  console.log('Waiting for email field to be visible...');
+  const isVisible = await emailField.isVisible().catch(() => false);
 
-  try {
-    await emailField.waitFor({ state: 'visible', timeout: 30000 });
-    console.log('✓ Email field is visible');
-  } catch (error) {
-    console.error('✗ Email field not found within timeout');
+  if (!isVisible) {
     // Get page content for debugging
     const content = await page.content();
-    console.log('Page HTML length:', content.length);
-    console.log('Page HTML preview:', content.substring(0, 500));
-
-    // Check for common issues
-    const bodyText = await page.locator('body').textContent();
-    console.log('Body text:', bodyText);
-
     throw new Error('Login form not found on page');
   }
 
@@ -78,6 +56,4 @@ setup('authenticate', async ({ page, baseURL }) => {
 
   // Save signed-in state to 'authFile'
   await page.context().storageState({ path: authFile });
-
-  console.log('Authentication state saved successfully');
 });
