@@ -37,7 +37,8 @@ jobs:
         run: npm ci
       # {5}
       - name: Run tests
-        run: npm run test
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
       # {6}
       - name: Build
         run: npm run build
