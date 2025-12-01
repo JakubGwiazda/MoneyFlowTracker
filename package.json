@@ -9,7 +9,7 @@
     "start:prod": "ng serve --configuration=production",
     "build": "ng build --configuration=local",
     "build:local": "ng build --configuration=local",
-    "build:prod": "npx ng build --configuration=production",
+    "build:prod": "ng build --configuration=production",
     "build:e2e": "ng build --configuration=e2e",
     "build:dev": "ng build --configuration=development",
     "watch": "ng build --watch --configuration development",
