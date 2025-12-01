@@ -12,6 +12,7 @@ runs:
 
     - name: Install Dependencies
       run: npm install
+      shell: bash
 
     - name: Verify installation
       run: |
