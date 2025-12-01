@@ -41,4 +41,4 @@ jobs:
         uses: ./.github/actions/setup-node-and-install
 
       - name: Build production
-        run: npm run build
+        run: npm run build:prod
