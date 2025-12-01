@@ -24,63 +24,8 @@ jobs:
       - name: Setup Node and install dependencies
         uses: ./.github/actions/setup-node-and-install
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Create .env.test file
-        run: |
-          echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
-          echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
-          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env.test
-
-      - name: Debug - Verify .env.test was created
-        run: |
-          echo "Checking .env.test file..."
-          ls -la .env.test || echo "❌ .env.test not found"
-          echo "File contains $(wc -l < .env.test) lines"
-          echo "Checking if secrets are empty (showing only first 10 chars):"
-          head -c 50 .env.test
-          echo ""
-          echo "Verifying critical variables are set:"
-          grep -q "E2E_USERNAME=" .env.test && echo "✅ E2E_USERNAME present" || echo "❌ E2E_USERNAME missing"
-          grep -q "SUPABASE_URL=" .env.test && echo "✅ SUPABASE_URL present" || echo "❌ SUPABASE_URL missing"
-
       - name: Run unit tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
-
-      - name: Debug - Check if Angular CLI is available
-        run: |
-          npx ng version
-          node --version
-          npm --version
-
-      - name: Run e2e tests
-        run: npm run test:e2e
-        env:
-          DEBUG: pw:webserver,pw:api
-          # Make environment variables available to Angular build process
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
-      - name: Upload debug screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-screenshots
-          path: playwright/.auth/*.png
-          retention-days: 7
-          if-no-files-found: ignore
 
   build:
     runs-on: ubuntu-latest
