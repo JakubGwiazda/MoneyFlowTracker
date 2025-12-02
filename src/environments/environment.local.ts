@@ -1,6 +1,7 @@
+// Ten plik jest używany TYLKO lokalnie podczas development
 export const environment = {
   production: false,
-  supabaseUrl: process.env['SUPABASE_URL'] || '',
-  supabaseKey: process.env['SUPABASE_KEY'] || '',
-  openRouterApiKey: process.env['OPENROUTER_API_KEY'] || '',
+  supabaseUrl: 'https://bebnkqgtuemvscxdlvsq.supabase.co',
+  supabaseKey:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlYm5rcWd0dWVtdnNjeGRsdnNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMDkwNDcsImV4cCI6MjA3ODg4NTA0N30.KjYA513AesZsXaXFZrHzGKh7DM0EF-fYGoWdyaZ_42U',
 };
