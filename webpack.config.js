@@ -40,14 +40,14 @@ module.exports = (config, options, targetOptions) => {
   const ngAppEnv = process.env.NG_APP_ENV;
   const configuration = ngAppEnv || targetOptions?.configuration || options?.configuration;
 
-  let envFile = '.env'; // default
+  let envFile = '.env.development'; // default
 
   if (configuration === 'e2e') {
     envFile = '.env.test';
   } else if (configuration === 'production') {
     envFile = '.env.prod';
   } else if (configuration === 'local') {
-    envFile = '.env.local';
+    envFile = '.env.development';
   }
 
   const envPath = path.resolve(__dirname, envFile);
