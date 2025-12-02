@@ -1,5 +1,5 @@
 name: Setup Node and install dependencies
-description: Setup Node from .nvmrc and install npm dependencies with caching (expects repo to be already checked out)
+description: Setup Node from .nvmrc and install npm dependencies (expects repo to be already checked out)
 
 runs:
   using: composite
@@ -7,9 +7,22 @@ runs:
     - name: Use Node.js from .nvmrc
       uses: actions/setup-node@v6
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: .nvmrc
         cache: npm
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: npm ci
+      shell: bash
+
+    - name: Verify npm scripts
+      run: |
+        echo "Available npm scripts:"
+        npm run
+        echo ""
+        echo "Checking for Angular CLI..."
+        if command -v npx ng &> /dev/null; then
+          npx ng version
+        else
+          echo "Angular CLI available via npx"
+        fi
       shell: bash
