@@ -115,15 +115,8 @@ describe('ClassificationService', () => {
 
       // Verify request payload
       const payload = req.request.body;
-      expect(payload.model).toBe('openai/gpt-4o-mini');
-      expect(payload.messages).toBeDefined();
-      expect(payload.messages.length).toBe(2);
-      expect(payload.messages[0].role).toBe('system');
-      expect(payload.messages[1].role).toBe('user');
-      expect(payload.messages[1].content).toContain(description);
-      expect(payload.response_format).toBeDefined();
-      expect(payload.response_format.type).toBe('json_schema');
-      expect(payload.temperature).toBe(0.2);
+      expect(payload.type).toBe('single');
+      expect(payload.description).toBe(description);
 
       // Respond with mock API response
       req.flush(mockApiResponse);
@@ -138,11 +131,6 @@ describe('ClassificationService', () => {
       expect(result.confidence).toBeGreaterThanOrEqual(0.7);
       expect(result.isNewCategory).toBe(false);
       expect(result.reasoning).toContain('transportowy');
-
-      // Verify enrichment of categories list
-      const category = mockCategories.find(c => c.id === result.categoryId);
-      expect(category).toBeDefined();
-      expect(category?.name).toBe(result.categoryName);
     }));
 
     it('should correctly parse model response and enrich with category data', fakeAsync(() => {
