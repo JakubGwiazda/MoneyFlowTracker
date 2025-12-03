@@ -4,7 +4,6 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration=development",
-    "start:local": "ng serve --configuration=local",
     "start:e2e": "cross-env NG_APP_ENV=e2e ng serve --configuration=e2e",
     "start:prod": "ng serve --configuration=production",
     "build": "ng build --configuration=local",

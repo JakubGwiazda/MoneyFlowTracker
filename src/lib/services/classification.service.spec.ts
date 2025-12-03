@@ -97,7 +97,7 @@ describe('ClassificationService', () => {
       let error: any = null;
 
       // Execute classification
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -180,7 +180,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -241,7 +241,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -293,7 +293,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -317,7 +317,7 @@ describe('ClassificationService', () => {
   describe('Input Validation', () => {
     it('should throw error for empty description', () => {
       expect(() => {
-        service.classifyExpense('', mockCategories).subscribe();
+        service.classifyExpense('').subscribe();
       }).toThrow(
         jasmine.objectContaining({
           message: 'Opis wydatku jest wymagany',
@@ -330,7 +330,7 @@ describe('ClassificationService', () => {
       const longDescription = 'a'.repeat(501);
 
       expect(() => {
-        service.classifyExpense(longDescription, mockCategories).subscribe();
+        service.classifyExpense(longDescription).subscribe();
       }).toThrow(
         jasmine.objectContaining({
           message: 'Opis wydatku jest zbyt długi (maksymalnie 500 znaków)',
@@ -348,7 +348,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: ClassificationError | null = null;
 
-      service.classifyExpense('Test expense', mockCategories).subscribe({
+      service.classifyExpense('Test expense').subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -395,7 +395,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -419,7 +419,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: ClassificationError | null = null;
 
-      service.classifyExpense('Test', mockCategories).subscribe({
+      service.classifyExpense('Test').subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });

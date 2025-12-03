@@ -45,15 +45,15 @@ module.exports = (config, options, targetOptions) => {
     console.log('NG_APP_ENV:', ngAppEnv || 'undefined');
     console.log('Configuration resolved to:', configuration || 'undefined');
 
-  let envFile = '.env.development'; // default
+    let envFile = '.env.development'; // default
 
-  if (configuration === 'e2e') {
-    envFile = '.env.test';
-  } else if (configuration === 'production') {
-    envFile = '.env.prod';
-  } else if (configuration === 'local') {
-    envFile = '.env.development';
-  }
+    if (configuration === 'e2e') {
+      envFile = '.env.test';
+    } else if (configuration === 'production') {
+      envFile = '.env.prod';
+    } else if (configuration === 'development') {
+      envFile = '.env.development';
+    }
 
     const envPath = path.resolve(__dirname, envFile);
 

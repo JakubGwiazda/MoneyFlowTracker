@@ -309,11 +309,7 @@ export class ExpensesApiService {
    * Suggests category using AI classification
    */
   suggestCategory(description: string): Observable<ClassificationResult> {
-    return this.getCategoriesForClassification().pipe(
-      switchMap(categoryDtos => {
-        return this.classificationService.classifyExpense(description, categoryDtos);
-      })
-    );
+    return this.classificationService.classifyExpense(description);
   }
 
   /**
@@ -341,7 +337,7 @@ export class ExpensesApiService {
 
         // Batch classify
         const classificationResults = await lastValueFrom(
-          this.classificationService.batchClassifyExpenses(expensesToClassify, categories)
+          this.classificationService.batchClassifyExpenses(expensesToClassify)
         );
 
         if (!classificationResults) {
