@@ -5,6 +5,7 @@ import {
   output,
   forwardRef,
   inject,
+  effect,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
@@ -75,6 +76,13 @@ export class ChipsComponent<T = unknown> implements ControlValueAccessor {
   private onTouched?: () => void;
   isDisabled = false;
   value?: T;
+
+  constructor() {
+    effect(() => {
+      const selectedValue = this.selectedValue();
+      this.value = selectedValue;
+    });
+  }
 
   writeValue(value: T | undefined): void {
     this.value = value;

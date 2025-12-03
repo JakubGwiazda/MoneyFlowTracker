@@ -266,9 +266,8 @@ export class ExpensesFacadeService {
     trigger: RefreshTrigger = 'manual',
     filtersOverride?: ChartsFilterState
   ): Promise<void> {
-
     const filters = filtersOverride ?? this.chartFiltersSignal();
-    
+
     if (filters.date_from && filters.date_to && filters.date_from > filters.date_to) {
       this.chartErrorSignal.set('Zakres dat jest nieprawidłowy.');
       return;
@@ -404,6 +403,8 @@ export class ExpensesFacadeService {
       }));
 
       await firstValueFrom(this.expensesApi.batchClassifyAndCreateExpenses(apiExpenses));
+      // Refresh categories first to include any newly created categories
+      await this.loadCategories();
       await this.refresh('manual');
     } catch (error) {
       throw new Error(resolveErrorMessage(error));
