@@ -97,7 +97,7 @@ describe('ClassificationService', () => {
       let error: any = null;
 
       // Execute classification
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -115,15 +115,8 @@ describe('ClassificationService', () => {
 
       // Verify request payload
       const payload = req.request.body;
-      expect(payload.model).toBe('openai/gpt-4o-mini');
-      expect(payload.messages).toBeDefined();
-      expect(payload.messages.length).toBe(2);
-      expect(payload.messages[0].role).toBe('system');
-      expect(payload.messages[1].role).toBe('user');
-      expect(payload.messages[1].content).toContain(description);
-      expect(payload.response_format).toBeDefined();
-      expect(payload.response_format.type).toBe('json_schema');
-      expect(payload.temperature).toBe(0.2);
+      expect(payload.type).toBe('single');
+      expect(payload.description).toBe(description);
 
       // Respond with mock API response
       req.flush(mockApiResponse);
@@ -138,11 +131,6 @@ describe('ClassificationService', () => {
       expect(result.confidence).toBeGreaterThanOrEqual(0.7);
       expect(result.isNewCategory).toBe(false);
       expect(result.reasoning).toContain('transportowy');
-
-      // Verify enrichment of categories list
-      const category = mockCategories.find(c => c.id === result.categoryId);
-      expect(category).toBeDefined();
-      expect(category?.name).toBe(result.categoryName);
     }));
 
     it('should correctly parse model response and enrich with category data', fakeAsync(() => {
@@ -180,7 +168,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -241,7 +229,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -293,7 +281,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -317,7 +305,7 @@ describe('ClassificationService', () => {
   describe('Input Validation', () => {
     it('should throw error for empty description', () => {
       expect(() => {
-        service.classifyExpense('', mockCategories).subscribe();
+        service.classifyExpense('').subscribe();
       }).toThrow(
         jasmine.objectContaining({
           message: 'Opis wydatku jest wymagany',
@@ -330,7 +318,7 @@ describe('ClassificationService', () => {
       const longDescription = 'a'.repeat(501);
 
       expect(() => {
-        service.classifyExpense(longDescription, mockCategories).subscribe();
+        service.classifyExpense(longDescription).subscribe();
       }).toThrow(
         jasmine.objectContaining({
           message: 'Opis wydatku jest zbyt długi (maksymalnie 500 znaków)',
@@ -348,7 +336,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: ClassificationError | null = null;
 
-      service.classifyExpense('Test expense', mockCategories).subscribe({
+      service.classifyExpense('Test expense').subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -395,7 +383,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: any = null;
 
-      service.classifyExpense(description, mockCategories).subscribe({
+      service.classifyExpense(description).subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });
@@ -419,7 +407,7 @@ describe('ClassificationService', () => {
       let result: any = null;
       let error: ClassificationError | null = null;
 
-      service.classifyExpense('Test', mockCategories).subscribe({
+      service.classifyExpense('Test').subscribe({
         next: res => (result = res),
         error: err => (error = err),
       });

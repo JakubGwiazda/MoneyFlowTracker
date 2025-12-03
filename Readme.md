@@ -34,7 +34,7 @@ MoneyFlowTracker is an Angular + Astro-based web tool that enables users to quic
   - E2E Tests: Playwright
 - **CI/CD & Hosting**
   - GitHub Actions
-  - DigitalOcean
+  - Firebase Hosting
 - **Runtime**
   - Node.js v22.14.0 (managed via `.nvmrc`)
 
@@ -220,7 +220,7 @@ End-to-end tests are powered by Playwright and test the application against a re
   2. Integrate AI classification & manual corrections
   3. Implement filtering & visualizations
   4. Write end-to-end tests (adding expenses, category corrections)
-  5. Deployment via GitHub Actions → DigitalOcean
+  5. Deployment via GitHub Actions → Firebase Hosting
 
 ## License
 
