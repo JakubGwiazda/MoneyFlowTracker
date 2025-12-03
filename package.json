@@ -22,7 +22,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json,css,md}\"",
-    "db_start": "supabase start"
+    "db_start": "supabase start",
+    "supabase_functions_deploy": "supabase functions deploy",
+    "supabase_function_start": "supabase functions start"
   },
   "dependencies": {
     "@angular/animations": "^20.3.7",
