@@ -3,6 +3,12 @@ import { Observable, from, map, switchMap, lastValueFrom } from 'rxjs';
 import { supabaseClient } from '../../../../db/supabase.client';
 import type { Database } from '../../../../db/database.types';
 import { ClassificationService } from '../../../../lib/services/classification.service';
+import {
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  createClassifiedExpense,
+} from '../../../../lib/services/expenses.service';
 import { ClassificationResult } from '../../../../lib/models/openrouter';
 import { AuthService } from '../../../../lib/services/auth.service';
 
@@ -98,35 +104,11 @@ export class ExpensesApiService {
    */
   createExpense(command: CreateExpenseCommand): Observable<ExpenseDto> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async user => {
+      switchMap(user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-
-        // Validate category if provided
-        if (command.category_id) {
-          await this.validateCategoryExists(command.category_id);
-        }
-
-        // Insert expense
-        const { data: expense, error: insertError } = await supabaseClient
-          .from('expenses')
-          .insert({
-            user_id: user.id,
-            name: command.name,
-            amount: command.amount,
-            expense_date: command.expense_date,
-            category_id: command.category_id || null,
-            classification_status: 'pending',
-          })
-          .select()
-          .single();
-
-        if (insertError || !expense) {
-          throw new Error('Nie udało się utworzyć wydatku.');
-        }
-
-        return this.mapDatabaseRowToExpenseDto(expense);
+        return createExpense(command, user.id, supabaseClient);
       })
     );
   }
@@ -136,52 +118,11 @@ export class ExpensesApiService {
    */
   updateExpense(expenseId: string, command: UpdateExpenseCommand): Observable<ExpenseDto> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async user => {
+      switchMap(user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-
-        // Validate category if provided
-        if (command.category_id) {
-          await this.validateCategoryExists(command.category_id);
-        }
-
-        // Update expense
-        const updateData: Database['public']['Tables']['expenses']['Update'] = {
-          updated_at: new Date().toISOString(),
-        };
-
-        if (command.name !== undefined) {
-          updateData.name = command.name;
-        }
-
-        if (command.amount !== undefined) {
-          updateData.amount = command.amount;
-        }
-
-        if (command.expense_date !== undefined) {
-          updateData.expense_date = command.expense_date;
-        }
-
-        if (command.category_id !== undefined) {
-          updateData.category_id = command.category_id;
-          updateData.classification_status = command.classification_status;
-          updateData.corrected_category_id = command.category_id;
-        }
-
-        const { data: expense, error: updateError } = await supabaseClient
-          .from('expenses')
-          .update(updateData)
-          .eq('id', expenseId)
-          .eq('user_id', user.id)
-          .select()
-          .single();
-
-        if (updateError || !expense) {
-          throw new Error('Nie udało się zaktualizować wydatku.');
-        }
-
-        return this.mapDatabaseRowToExpenseDto(expense);
+        return updateExpense(expenseId, command, user.id, supabaseClient);
       })
     );
   }
@@ -191,20 +132,11 @@ export class ExpensesApiService {
    */
   deleteExpense(expenseId: string): Observable<void> {
     return from(this.getCurrentUser()).pipe(
-      switchMap(async user => {
+      switchMap(user => {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-
-        const { error: deleteError } = await supabaseClient
-          .from('expenses')
-          .delete()
-          .eq('id', expenseId)
-          .eq('user_id', user.id);
-
-        if (deleteError) {
-          throw new Error('Nie udało się usunąć wydatku.');
-        }
+        return deleteExpense(expenseId, user.id, supabaseClient);
       })
     );
   }
@@ -219,20 +151,12 @@ export class ExpensesApiService {
           throw new Error('Nie jesteś zalogowany.');
         }
 
-        const { error: updateError } = await supabaseClient
-          .from('expenses')
-          .update({
-            classification_status: 'pending',
-            predicted_category_id: null,
-            prediction_confidence: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', expenseId)
-          .eq('user_id', user.id);
-
-        if (updateError) {
-          throw new Error('Nie udało się zainicjować ponownej klasyfikacji.');
-        }
+        await updateExpense(
+          expenseId,
+          { classification_status: 'pending' },
+          user.id,
+          supabaseClient
+        );
       })
     );
   }
@@ -403,8 +327,8 @@ export class ExpensesApiService {
           });
         }
 
-        // Create expenses with assigned categories
-        const expensesToInsert = expenses.map((expense, index) => {
+        // Create expenses with assigned categories AND LOGGING using Promise.all
+        const creationPromises = expenses.map((expense, index) => {
           const classification = classificationResults[index];
           let categoryId: string | null = null;
 
@@ -414,46 +338,23 @@ export class ExpensesApiService {
             categoryId = categoryNameToIdMap.get(classification.newCategoryName) || null;
           }
 
-          return {
-            name: expense.description,
-            amount: expense.amount,
-            expense_date: expense.date,
-            category_id: categoryId,
-            user_id: user.id,
-            classification_status: 'predicted' as const,
-            prediction_confidence: classification.confidence,
-          };
+          return createClassifiedExpense(
+            {
+              name: expense.description,
+              amount: expense.amount,
+              expense_date: expense.date,
+              category_id: categoryId,
+              classification_status: 'predicted',
+              prediction_confidence: classification.confidence,
+            },
+            user.id,
+            supabaseClient
+          );
         });
 
-        const { error: insertError } = await supabaseClient
-          .from('expenses')
-          .insert(expensesToInsert);
-
-        if (insertError) {
-          throw new Error('Nie udało się zapisać wydatków.');
-        }
+        await Promise.all(creationPromises);
       })
     );
-  }
-
-  /**
-   * Validates that a category exists and is active
-   */
-  private async validateCategoryExists(categoryId: string): Promise<void> {
-    const { data: category, error: categoryError } = await supabaseClient
-      .from('categories')
-      .select('id, is_active')
-      .eq('id', categoryId)
-      .eq('is_active', true)
-      .single();
-
-    if (categoryError || !category) {
-      throw new Error('Kategoria nie została znaleziona.');
-    }
-
-    if (!category.is_active) {
-      throw new Error('Kategoria jest nieaktywna.');
-    }
   }
 
   /**
@@ -468,26 +369,6 @@ export class ExpensesApiService {
     }
 
     return user;
-  }
-
-  /**
-   * Maps database row to ExpenseDto
-   */
-  private mapDatabaseRowToExpenseDto(row: any): ExpenseDto {
-    return {
-      id: row.id,
-      user_id: row.user_id,
-      name: row.name,
-      amount: row.amount,
-      expense_date: row.expense_date,
-      category_id: row.category_id,
-      predicted_category_id: row.predicted_category_id,
-      prediction_confidence: row.prediction_confidence,
-      classification_status: row.classification_status,
-      corrected_category_id: row.corrected_category_id,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    };
   }
 
   /**

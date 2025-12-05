@@ -1,7 +1,4 @@
-import type {
-  ExpenseDto,
-  ExpenseSortParam,
-} from '../../../types';
+import type { ExpenseDto, ExpenseSortParam } from '../../../types';
 import type {
   ExpensesFilterState,
   ExpensesListViewModel,
@@ -15,7 +12,10 @@ import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from './expenses.models';
  * Creates default filter state with today's date
  */
 export function createDefaultFilters(): ExpensesFilterState {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+    .toISOString()
+    .slice(0, 10);
 
   return {
     preset: 'today',
@@ -147,7 +147,9 @@ export function resolveStatusLabel(status: ExpenseDto['classification_status']):
 /**
  * Resolves classification status to display tone
  */
-export function resolveStatusTone(status: ExpenseDto['classification_status']): ExpensesListViewModel['statusTone'] {
+export function resolveStatusTone(
+  status: ExpenseDto['classification_status']
+): ExpensesListViewModel['statusTone'] {
   switch (status) {
     case 'pending':
       return 'info';
@@ -192,11 +194,12 @@ export function mapExpenseToViewModel(
       : '—';
 
   const categoryName = expense.category_id
-    ? categoryLabelMap.get(expense.category_id) ?? `ID ${expense.category_id.slice(0, 8)}…`
+    ? (categoryLabelMap.get(expense.category_id) ?? `ID ${expense.category_id.slice(0, 8)}…`)
     : 'Brak kategorii';
 
   const predictedCategoryName = expense.predicted_category_id
-    ? categoryLabelMap.get(expense.predicted_category_id) ?? `ID ${expense.predicted_category_id.slice(0, 8)}…`
+    ? (categoryLabelMap.get(expense.predicted_category_id) ??
+      `ID ${expense.predicted_category_id.slice(0, 8)}…`)
     : undefined;
 
   return {

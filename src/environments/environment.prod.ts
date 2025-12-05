@@ -1,5 +1,3 @@
-// Ten plik jest używany w buildzie produkcyjnym (npm run build:prod)
-// Klucze Supabase są publiczne (anon key) i bezpieczne do commitowania
 export const environment = {
   production: true,
   supabaseUrl: 'https://bebnkqgtuemvscxdlvsq.supabase.co',

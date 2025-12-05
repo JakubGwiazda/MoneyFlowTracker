@@ -54,17 +54,15 @@ import {
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
             <td mat-cell *matCellDef="let element">
-              <div class="flex flex-col">
-                <span class="font-medium text-sm text-gray-900">{{ element.name }}</span>
+              <div class="d-flex flex-column">
+                <span class="text-md-start">{{ element.name }}</span>
               </div>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount" class="text-right">
-              Kwota (PLN)
-            </th>
-            <td mat-cell *matCellDef="let element" class="text-right font-semibold text-sm">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="amount">Kwota (PLN)</th>
+            <td mat-cell *matCellDef="let element" class="text-start">
               {{ element.amount | number: '1.2-2' }}
             </td>
           </ng-container>
@@ -79,15 +77,8 @@ import {
           <ng-container matColumnDef="category">
             <th mat-header-cell *matHeaderCellDef>Kategoria</th>
             <td mat-cell *matCellDef="let element">
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-800">{{ element.categoryName }}</span>
-                @if (
-                  element.predictedCategoryName && element.classification_status === 'predicted'
-                ) {
-                  <span class="text-xs text-blue-500"
-                    >Sugestia: {{ element.predictedCategoryName }}</span
-                  >
-                }
+              <div class="d-flex flex-column">
+                <span class="text-md-start"> {{ element.categoryName }}</span>
               </div>
             </td>
           </ng-container>
@@ -117,8 +108,8 @@ import {
           </ng-container>
 
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef class="w-12 text-right">Akcje</th>
-            <td mat-cell *matCellDef="let element" class="text-right">
+            <th mat-header-cell *matHeaderCellDef class="text-end" style="width: 3rem">Akcje</th>
+            <td mat-cell *matCellDef="let element" class="text-end">
               <app-row-actions
                 [actions]="expenseActions"
                 [data]="element"
@@ -131,7 +122,7 @@ import {
           <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
           <tr mat-row *matRowDef="let row; columns: columns"></tr>
           <tr matNoDataRow>
-            <td [attr.colspan]="columns.length" class="p-6 text-center text-sm text-gray-500">
+            <td [attr.colspan]="columns.length" class="p-4 text-center small text-secondary">
               Brak wydatków do wyświetlenia.
             </td>
           </tr>
@@ -213,7 +204,7 @@ export class ExpensesTableComponent implements AfterViewInit {
       label: 'Usuń',
       icon: 'delete',
       color: 'warn',
-      class: 'text-red-600',
+      class: 'text-danger',
     },
   ];
 

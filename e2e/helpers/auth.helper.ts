@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import { environment } from '../../src/environments/environment.e2e';
 
 /**
  * Helper functions for authentication tests
@@ -10,22 +11,18 @@ export interface LoginCredentials {
 }
 
 /**
- * Default test user credentials from environment variables
+ * Default test user credentials from environment.e2e.ts
  * Make sure this user exists in your test database
- * Configure in .env.test file: E2E_USERNAME and E2E_PASSWORD
  */
 export const TEST_USER: LoginCredentials = {
-  email: process.env['E2E_USERNAME'] || '',
-  password: process.env['E2E_PASSWORD'] || '',
+  email: environment.testUser,
+  password: environment.testUserPassword,
 };
 
 /**
  * Fills in the login form with provided credentials
  */
-export async function fillLoginForm(
-  page: Page,
-  credentials: LoginCredentials
-): Promise<void> {
+export async function fillLoginForm(page: Page, credentials: LoginCredentials): Promise<void> {
   await page.getByLabel('Email').fill(credentials.email);
   await page.getByLabel('Hasło').fill(credentials.password);
 }
@@ -98,4 +95,3 @@ export async function clearLoginForm(page: Page): Promise<void> {
   await page.getByLabel('Email').clear();
   await page.getByLabel('Hasło').clear();
 }
-
