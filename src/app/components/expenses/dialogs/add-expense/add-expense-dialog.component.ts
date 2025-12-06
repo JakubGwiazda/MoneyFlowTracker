@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -52,6 +52,10 @@ export class AddExpenseDialogComponent {
 
   readonly expensesList = signal<ExpenseToAdd[]>([]);
   readonly isClassifying = signal<boolean>(false);
+  readonly disableSaveBtn = computed(
+    () => this.isClassifying() || this.expensesList().length === 0
+  );
+
   readonly displayedColumns = ['name', 'amount', 'expense_date', 'actions'];
 
   readonly form = this.fb.group({
@@ -85,6 +89,9 @@ export class AddExpenseDialogComponent {
       amount: null,
     });
     this.form.markAsUntouched();
+    console.log(this.disableSaveBtn());
+    console.log(this.expensesList().length > 0);
+    console.log(this.isClassifying());
   }
 
   removeExpense(index: number): void {

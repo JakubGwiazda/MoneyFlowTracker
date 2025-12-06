@@ -2,15 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, switchMap, lastValueFrom } from 'rxjs';
 import { supabaseClient } from '../../../../db/supabase.client';
 import type { Database } from '../../../../db/database.types';
-import { ClassificationService } from '../../../../lib/services/classification.service';
+import { ClassificationService } from '../../../services/classification/classification.service';
 import {
   createExpense,
   updateExpense,
   deleteExpense,
   createClassifiedExpense,
-} from '../../../../lib/services/expenses.service';
-import { ClassificationResult } from '../../../../lib/models/openrouter';
-import { AuthService } from '../../../../lib/services/auth.service';
+} from '../../../services/expenses/expenses.service';
+import { ClassificationResult } from '../../../models/openrouter';
+import { AuthService } from '../../../services/authorization/auth.service';
 
 import type { CreateExpenseCommand, ExpenseDto, UpdateExpenseCommand } from '../../../../types';
 import type {

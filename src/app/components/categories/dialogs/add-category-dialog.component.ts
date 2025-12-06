@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '../../../../types';
-import type { CategoryOptionViewModel } from '../../../../lib/models/categories';
+import type { CategoryOptionViewModel } from '../../../models/categories';
 
 export type AddCategoryDialogData = {
   category?: CategoryDto;
@@ -36,7 +36,7 @@ export type AddCategoryDialogResult = {
     MatProgressSpinnerModule,
   ],
   templateUrl: './add-category-dialog.html',
-  styleUrl: './add-category-dialog.scss'
+  styleUrl: './add-category-dialog.scss',
 })
 export class AddCategoryDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<AddCategoryDialogComponent>);
@@ -83,10 +83,7 @@ export class AddCategoryDialogComponent implements OnInit {
     const category = this.data.category;
 
     this.form = this.fb.group({
-      name: [
-        category?.name || '',
-        [Validators.required, Validators.maxLength(100)]
-      ],
+      name: [category?.name || '', [Validators.required, Validators.maxLength(100)]],
       parent_id: [category?.parent_id || null],
       is_active: [category?.is_active ?? true],
     });
@@ -107,4 +104,3 @@ export class AddCategoryDialogComponent implements OnInit {
     this.availableParents.set(parents);
   }
 }
-

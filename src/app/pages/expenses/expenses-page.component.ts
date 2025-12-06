@@ -6,7 +6,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
-import type { ExpensesFilterState, SortState } from '../../../lib/models/expenses';
+import type { ExpensesFilterState, SortState } from '../../models/expenses';
 import { ClassificationStatus } from 'src/types';
 import {
   ConfirmDialogComponent,

@@ -1,4 +1,4 @@
-import type { CategoryListViewModel } from '../../../../lib/models/categories';
+import type { CategoryListViewModel } from '../../../models/categories';
 
 /**
  * Tree node representation for hierarchical category display.

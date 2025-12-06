@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
-import type { CategoryListViewModel } from '../../../lib/models/categories';
+import type { CategoryListViewModel } from '../../models/categories';
 import { CreateCategoryCommand } from 'src/types';
 import {
   AddCategoryDialogComponent,

@@ -60,4 +60,3 @@ export type CategoryOptionViewModel = {
  * Result type for category operations.
  */
 export type CategoryOperationResult = 'created' | 'updated' | 'deleted';
-

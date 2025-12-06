@@ -4,7 +4,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 
-import type { PaginationState } from '../../../../lib/models/expenses';
+import type { PaginationState } from '../../../models/expenses';
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 

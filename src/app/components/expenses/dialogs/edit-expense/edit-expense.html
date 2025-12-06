@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Edycja pozycji</h2>
-<div mat-dialog-content class="flex flex-col gap-4"> 
+<div mat-dialog-content class="flex flex-col gap-4">
   <form [formGroup]="editForm" class="expense-edit-form">
-    <mat-form-field appearance="outline">
+    <mat-form-field class="mt-2" appearance="outline">
       <mat-label>Nazwa</mat-label>
       <input matInput formControlName="name" required maxlength="100" />
       @if (editForm.controls.name.hasError('required')) {
@@ -29,20 +29,23 @@
         <mat-error>Data jest wymagana</mat-error>
       }
     </mat-form-field>
-    
-  <app-select-autocomplete formControlName="category_id"
-    [options]="categories()"
-    [fieldLabel]="'Kategoria'"
-    [value]="selectedId()"
-    (valueChange)="onSelect($event)"
-    (queryChange)="data.onCategorySearch?.($event)"
-  />
+
+    <app-select-autocomplete
+      [options]="categories()"
+      [fieldLabel]="'Kategoria'"
+      [value]="selectedId()"
+      (valueChange)="onSelect($event)"
+      (queryChange)="data.onCategorySearch?.($event)" />
   </form>
 </div>
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="dialogRef.close()">Anuluj</button>
-  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="editForm.invalid">
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSave()"
+    [disabled]="editForm.invalid || !selectedId()">
     Zapisz
   </button>
 </mat-dialog-actions>

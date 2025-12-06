@@ -8,8 +8,8 @@ import {
   type PaginationLink,
   type CategoryOptionViewModel,
   type CategoryOperationResult,
-} from '../../../../lib/models/categories';
-import { AuthService } from '../../../../lib/services/auth.service';
+} from '../../../models/categories';
+import { AuthService } from '../../../services/authorization/auth.service';
 
 const DEFAULT_PER_PAGE = 25;
 const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;

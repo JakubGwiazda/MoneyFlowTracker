@@ -84,4 +84,3 @@ export type ExpensesListViewModel = ExpenseDto & {
 };
 
 export type ExpenseDialogResult = 'created' | 'deleted' | 'updated' | 'reclassified';
-

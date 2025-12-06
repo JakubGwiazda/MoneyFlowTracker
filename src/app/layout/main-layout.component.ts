@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { AuthService } from 'src/lib/services/auth.service';
+import { AuthService } from '../services/authorization/auth.service';
 
 @Component({
   selector: 'app-main-layout',

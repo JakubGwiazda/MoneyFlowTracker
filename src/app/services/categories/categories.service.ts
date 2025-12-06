@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../db/database.types';
-import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '../../types';
+import type { Database } from '../../../db/database.types';
+import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '../../../types';
 
 /**
  * Service for managing category operations.
@@ -9,7 +9,7 @@ import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '
 
 /**
  * Creates a new category record in the database.
- * 
+ *
  * @param command - The category creation command with validated data
  * @param userId - The authenticated user's ID from JWT token
  * @param supabase - Supabase client instance
@@ -21,14 +21,10 @@ export async function createCategory(
   userId: string,
   supabase: SupabaseClient<Database>
 ): Promise<CategoryDto> {
-  
   // Check for duplicate name within the same scope (system or user)
   // System categories (user_id IS NULL) are unique globally
   // User categories are unique per user
-  let duplicateQuery = supabase
-    .from('categories')
-    .select('id')
-    .ilike('name', command.name);
+  let duplicateQuery = supabase.from('categories').select('id').ilike('name', command.name);
 
   if (command.user_id) {
     // Check for duplicates within user's categories
@@ -102,7 +98,7 @@ export async function createCategory(
 
 /**
  * Updates an existing category record.
- * 
+ *
  * @param categoryId - The category ID to update
  * @param command - The category update command with validated data
  * @param userId - The authenticated user's ID from JWT token
@@ -116,7 +112,6 @@ export async function updateCategory(
   userId: string,
   supabase: SupabaseClient<Database>
 ): Promise<CategoryDto> {
-  
   // Check if category exists (categories are global)
   const { data: existingCategory, error: fetchError } = await supabase
     .from('categories')
@@ -223,7 +218,7 @@ export async function updateCategory(
 
 /**
  * Deletes a category (soft delete by setting is_active to false).
- * 
+ *
  * @param categoryId - The category ID to delete
  * @param userId - The authenticated user's ID from JWT token
  * @param supabase - Supabase client instance
@@ -234,7 +229,6 @@ export async function deleteCategory(
   userId: string,
   supabase: SupabaseClient<Database>
 ): Promise<void> {
-  
   // Check if category is being used by any expenses
   const { data: expenses, error: expensesError } = await supabase
     .from('expenses')
@@ -271,7 +265,7 @@ export async function deleteCategory(
   // Soft delete by setting is_active to false
   const { error: deleteError } = await supabase
     .from('categories')
-    .update({ 
+    .update({
       is_active: false,
     })
     .eq('id', categoryId);
@@ -281,4 +275,3 @@ export async function deleteCategory(
     throw new Error('CATEGORY_DELETE_FAILED');
   }
 }
-

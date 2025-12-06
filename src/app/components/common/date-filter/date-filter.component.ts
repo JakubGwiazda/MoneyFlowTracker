@@ -15,7 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
-import type { DatePreset, DatePresetOption } from '../../../../lib/models/expenses';
+import type { DatePreset, DatePresetOption } from '../../../models/expenses';
 import {
   ChipsComponent,
   type ChipOption,

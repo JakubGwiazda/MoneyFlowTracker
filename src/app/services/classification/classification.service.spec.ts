@@ -1,12 +1,12 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ClassificationService } from './classification.service';
-import { RateLimiterService } from './rate-limiter.service';
-import { environment } from '../../environments/environment';
-import { CategoryDto } from '../../types';
-import { OpenRouterResponse, ClassificationError } from '../models/openrouter';
+import { RateLimiterService } from '../rate-limiter/rate-limiter.service';
+import { environment } from '../../../environments/environment';
+import { CategoryDto } from '../../../types';
+import { OpenRouterResponse, ClassificationError } from '../../models/openrouter';
 import { of } from 'rxjs';
-import { AuthService } from './auth.service';
+import { AuthService } from '../authorization/auth.service';
 
 describe('ClassificationService', () => {
   let service: ClassificationService;

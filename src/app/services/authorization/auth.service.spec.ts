@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService, AuthState } from './auth.service';
-import { supabaseClient } from '../../db/supabase.client';
+import { supabaseClient } from '../../../db/supabase.client';
 import type { User, AuthError } from '@supabase/supabase-js';
 
 // Helper to create mock AuthError

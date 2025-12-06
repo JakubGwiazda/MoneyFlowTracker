@@ -17,7 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import type { ExpensesListViewModel, SortState } from '../../../../lib/models/expenses';
+import type { ExpensesListViewModel, SortState } from '../../../models/expenses';
 import { BadgeComponent } from '../../common/badge/badge.component';
 import {
   RowActionsComponent,

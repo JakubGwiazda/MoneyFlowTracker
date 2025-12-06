@@ -31,7 +31,7 @@ export interface ChartConfig {
 export enum ChartType {
   BAR = 'bar',
   PIE = 'pie',
-  LINE = 'line'
+  LINE = 'line',
 }
 
 /**
@@ -42,4 +42,3 @@ export interface ChartViewMode {
   label: string;
   icon: string;
 }
-

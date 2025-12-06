@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
-import { SelectAutocompleteComponent, type SelectAutocompleteOption } from '../../../common/select-autocomplete/select-autocomplete.component';
-import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../../lib/models/expenses';
+import {
+  SelectAutocompleteComponent,
+  type SelectAutocompleteOption,
+} from '../../../common/select-autocomplete/select-autocomplete.component';
+import type { CategoryOptionViewModel, ExpensesListViewModel } from '../../../../models/expenses';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,8 +23,17 @@ type DialogData = {
 @Component({
   selector: 'app-edit-expense-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, SelectAutocompleteComponent,
-     ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, MatNativeDateModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    SelectAutocompleteComponent,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+  ],
   templateUrl: './edit-expense.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -34,11 +46,10 @@ export class EditExpenseDialogComponent {
     name: ['', [Validators.required, Validators.maxLength(100)]],
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     expense_date: [new Date(), Validators.required],
-    category_id: [null as string | null, Validators.required],
   });
 
   readonly categories = computed((): SelectAutocompleteOption[] =>
-    this.data.getCategories().map((category) => ({
+    this.data.getCategories().map(category => ({
       id: category.id,
       label: category.label,
     }))
@@ -53,8 +64,8 @@ export class EditExpenseDialogComponent {
       name: this.data.expense.name,
       amount: this.data.expense.amount,
       expense_date: new Date(this.data.expense.expense_date),
-      category_id: this.data.expense.category_id,
     });
+    this.selectedId.set(this.data.expense.category_id);
   }
 
   onSelect(categoryId: string | null): void {
@@ -62,13 +73,23 @@ export class EditExpenseDialogComponent {
   }
 
   onSave(): void {
+    if (this.editForm.invalid) {
+      return;
+    }
+
+    if (!this.selectedCategoryId()) {
+      return;
+    }
+
     this.dialogRef.close({
       name: this.editForm.controls.name.value,
       amount: this.editForm.controls.amount.value,
       expense_date: this.editForm.controls.expense_date.value,
       category_id: this.selectedCategoryId(),
-      classification_status: this.data.expense.category_id !== this.selectedCategoryId() ? 'corrected' : this.data.expense.classification_status,
+      classification_status:
+        this.data.expense.category_id !== this.selectedCategoryId()
+          ? 'corrected'
+          : this.data.expense.classification_status,
     });
   }
 }
-

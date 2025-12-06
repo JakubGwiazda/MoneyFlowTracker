@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-import type { DatePreset, DatePresetOption } from '../../../../lib/models/expenses';
+import type { DatePreset, DatePresetOption } from '../../../models/expenses';
 import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
@@ -13,8 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
     <mat-button-toggle-group
       [value]="selectedPreset()"
       [disabled]="disabled()"
-      (valueChange)="onPresetChange($event)"
-    >
+      (valueChange)="onPresetChange($event)">
       @for (option of presets(); track option.id) {
         <mat-button-toggle [value]="option.id">
           {{ option.label }}
@@ -40,4 +39,3 @@ export class DateQuickFilterComponent {
     this.presetChange.emit(preset as DatePreset);
   }
 }
-

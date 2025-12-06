@@ -1,7 +1,11 @@
 import { Injectable, signal, computed } from '@angular/core';
-import type { CategoryListViewModel } from '../../../../lib/models/categories';
+import type { CategoryListViewModel } from '../../../models/categories';
 import type { CategoryTreeNode, CategoryTreeState } from './categories-table.model';
-import { buildCategoryTree, flattenVisibleRows, toggleExpandedState } from './categories-table.utils';
+import {
+  buildCategoryTree,
+  flattenVisibleRows,
+  toggleExpandedState,
+} from './categories-table.utils';
 
 /**
  * Service for managing categories table state and tree operations.
@@ -23,9 +27,7 @@ export class CategoriesTableService {
    * Builds the category tree structure from flat data.
    * Memoized computation that rebuilds when data or expanded state changes.
    */
-  private readonly treeData = computed(() =>
-    buildCategoryTree(this.data(), this.expandedIds())
-  );
+  private readonly treeData = computed(() => buildCategoryTree(this.data(), this.expandedIds()));
 
   /**
    * Flat list of visible rows based on current expansion state.

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../lib/guards/auth.guard';
-import { guestGuard } from '../lib/guards/guest.guard';
+import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';

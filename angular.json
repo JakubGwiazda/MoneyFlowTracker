@@ -32,7 +32,7 @@
             "inlineStyleLanguage": "css",
             "assets": ["src/favicon.png", "src/assets"],
             "styles": [
-              "src/styles/global.css",
+              "src/global.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
@@ -125,7 +125,7 @@
             "tsConfig": "tsconfig.spec.json",
             "assets": ["src/favicon.png", "src/assets"],
             "styles": [
-              "src/styles/global.css",
+              "src/global.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css"
             ],
             "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"],

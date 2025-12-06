@@ -1,8 +1,8 @@
 import { createExpense, updateExpenseClassification } from './expenses.service';
-import { supabaseClient } from '../../db/supabase.client';
+import { supabaseClient } from '../../../db/supabase.client';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../db/database.types';
-import type { CreateExpenseCommand, ExpenseDto } from '../../types';
+import type { Database } from '../../../db/database.types';
+import type { CreateExpenseCommand, ExpenseDto } from '../../../types';
 
 describe('ExpensesService - Critical Category Validation Tests', () => {
   let mockSupabase: jasmine.SpyObj<SupabaseClient<Database>>;
@@ -14,7 +14,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     is_active: true,
     parent_id: null,
     user_id: userId,
-    created_at: '2025-01-01T00:00:00Z'
+    created_at: '2025-01-01T00:00:00Z',
   };
 
   const mockInactiveCategory = {
@@ -23,14 +23,14 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     is_active: false,
     parent_id: null,
     user_id: userId,
-    created_at: '2025-01-01T00:00:00Z'
+    created_at: '2025-01-01T00:00:00Z',
   };
 
   const mockExpenseData = {
     id: 'exp-123',
     user_id: userId,
     name: 'Test Expense',
-    amount: 100.00,
+    amount: 100.0,
     expense_date: '2025-01-15',
     category_id: 'cat-active-1',
     classification_status: 'pending' as const,
@@ -38,7 +38,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     prediction_confidence: null,
     corrected_category_id: null,
     created_at: '2025-01-15T10:00:00Z',
-    updated_at: '2025-01-15T10:00:00Z'
+    updated_at: '2025-01-15T10:00:00Z',
   };
 
   beforeEach(() => {
@@ -48,31 +48,29 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         select: jasmine.createSpy('select').and.returnValue({
           eq: jasmine.createSpy('eq').and.returnValue({
             eq: jasmine.createSpy('eq').and.returnValue({
-              single: jasmine.createSpy('single').and.returnValue(
-                Promise.resolve({ data: mockActiveCategory, error: null })
-              )
+              single: jasmine
+                .createSpy('single')
+                .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
             }),
-            single: jasmine.createSpy('single').and.returnValue(
-              Promise.resolve({ data: mockActiveCategory, error: null })
-            )
+            single: jasmine
+              .createSpy('single')
+              .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
           }),
-          single: jasmine.createSpy('single').and.returnValue(
-            Promise.resolve({ data: mockActiveCategory, error: null })
-          )
+          single: jasmine
+            .createSpy('single')
+            .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
         }),
         insert: jasmine.createSpy('insert').and.returnValue({
           select: jasmine.createSpy('select').and.returnValue({
-            single: jasmine.createSpy('single').and.returnValue(
-              Promise.resolve({ data: mockExpenseData, error: null })
-            )
-          })
+            single: jasmine
+              .createSpy('single')
+              .and.returnValue(Promise.resolve({ data: mockExpenseData, error: null })),
+          }),
         }),
         update: jasmine.createSpy('update').and.returnValue({
-          eq: jasmine.createSpy('eq').and.returnValue(
-            Promise.resolve({ data: null, error: null })
-          )
-        })
-      })
+          eq: jasmine.createSpy('eq').and.returnValue(Promise.resolve({ data: null, error: null })),
+        }),
+      }),
     } as any;
   });
 
@@ -80,9 +78,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should successfully create expense with valid active category', async () => {
       const command: CreateExpenseCommand = {
         name: 'Tankowanie',
-        amount: 150.00,
+        amount: 150.0,
         expense_date: '2025-01-15',
-        category_id: 'cat-active-1'
+        category_id: 'cat-active-1',
       };
 
       // Mock category validation - return active category
@@ -96,21 +94,21 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       fromSpy.and.callFake((table: string) => {
         if (table === 'categories') {
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         if (table === 'expenses') {
           return {
             insert: () => ({
               select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null })
-              })
-            })
+                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
+              }),
+            }),
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -134,18 +132,18 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should verify category exists before creating expense', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 50.00,
+        amount: 50.0,
         expense_date: '2025-01-15',
-        category_id: 'non-existent-category'
+        category_id: 'non-existent-category',
       };
 
       // Mock category not found
       const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
       categorySelectSpy.eq.and.returnValue(categorySelectSpy);
       categorySelectSpy.single.and.returnValue(
-        Promise.resolve({ 
-          data: null, 
-          error: { message: 'Not found', code: 'PGRST116' } as any 
+        Promise.resolve({
+          data: null,
+          error: { message: 'Not found', code: 'PGRST116' } as any,
         })
       );
 
@@ -153,7 +151,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       fromSpy.and.callFake((table: string) => {
         if (table === 'categories') {
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         return {};
@@ -161,26 +159,26 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
 
       mockSupabase.from = fromSpy as any;
 
-      await expectAsync(
-        createExpense(command, userId, mockSupabase)
-      ).toBeRejectedWithError('CATEGORY_NOT_FOUND');
+      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+        'CATEGORY_NOT_FOUND'
+      );
     });
 
     it('should reject inactive categories (soft delete validation)', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 50.00,
+        amount: 50.0,
         expense_date: '2025-01-15',
-        category_id: 'cat-inactive-1'
+        category_id: 'cat-inactive-1',
       };
 
       // Mock inactive category found
       const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
       categorySelectSpy.eq.and.returnValue(categorySelectSpy);
       categorySelectSpy.single.and.returnValue(
-        Promise.resolve({ 
+        Promise.resolve({
           data: null, // Query with is_active=true returns nothing
-          error: null 
+          error: null,
         })
       );
 
@@ -188,7 +186,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       fromSpy.and.callFake((table: string) => {
         if (table === 'categories') {
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         return {};
@@ -196,9 +194,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
 
       mockSupabase.from = fromSpy as any;
 
-      await expectAsync(
-        createExpense(command, userId, mockSupabase)
-      ).toBeRejectedWithError('CATEGORY_NOT_FOUND');
+      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+        'CATEGORY_NOT_FOUND'
+      );
     });
 
     it('should allow NULL category_id (pending classification)', async () => {
@@ -206,7 +204,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         name: 'Zakup książki',
         amount: 29.99,
         expense_date: '2025-01-15',
-        category_id: undefined // No category provided
+        category_id: undefined, // No category provided
       };
 
       const fromSpy = jasmine.createSpy('from');
@@ -217,21 +215,22 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
               // Verify category_id is null
               expect(data.category_id).toBeNull();
               expect(data.classification_status).toBe('pending');
-              
+
               return {
                 select: () => ({
-                  single: () => Promise.resolve({ 
-                    data: { ...mockExpenseData, category_id: null }, 
-                    error: null 
-                  })
-                })
+                  single: () =>
+                    Promise.resolve({
+                      data: { ...mockExpenseData, category_id: null },
+                      error: null,
+                    }),
+                }),
               };
-            }
+            },
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -249,18 +248,18 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should enforce foreign key constraint through validation', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 100.00,
+        amount: 100.0,
         expense_date: '2025-01-15',
-        category_id: 'invalid-uuid-123'
+        category_id: 'invalid-uuid-123',
       };
 
       // Mock category lookup failure
       const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
       categorySelectSpy.eq.and.returnValue(categorySelectSpy);
       categorySelectSpy.single.and.returnValue(
-        Promise.resolve({ 
-          data: null, 
-          error: { message: 'Foreign key violation' } as any 
+        Promise.resolve({
+          data: null,
+          error: { message: 'Foreign key violation' } as any,
         })
       );
 
@@ -268,7 +267,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       fromSpy.and.callFake((table: string) => {
         if (table === 'categories') {
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         return {};
@@ -276,26 +275,26 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
 
       mockSupabase.from = fromSpy as any;
 
-      await expectAsync(
-        createExpense(command, userId, mockSupabase)
-      ).toBeRejectedWithError('CATEGORY_NOT_FOUND');
+      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+        'CATEGORY_NOT_FOUND'
+      );
     });
 
     it('should validate category belongs to the user (RLS check)', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 50.00,
+        amount: 50.0,
         expense_date: '2025-01-15',
-        category_id: 'cat-other-user'
+        category_id: 'cat-other-user',
       };
 
       // Mock category from different user (RLS would block this)
       const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
       categorySelectSpy.eq.and.returnValue(categorySelectSpy);
       categorySelectSpy.single.and.returnValue(
-        Promise.resolve({ 
+        Promise.resolve({
           data: null, // RLS policy blocks access
-          error: null 
+          error: null,
         })
       );
 
@@ -303,7 +302,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       fromSpy.and.callFake((table: string) => {
         if (table === 'categories') {
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         return {};
@@ -311,9 +310,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
 
       mockSupabase.from = fromSpy as any;
 
-      await expectAsync(
-        createExpense(command, userId, mockSupabase)
-      ).toBeRejectedWithError('CATEGORY_NOT_FOUND');
+      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+        'CATEGORY_NOT_FOUND'
+      );
     });
   });
 
@@ -321,9 +320,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should create log entry after successful expense creation', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test Expense',
-        amount: 100.00,
+        amount: 100.0,
         expense_date: '2025-01-15',
-        category_id: 'cat-active-1'
+        category_id: 'cat-active-1',
       };
 
       let logInsertCalled = false;
@@ -338,16 +337,16 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
             Promise.resolve({ data: mockActiveCategory, error: null })
           );
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         if (table === 'expenses') {
           return {
             insert: () => ({
               select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null })
-              })
-            })
+                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
+              }),
+            }),
           };
         }
         if (table === 'logs') {
@@ -356,7 +355,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
               logInsertCalled = true;
               logData = data;
               return Promise.resolve({ error: null });
-            }
+            },
           };
         }
         return {};
@@ -379,9 +378,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should not fail expense creation if log creation fails', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 100.00,
+        amount: 100.0,
         expense_date: '2025-01-15',
-        category_id: 'cat-active-1'
+        category_id: 'cat-active-1',
       };
 
       const fromSpy = jasmine.createSpy('from');
@@ -393,23 +392,24 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
             Promise.resolve({ data: mockActiveCategory, error: null })
           );
           return {
-            select: () => categorySelectSpy
+            select: () => categorySelectSpy,
           };
         }
         if (table === 'expenses') {
           return {
             insert: () => ({
               select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null })
-              })
-            })
+                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
+              }),
+            }),
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ 
-              error: { message: 'Log insert failed' } as any 
-            })
+            insert: () =>
+              Promise.resolve({
+                error: { message: 'Log insert failed' } as any,
+              }),
           };
         }
         return {};
@@ -445,14 +445,14 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
                     updateExpenseId = value;
                   }
                   return Promise.resolve({ error: null });
-                }
+                },
               };
-            }
+            },
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -493,14 +493,14 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
             update: (data: any) => {
               updateData = data;
               return {
-                eq: () => Promise.resolve({ error: null })
+                eq: () => Promise.resolve({ error: null }),
               };
-            }
+            },
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -531,8 +531,8 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         if (table === 'expenses') {
           return {
             update: () => ({
-              eq: () => Promise.resolve({ error: null })
-            })
+              eq: () => Promise.resolve({ error: null }),
+            }),
           };
         }
         if (table === 'logs') {
@@ -540,7 +540,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
             insert: (data: any) => {
               logData = data;
               return Promise.resolve({ error: null });
-            }
+            },
           };
         }
         return {};
@@ -576,10 +576,11 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         if (table === 'expenses') {
           return {
             update: () => ({
-              eq: () => Promise.resolve({ 
-                error: { message: 'Update failed' } as any 
-              })
-            })
+              eq: () =>
+                Promise.resolve({
+                  error: { message: 'Update failed' } as any,
+                }),
+            }),
           };
         }
         return {};
@@ -603,9 +604,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should always use authenticated user ID, ignoring payload override', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 100.00,
+        amount: 100.0,
         expense_date: '2025-01-15',
-        category_id: undefined
+        category_id: undefined,
       };
 
       let insertedData: any = null;
@@ -618,15 +619,15 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
               insertedData = data;
               return {
                 select: () => ({
-                  single: () => Promise.resolve({ data: mockExpenseData, error: null })
-                })
+                  single: () => Promise.resolve({ data: mockExpenseData, error: null }),
+                }),
               };
-            }
+            },
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -643,9 +644,9 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     it('should set proper defaults for classification fields on creation', async () => {
       const command: CreateExpenseCommand = {
         name: 'Test',
-        amount: 100.00,
+        amount: 100.0,
         expense_date: '2025-01-15',
-        category_id: undefined
+        category_id: undefined,
       };
 
       let insertedData: any = null;
@@ -658,15 +659,15 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
               insertedData = data;
               return {
                 select: () => ({
-                  single: () => Promise.resolve({ data: mockExpenseData, error: null })
-                })
+                  single: () => Promise.resolve({ data: mockExpenseData, error: null }),
+                }),
               };
-            }
+            },
           };
         }
         if (table === 'logs') {
           return {
-            insert: () => Promise.resolve({ error: null })
+            insert: () => Promise.resolve({ error: null }),
           };
         }
         return {};
@@ -684,4 +685,3 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     });
   });
 });
-

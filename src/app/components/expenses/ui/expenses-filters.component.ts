@@ -10,7 +10,7 @@ import type {
   CategoryOptionViewModel,
   DatePreset,
   ExpensesFilterState,
-} from '../../../../lib/models/expenses';
+} from '../../../models/expenses';
 import type { ClassificationStatus } from '../../../../types';
 import {
   ChipsComponent,

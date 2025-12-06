@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BarChartModule, PieChartModule } from '@swimlane/ngx-charts';
-import { ChartType, ChartViewMode } from '../../../lib/models/charts';
+import { ChartType, ChartViewMode } from '../../models/charts';
 import { MatExpansionModule } from '@angular/material/expansion';
 import {
   DateFilterComponent,

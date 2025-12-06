@@ -7,7 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { BadgeComponent } from '../../common/badge/badge.component';
-import type { CategoryListViewModel } from '../../../../lib/models/categories';
+import type { CategoryListViewModel } from '../../../models/categories';
 import { CategoriesTableService } from './categories-table.service';
 
 @Component({

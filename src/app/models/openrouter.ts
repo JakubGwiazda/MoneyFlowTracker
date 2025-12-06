@@ -38,12 +38,14 @@ export interface JsonSchemaProperty {
   maximum?: number;
   minItems?: number;
   maxItems?: number;
-  items?: JsonSchemaProperty | {
-    type: string;
-    properties: Record<string, JsonSchemaProperty>;
-    required: string[];
-    additionalProperties: boolean;
-  };
+  items?:
+    | JsonSchemaProperty
+    | {
+        type: string;
+        properties: Record<string, JsonSchemaProperty>;
+        required: string[];
+        additionalProperties: boolean;
+      };
   enum?: string[];
 }
 
@@ -96,7 +98,7 @@ export interface ValidationResult {
 }
 
 // Error types
-export type ClassificationErrorCode = 
+export type ClassificationErrorCode =
   | 'NETWORK_ERROR'
   | 'AUTH_ERROR'
   | 'RATE_LIMIT_ERROR'

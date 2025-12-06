@@ -1,5 +1,10 @@
-<h2 mat-dialog-title>Dodaj wydatek</h2>
+<h2 mat-dialog-title>Dodaj</h2>
 <div mat-dialog-content class="dialog-content" data-testid="add-expense-dialog">
+  <p class="text-muted small mb-3">
+    <mat-icon inline class="align-middle me-1" fontIcon="info"></mat-icon>
+    Możesz dodać wiele wydatków przed zapisaniem. Po uzupełnieniu formularza kliknij "Dodaj
+    pozycję", a następnie "Zapisz i klasyfikuj".
+  </p>
   <form [formGroup]="form" class="mt-2 expense-form">
     <mat-form-field appearance="outline">
       <mat-label>Nazwa</mat-label>
@@ -54,7 +59,7 @@
         type="button"
         (click)="addExpenseToList()"
         [disabled]="form.invalid">
-        Dodaj kolejny wydatek
+        Dodaj pozycję
       </button>
     </div>
   </form>
@@ -109,7 +114,7 @@
     mat-raised-button
     color="primary"
     (click)="onSave()"
-    [disabled]="isClassifying()"
+    [disabled]="disableSaveBtn()"
     data-testid="expense-save-button">
     Zapisz i klasyfikuj
   </button>

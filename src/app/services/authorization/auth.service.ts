@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { supabaseClient } from '../../db/supabase.client';
+import { supabaseClient } from '../../../db/supabase.client';
 import type { User, AuthError } from '@supabase/supabase-js';
 
 export type AuthState = {

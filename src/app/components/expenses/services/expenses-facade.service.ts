@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, signal, inject } from '@angular/core';
 import { tap, catchError, throwError, firstValueFrom } from 'rxjs';
 
-import { ClassificationResult } from '../../../../lib/models/openrouter';
+import { ClassificationResult } from '../../../models/openrouter';
 import type { CreateExpenseCommand, UpdateExpenseCommand } from '../../../../types';
 
 export type ChartsFilterState = {

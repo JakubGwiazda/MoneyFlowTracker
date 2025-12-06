@@ -1,4 +1,4 @@
-import type { CategoryListViewModel } from '../../../../lib/models/categories';
+import type { CategoryListViewModel } from '../../../models/categories';
 import type { CategoryTreeNode, CategoryTreeData } from './categories-table.model';
 
 /**
@@ -56,9 +56,7 @@ export function flattenVisibleRows(treeData: CategoryTreeData): readonly Categor
     visible.push(node);
     if (node.isExpanded && node.children.length > 0) {
       // Sort children by name
-      const sortedChildren = [...node.children].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
+      const sortedChildren = [...node.children].sort((a, b) => a.name.localeCompare(b.name));
       for (const child of sortedChildren) {
         addNode(child);
       }

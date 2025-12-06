@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, timer, TimeoutError, from } from 'rxjs';
 import { catchError, timeout, retry, map, switchMap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
   OpenRouterRequest,
   OpenRouterResponse,
@@ -12,9 +12,9 @@ import {
   ExpenseToClassify,
   ValidationResult,
   ResponseFormat,
-} from '../models/openrouter';
-import { RateLimiterService } from './rate-limiter.service';
-import { AuthService } from './auth.service';
+} from '../../models/openrouter';
+import { RateLimiterService } from '../rate-limiter/rate-limiter.service';
+import { AuthService } from '../authorization/auth.service';
 
 @Injectable({
   providedIn: 'root',

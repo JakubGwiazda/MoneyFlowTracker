@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../db/database.types';
-import type { CreateExpenseCommand, UpdateExpenseCommand, ExpenseDto } from '../../types';
+import type { Database } from '../../../db/database.types';
+import type { CreateExpenseCommand, UpdateExpenseCommand, ExpenseDto } from '../../../types';
 
 /**
  * Service for managing expense operations.
