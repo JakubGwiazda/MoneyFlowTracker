@@ -31,10 +31,7 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "css",
             "assets": ["src/favicon.png", "src/assets"],
-            "styles": [
-              "src/global.css",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css"
-            ],
+            "styles": ["src/global.css", "node_modules/bootstrap/dist/css/bootstrap.min.css"],
             "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
           },
           "configurations": {
@@ -124,10 +121,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
             "assets": ["src/favicon.png", "src/assets"],
-            "styles": [
-              "src/global.css",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css"
-            ],
+            "styles": ["src/global.css", "node_modules/bootstrap/dist/css/bootstrap.min.css"],
             "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"],
             "karmaConfig": "karma.conf.cjs",
             "fileReplacements": [

@@ -65,7 +65,6 @@ export class ClassificationService {
 
     return this.callEdgeFunction(payload).pipe(
       map(response => this.parseModelResponse(response)),
-      map(result => this.enrichResult(result))
     );
   }
 
@@ -105,7 +104,6 @@ export class ClassificationService {
 
     return this.callEdgeFunction(payload).pipe(
       map(response => this.parseBatchModelResponse(response, expenses.length)),
-      map(results => results.map(result => this.enrichResult(result)))
     );
   }
 
@@ -239,11 +237,6 @@ export class ClassificationService {
         error
       );
     }
-  }
-
-  private enrichResult(result: ClassificationResult): ClassificationResult {
-    // AI już zwraca categoryName w odpowiedzi, więc nie ma potrzeby wzbogacania
-    return result;
   }
 
   private validateInput(description: string): void {

@@ -35,11 +35,4 @@ declare global {
   }
 }
 
-// Import all spec files explicitly to avoid bundler issues
-import './lib/services/authorization/auth.service.spec.js';
-import './lib/services/classification/classification.service.spec.js';
-import './lib/services/expenses/expenses.service.spec.js';
-import './lib/services/rate-limiter/rate-limiter.service.spec.js';
-import './lib/validators/expenses.spec.ts';
-
 getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());

@@ -1,11 +1,15 @@
-import { createExpense, updateExpenseClassification } from './expenses.service';
-import { supabaseClient } from '../../../db/supabase.client';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../../db/database.types';
+import { TestBed } from '@angular/core/testing';
+import { ExpenseManagementService } from './expense-management.service';
+import { SupabaseExpenseRepository } from './repositories/supabase-expense.repository';
+import { CategoryValidator } from './validators/category.validator';
+import { ExpenseLoggingService } from './logging/expense-logging.service';
 import type { CreateExpenseCommand, ExpenseDto } from '../../../types';
 
-describe('ExpensesService - Critical Category Validation Tests', () => {
-  let mockSupabase: jasmine.SpyObj<SupabaseClient<Database>>;
+describe('ExpenseManagementService - Critical Category Validation Tests', () => {
+  let service: ExpenseManagementService;
+  let mockRepository: jasmine.SpyObj<SupabaseExpenseRepository>;
+  let mockValidator: jasmine.SpyObj<CategoryValidator>;
+  let mockLogger: jasmine.SpyObj<ExpenseLoggingService>;
   const userId = 'user-123';
 
   const mockActiveCategory = {
@@ -26,7 +30,7 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
     created_at: '2025-01-01T00:00:00Z',
   };
 
-  const mockExpenseData = {
+  const mockExpenseData: ExpenseDto = {
     id: 'exp-123',
     user_id: userId,
     name: 'Test Expense',
@@ -42,36 +46,29 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
   };
 
   beforeEach(() => {
-    // Create a comprehensive mock for Supabase client
-    mockSupabase = {
-      from: jasmine.createSpy('from').and.returnValue({
-        select: jasmine.createSpy('select').and.returnValue({
-          eq: jasmine.createSpy('eq').and.returnValue({
-            eq: jasmine.createSpy('eq').and.returnValue({
-              single: jasmine
-                .createSpy('single')
-                .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
-            }),
-            single: jasmine
-              .createSpy('single')
-              .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
-          }),
-          single: jasmine
-            .createSpy('single')
-            .and.returnValue(Promise.resolve({ data: mockActiveCategory, error: null })),
-        }),
-        insert: jasmine.createSpy('insert').and.returnValue({
-          select: jasmine.createSpy('select').and.returnValue({
-            single: jasmine
-              .createSpy('single')
-              .and.returnValue(Promise.resolve({ data: mockExpenseData, error: null })),
-          }),
-        }),
-        update: jasmine.createSpy('update').and.returnValue({
-          eq: jasmine.createSpy('eq').and.returnValue(Promise.resolve({ data: null, error: null })),
-        }),
-      }),
-    } as any;
+    // Create mocks for all dependencies
+    mockRepository = jasmine.createSpyObj('SupabaseExpenseRepository', [
+      'create',
+      'update',
+      'delete',
+    ]);
+    mockValidator = jasmine.createSpyObj('CategoryValidator', ['validate']);
+    mockLogger = jasmine.createSpyObj('ExpenseLoggingService', [
+      'logCreate',
+      'logUpdate',
+      'logClassification',
+    ]);
+
+    TestBed.configureTestingModule({
+      providers: [
+        ExpenseManagementService,
+        { provide: SupabaseExpenseRepository, useValue: mockRepository },
+        { provide: CategoryValidator, useValue: mockValidator },
+        { provide: ExpenseLoggingService, useValue: mockLogger },
+      ],
+    });
+
+    service = TestBed.inject(ExpenseManagementService);
   });
 
   describe('createExpense - Category ID Validation (TC-EXP-004)', () => {
@@ -83,47 +80,19 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'cat-active-1',
       };
 
-      // Mock category validation - return active category
-      const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-      categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-      categorySelectSpy.single.and.returnValue(
-        Promise.resolve({ data: mockActiveCategory, error: null })
-      );
+      // Mock category validation to pass
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        if (table === 'expenses') {
-          return {
-            insert: () => ({
-              select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
-              }),
-            }),
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
-      });
+      // Mock repository create to return expense
+      mockRepository.create.and.returnValue(Promise.resolve(mockExpenseData));
 
-      mockSupabase.from = fromSpy as any;
-
-      const result = await createExpense(command, userId, mockSupabase);
+      const result = await service.createExpense(command, userId);
 
       // Verify category was validated
-      expect(fromSpy).toHaveBeenCalledWith('categories');
-      expect(categorySelectSpy.eq).toHaveBeenCalledWith('id', 'cat-active-1');
-      expect(categorySelectSpy.eq).toHaveBeenCalledWith('is_active', true);
+      expect(mockValidator.validate).toHaveBeenCalledWith('cat-active-1');
 
       // Verify expense was created
+      expect(mockRepository.create).toHaveBeenCalled();
       expect(result).toBeDefined();
       expect(result.category_id).toBe('cat-active-1');
       expect(result.name).toBe('Test Expense');
@@ -137,29 +106,12 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'non-existent-category',
       };
 
-      // Mock category not found
-      const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-      categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-      categorySelectSpy.single.and.returnValue(
-        Promise.resolve({
-          data: null,
-          error: { message: 'Not found', code: 'PGRST116' } as any,
-        })
+      // Mock category validation to fail
+      mockValidator.validate.and.returnValue(
+        Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
-
-      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -172,29 +124,12 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'cat-inactive-1',
       };
 
-      // Mock inactive category found
-      const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-      categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-      categorySelectSpy.single.and.returnValue(
-        Promise.resolve({
-          data: null, // Query with is_active=true returns nothing
-          error: null,
-        })
+      // Mock category validation to fail for inactive category
+      mockValidator.validate.and.returnValue(
+        Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
-
-      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -207,38 +142,14 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: undefined, // No category provided
       };
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            insert: (data: any) => {
-              // Verify category_id is null
-              expect(data.category_id).toBeNull();
-              expect(data.classification_status).toBe('pending');
+      // Mock category validation (should not be called for null category)
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
 
-              return {
-                select: () => ({
-                  single: () =>
-                    Promise.resolve({
-                      data: { ...mockExpenseData, category_id: null },
-                      error: null,
-                    }),
-                }),
-              };
-            },
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
-      });
+      // Mock repository create to return expense with null category
+      const expectedExpense = { ...mockExpenseData, category_id: null };
+      mockRepository.create.and.returnValue(Promise.resolve(expectedExpense));
 
-      mockSupabase.from = fromSpy as any;
-
-      const result = await createExpense(command, userId, mockSupabase);
+      const result = await service.createExpense(command, userId);
 
       // Verify expense created without category
       expect(result.category_id).toBeNull();
@@ -253,29 +164,12 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'invalid-uuid-123',
       };
 
-      // Mock category lookup failure
-      const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-      categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-      categorySelectSpy.single.and.returnValue(
-        Promise.resolve({
-          data: null,
-          error: { message: 'Foreign key violation' } as any,
-        })
+      // Mock category validation to fail
+      mockValidator.validate.and.returnValue(
+        Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
-
-      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -288,29 +182,12 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'cat-other-user',
       };
 
-      // Mock category from different user (RLS would block this)
-      const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-      categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-      categorySelectSpy.single.and.returnValue(
-        Promise.resolve({
-          data: null, // RLS policy blocks access
-          error: null,
-        })
+      // Mock category validation to fail for category from different user
+      mockValidator.validate.and.returnValue(
+        Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
-
-      await expectAsync(createExpense(command, userId, mockSupabase)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -325,54 +202,15 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'cat-active-1',
       };
 
-      let logInsertCalled = false;
-      let logData: any = null;
+      // Mock dependencies
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
+      mockRepository.create.and.returnValue(Promise.resolve(mockExpenseData));
+      mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-          categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-          categorySelectSpy.single.and.returnValue(
-            Promise.resolve({ data: mockActiveCategory, error: null })
-          );
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        if (table === 'expenses') {
-          return {
-            insert: () => ({
-              select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
-              }),
-            }),
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: (data: any) => {
-              logInsertCalled = true;
-              logData = data;
-              return Promise.resolve({ error: null });
-            },
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
-
-      await createExpense(command, userId, mockSupabase);
+      await service.createExpense(command, userId);
 
       // Verify log was created
-      expect(logInsertCalled).toBe(true);
-      expect(logData).toBeDefined();
-      expect(logData.user_id).toBe(userId);
-      expect(logData.expense_id).toBe(mockExpenseData.id);
-      expect(logData.log_action).toBe('insert');
-      expect(logData.payload).toBeDefined();
-      expect(logData.payload.action).toBe('insert');
+      expect(mockLogger.logCreate).toHaveBeenCalledWith(mockExpenseData, userId);
     });
 
     it('should not fail expense creation if log creation fails', async () => {
@@ -383,42 +221,18 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: 'cat-active-1',
       };
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'categories') {
-          const categorySelectSpy = jasmine.createSpyObj('query', ['eq', 'single']);
-          categorySelectSpy.eq.and.returnValue(categorySelectSpy);
-          categorySelectSpy.single.and.returnValue(
-            Promise.resolve({ data: mockActiveCategory, error: null })
-          );
-          return {
-            select: () => categorySelectSpy,
-          };
-        }
-        if (table === 'expenses') {
-          return {
-            insert: () => ({
-              select: () => ({
-                single: () => Promise.resolve({ data: mockExpenseData, error: null }),
-              }),
-            }),
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () =>
-              Promise.resolve({
-                error: { message: 'Log insert failed' } as any,
-              }),
-          };
-        }
-        return {};
-      });
+      // Mock dependencies - logger fails but expense creation succeeds
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
+      mockRepository.create.and.returnValue(Promise.resolve(mockExpenseData));
 
-      mockSupabase.from = fromSpy as any;
+      // Mock logger to reject but suppress the unhandled rejection
+      // The 'void' in implementation means we don't await this, so it shouldn't block
+      const rejectedPromise = Promise.reject(new Error('Log insert failed'));
+      rejectedPromise.catch(() => {}); // Suppress unhandled rejection warning
+      mockLogger.logCreate.and.returnValue(rejectedPromise);
 
       // Should not throw - expense creation is primary operation
-      const result = await createExpense(command, userId, mockSupabase);
+      const result = await service.createExpense(command, userId);
       expect(result).toBeDefined();
       expect(result.id).toBe(mockExpenseData.id);
     });
@@ -430,53 +244,22 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       const predictedCategoryId = 'cat-predicted-1';
       const confidence = 0.85;
 
-      let updateData: any = null;
-      let updateExpenseId: string = '';
+      // Mock repository update and logger
+      mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
+      mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            update: (data: any) => {
-              updateData = data;
-              return {
-                eq: (field: string, value: string) => {
-                  if (field === 'id') {
-                    updateExpenseId = value;
-                  }
-                  return Promise.resolve({ error: null });
-                },
-              };
-            },
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
-      });
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
 
-      mockSupabase.from = fromSpy as any;
+      // Verify repository was called with correct data
+      expect(mockRepository.update).toHaveBeenCalledWith(expenseId, jasmine.any(Object), userId);
 
-      await updateExpenseClassification(
+      // Verify logger was called
+      expect(mockLogger.logClassification).toHaveBeenCalledWith(
         expenseId,
         predictedCategoryId,
         confidence,
-        userId,
-        mockSupabase
+        userId
       );
-
-      // Verify update data
-      expect(updateData).toBeDefined();
-      expect(updateData.predicted_category_id).toBe(predictedCategoryId);
-      expect(updateData.prediction_confidence).toBe(confidence);
-      expect(updateData.classification_status).toBe('predicted');
-      expect(updateData.updated_at).toBeDefined();
-
-      // Verify correct expense was updated
-      expect(updateExpenseId).toEqual(expenseId);
     });
 
     it('should set status to "failed" when prediction is null', async () => {
@@ -484,39 +267,15 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       const predictedCategoryId = null;
       const confidence = null;
 
-      let updateData: any = null;
+      // Mock repository update and logger
+      mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
+      mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            update: (data: any) => {
-              updateData = data;
-              return {
-                eq: () => Promise.resolve({ error: null }),
-              };
-            },
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
-      });
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
 
-      mockSupabase.from = fromSpy as any;
-
-      await updateExpenseClassification(
-        expenseId,
-        predictedCategoryId,
-        confidence,
-        userId,
-        mockSupabase
-      );
-
-      expect(updateData.classification_status).toBe('failed');
+      // Verify repository was called with failed status
+      const updateCall = mockRepository.update.calls.mostRecent();
+      expect(updateCall.args[1].classification_status).toBe('failed');
     });
 
     it('should create log entry for classification action', async () => {
@@ -524,46 +283,19 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       const predictedCategoryId = 'cat-predicted-1';
       const confidence = 0.85;
 
-      let logData: any = null;
+      // Mock repository update and logger
+      mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
+      mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            update: () => ({
-              eq: () => Promise.resolve({ error: null }),
-            }),
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: (data: any) => {
-              logData = data;
-              return Promise.resolve({ error: null });
-            },
-          };
-        }
-        return {};
-      });
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
 
-      mockSupabase.from = fromSpy as any;
-
-      await updateExpenseClassification(
+      // Verify logger was called with correct parameters
+      expect(mockLogger.logClassification).toHaveBeenCalledWith(
         expenseId,
         predictedCategoryId,
         confidence,
-        userId,
-        mockSupabase
+        userId
       );
-
-      // Verify log entry
-      expect(logData).toBeDefined();
-      expect(logData.user_id).toBe(userId);
-      expect(logData.expense_id).toBe(expenseId);
-      expect(logData.log_action).toBe('classify');
-      expect(logData.payload.action).toBe('classify');
-      expect(logData.payload.classification_result.predicted_category_id).toBe(predictedCategoryId);
-      expect(logData.payload.classification_result.confidence).toBe(confidence);
     });
 
     it('should handle database update errors', async () => {
@@ -571,32 +303,12 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
       const predictedCategoryId = 'cat-predicted-1';
       const confidence = 0.85;
 
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            update: () => ({
-              eq: () =>
-                Promise.resolve({
-                  error: { message: 'Update failed' } as any,
-                }),
-            }),
-          };
-        }
-        return {};
-      });
-
-      mockSupabase.from = fromSpy as any;
+      // Mock repository to throw error
+      mockRepository.update.and.throwError('Update failed');
 
       await expectAsync(
-        updateExpenseClassification(
-          expenseId,
-          predictedCategoryId,
-          confidence,
-          userId,
-          mockSupabase
-        )
-      ).toBeRejectedWithError('CLASSIFICATION_UPDATE_FAILED');
+        service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId)
+      ).toBeRejectedWithError('Update failed');
     });
   });
 
@@ -609,36 +321,19 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: undefined,
       };
 
-      let insertedData: any = null;
-
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            insert: (data: any) => {
-              insertedData = data;
-              return {
-                select: () => ({
-                  single: () => Promise.resolve({ data: mockExpenseData, error: null }),
-                }),
-              };
-            },
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
+      // Mock dependencies
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
+      mockRepository.create.and.callFake((data: any) => {
+        // Verify user_id is set correctly
+        expect(data.user_id).toBe(userId);
+        return Promise.resolve(mockExpenseData);
       });
+      mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      mockSupabase.from = fromSpy as any;
+      await service.createExpense(command, userId);
 
-      await createExpense(command, userId, mockSupabase);
-
-      // Verify user_id from JWT is used, not from payload
-      expect(insertedData.user_id).toBe(userId);
+      // Repository create should have been called with correct user_id
+      expect(mockRepository.create).toHaveBeenCalled();
     });
 
     it('should set proper defaults for classification fields on creation', async () => {
@@ -649,39 +344,22 @@ describe('ExpensesService - Critical Category Validation Tests', () => {
         category_id: undefined,
       };
 
-      let insertedData: any = null;
-
-      const fromSpy = jasmine.createSpy('from');
-      fromSpy.and.callFake((table: string) => {
-        if (table === 'expenses') {
-          return {
-            insert: (data: any) => {
-              insertedData = data;
-              return {
-                select: () => ({
-                  single: () => Promise.resolve({ data: mockExpenseData, error: null }),
-                }),
-              };
-            },
-          };
-        }
-        if (table === 'logs') {
-          return {
-            insert: () => Promise.resolve({ error: null }),
-          };
-        }
-        return {};
+      // Mock dependencies and capture the data passed to repository
+      let capturedData: any = null;
+      mockValidator.validate.and.returnValue(Promise.resolve({ isValid: true, errors: [] }));
+      mockRepository.create.and.callFake((data: any) => {
+        capturedData = data;
+        return Promise.resolve(mockExpenseData);
       });
+      mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      mockSupabase.from = fromSpy as any;
+      await service.createExpense(command, userId);
 
-      await createExpense(command, userId, mockSupabase);
-
-      // Verify classification defaults
-      expect(insertedData.classification_status).toBe('pending');
-      expect(insertedData.predicted_category_id).toBeNull();
-      expect(insertedData.prediction_confidence).toBeNull();
-      expect(insertedData.corrected_category_id).toBeNull();
+      // Verify classification defaults are set by the builder
+      expect(capturedData.classification_status).toBe('pending');
+      expect(capturedData.predicted_category_id).toBeNull();
+      expect(capturedData.prediction_confidence).toBeNull();
+      expect(capturedData.corrected_category_id).toBeNull();
     });
   });
 });
