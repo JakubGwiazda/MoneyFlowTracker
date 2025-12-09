@@ -3,12 +3,7 @@ import { Observable, from, map, switchMap, lastValueFrom } from 'rxjs';
 import { supabaseClient } from '../../../../db/supabase.client';
 import type { Database } from '../../../../db/database.types';
 import { ClassificationService } from '../../../services/classification/classification.service';
-import {
-  createExpense,
-  updateExpense,
-  deleteExpense,
-  createClassifiedExpense,
-} from '../../../services/expenses/expenses.service';
+import { ExpenseManagementService } from '../../../services/expenses/expense-management.service';
 import { ClassificationResult } from '../../../models/openrouter';
 import { AuthService } from '../../../services/authorization/auth.service';
 
@@ -23,6 +18,7 @@ import type {
 export class ExpensesApiService {
   private readonly classificationService = inject(ClassificationService);
   private readonly authService = inject(AuthService);
+  private readonly expenseManagement = inject(ExpenseManagementService);
 
   /**
    * Queries expenses with filtering, sorting, and pagination
@@ -108,7 +104,7 @@ export class ExpensesApiService {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-        return createExpense(command, user.id, supabaseClient);
+        return this.expenseManagement.createExpense(command, user.id);
       })
     );
   }
@@ -122,7 +118,7 @@ export class ExpensesApiService {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-        return updateExpense(expenseId, command, user.id, supabaseClient);
+        return this.expenseManagement.updateExpense(expenseId, command, user.id);
       })
     );
   }
@@ -136,7 +132,7 @@ export class ExpensesApiService {
         if (!user) {
           throw new Error('Nie jesteś zalogowany.');
         }
-        return deleteExpense(expenseId, user.id, supabaseClient);
+        return this.expenseManagement.deleteExpense(expenseId, user.id);
       })
     );
   }
@@ -151,11 +147,10 @@ export class ExpensesApiService {
           throw new Error('Nie jesteś zalogowany.');
         }
 
-        await updateExpense(
+        await this.expenseManagement.updateExpense(
           expenseId,
           { classification_status: 'pending' },
-          user.id,
-          supabaseClient
+          user.id
         );
       })
     );
@@ -338,7 +333,7 @@ export class ExpensesApiService {
             categoryId = categoryNameToIdMap.get(classification.newCategoryName) || null;
           }
 
-          return createClassifiedExpense(
+          return this.expenseManagement.createClassifiedExpense(
             {
               name: expense.description,
               amount: expense.amount,
@@ -347,8 +342,7 @@ export class ExpensesApiService {
               classification_status: 'predicted',
               prediction_confidence: classification.confidence,
             },
-            user.id,
-            supabaseClient
+            user.id
           );
         });
 
