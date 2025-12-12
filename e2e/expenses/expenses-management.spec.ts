@@ -52,6 +52,7 @@ test.describe('Expenses Management', () => {
     await expensesPage.clickAddExpense();
     await addExpenseDialog.waitForDialog();
     await addExpenseDialog.fillExpenseForm(expenseData);
+    await addExpenseDialog.addNewPosition();
     await addExpenseDialog.save();
     await addExpenseDialog.waitForClassificationInProgressToDisappear();
 
