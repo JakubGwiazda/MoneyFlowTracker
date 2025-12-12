@@ -34,6 +34,10 @@ export class AddExpenseDialog extends BasePage {
     return this.getByTestId('expense-save-button');
   }
 
+  get addNewPositionButton() {
+    return this.getByTestId('add-new-position-button');
+  }
+
   get cancelButton() {
     return this.getByTestId('expense-cancel-button');
   }
@@ -64,6 +68,10 @@ export class AddExpenseDialog extends BasePage {
 
   async save(): Promise<void> {
     await this.saveButton.click();
+  }
+
+  async addNewPosition(): Promise<void> {
+    await this.addNewPositionButton.click();
   }
 
   async cancel(): Promise<void> {
