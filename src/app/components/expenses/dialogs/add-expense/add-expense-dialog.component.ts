@@ -10,8 +10,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { ExpensesFacadeService } from '../../services/expenses-facade.service';
+import { ReceiptOcrService } from '../../../../services/receipt-ocr/receipt-ocr.service';
+import { CameraCaptureComponent } from '../camera-capture/camera-capture.component';
+import { ReceiptItemsListComponent } from '../receipt-items-list/receipt-items-list.component';
+import { ReceiptItem } from '../../../../models/receipt';
 
 export type ExpenseToAdd = {
   name: string;
@@ -38,6 +43,9 @@ export type AddExpenseDialogResult = {
     MatProgressSpinnerModule,
     MatIconModule,
     MatTableModule,
+    MatTabsModule,
+    CameraCaptureComponent,
+    ReceiptItemsListComponent,
   ],
   templateUrl: './add-expense.html',
   styleUrl: './add-expense.scss',
@@ -49,7 +57,9 @@ export class AddExpenseDialogComponent {
   );
   private readonly fb = inject(FormBuilder);
   private readonly expensesFacade = inject(ExpensesFacadeService);
+  private readonly receiptOcrService = inject(ReceiptOcrService);
 
+  // Manual entry state
   readonly expensesList = signal<ExpenseToAdd[]>([]);
   readonly isClassifying = signal<boolean>(false);
   readonly disableSaveBtn = computed(
@@ -57,6 +67,12 @@ export class AddExpenseDialogComponent {
   );
 
   readonly displayedColumns = ['name', 'amount', 'expense_date', 'actions'];
+
+  // OCR state
+  readonly ocrInProgress = signal(false);
+  readonly ocrError = signal<string | null>(null);
+  readonly receiptItems = signal<ReceiptItem[]>([]);
+  readonly showReceiptItems = computed(() => this.receiptItems().length > 0);
 
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -96,6 +112,59 @@ export class AddExpenseDialogComponent {
 
   removeExpense(index: number): void {
     this.expensesList.update(list => list.filter((_, i) => i !== index));
+  }
+
+  // OCR Methods
+  async onImageCaptured(imageBlob: Blob) {
+    this.ocrInProgress.set(true);
+    this.ocrError.set(null);
+
+    try {
+      const result = await this.receiptOcrService.processReceipt(imageBlob);
+
+      if (!result.success) {
+        this.ocrError.set(result.error || 'Nie udało się przetworzyć paragonu');
+        return;
+      }
+
+      if (result.items.length === 0) {
+        this.ocrError.set(
+          'Nie znaleziono pozycji na paragonie. Spróbuj ponownie lub dodaj ręcznie.'
+        );
+        return;
+      }
+
+      // Set receipt items to display
+      this.receiptItems.set(result.items);
+    } catch (error: any) {
+      console.error('OCR error:', error);
+      this.ocrError.set('Nieoczekiwany błąd podczas przetwarzania paragonu');
+    } finally {
+      this.ocrInProgress.set(false);
+    }
+  }
+
+  onReceiptItemsChanged(items: ReceiptItem[]) {
+    // Update receipt items when user edits them
+    this.receiptItems.set(items);
+  }
+
+  async onClassifyReceiptItems(items: ReceiptItem[]) {
+    // Convert receipt items to expenses with current date
+    const expenses: ExpenseToAdd[] = items.map(item => ({
+      name: item.name,
+      amount: item.price,
+      expense_date: this.toIsoDate(new Date()),
+    }));
+
+    // Set to expenses list and classify/save
+    this.expensesList.set(expenses);
+    await this.onSave();
+  }
+
+  retryOcr() {
+    this.ocrError.set(null);
+    this.receiptItems.set([]);
   }
 
   async onSave(): Promise<void> {

@@ -14,7 +14,7 @@ describe('ClassificationService', () => {
   let rateLimiter: RateLimiterService;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
 
-  const edgeFunctionUrl = `${environment.supabaseUrl}/functions/v1/openrouter_integration`;
+  const edgeFunctionUrl = `${environment.supabaseUrl}/functions/v1/expense-classification`;
 
   const mockCategories: CategoryDto[] = [
     {

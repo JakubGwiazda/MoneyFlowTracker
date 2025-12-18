@@ -10,9 +10,24 @@ export interface OpenRouterRequest {
   presence_penalty?: number;
 }
 
+// Message content types for vision support
+export interface TextContent {
+  type: 'text';
+  text: string;
+}
+
+export interface ImageUrlContent {
+  type: 'image_url';
+  image_url: {
+    url: string;
+  };
+}
+
+export type MessageContent = TextContent | ImageUrlContent;
+
 export interface Message {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | MessageContent[];
 }
 
 export interface ResponseFormat {

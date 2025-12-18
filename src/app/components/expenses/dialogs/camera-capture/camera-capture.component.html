@@ -1,0 +1,64 @@
+<div class="camera-container">
+  @if (errorMessage()) {
+    <!-- Error State -->
+    <div class="error-state">
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ errorMessage() }}</p>
+      <button mat-raised-button (click)="retakePhoto()">
+        <mat-icon>refresh</mat-icon>
+        Spróbuj ponownie
+      </button>
+    </div>
+  } @else if (!capturedImage()) {
+    <!-- Camera Preview -->
+    <div class="camera-preview">
+      <video #videoElement autoplay playsinline [class.hidden]="!cameraActive()"></video>
+
+      @if (!cameraActive()) {
+        <div class="loading-state">
+          <mat-spinner></mat-spinner>
+          <p>Uruchamianie kamery...</p>
+        </div>
+      }
+
+      @if (cameraActive()) {
+        <div class="camera-tip">Upewnij się, że paragon jest wyraźny i dobrze oświetlony</div>
+
+        <!-- Capture Button -->
+        <button
+          mat-fab
+          color="primary"
+          class="capture-btn"
+          (click)="captureImage()"
+          [disabled]="!cameraActive()">
+          <mat-icon>camera</mat-icon>
+        </button>
+      }
+    </div>
+  } @else {
+    <!-- Image Preview -->
+    <div class="image-preview">
+      <img [src]="capturedImageUrl()" alt="Captured receipt" />
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="preview-actions">
+      <button mat-raised-button (click)="retakePhoto()" [disabled]="isProcessing()">
+        <mat-icon>refresh</mat-icon>
+        Zrób nowe zdjęcie
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="confirmImage()"
+        [disabled]="isProcessing()">
+        @if (isProcessing()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          <mat-icon>check</mat-icon>
+        }
+        Użyj tego zdjęcia
+      </button>
+    </div>
+  }
+</div>

@@ -1,11 +1,15 @@
-<h2 mat-dialog-title>Dodaj</h2>
+<h2 mat-dialog-title>Dodaj wydatki</h2>
 <div mat-dialog-content class="dialog-content" data-testid="add-expense-dialog">
-  <p class="text-muted small mb-3">
-    <mat-icon inline class="align-middle me-1" fontIcon="info"></mat-icon>
-    Możesz dodać wiele wydatków przed zapisaniem. Po uzupełnieniu formularza kliknij "Dodaj
-    pozycję", a następnie "Zapisz i klasyfikuj".
-  </p>
-  <form [formGroup]="form" class="mt-2 expense-form">
+  <mat-tab-group>
+    <!-- Manual Entry Tab -->
+    <mat-tab label="Ręcznie">
+      <div class="tab-content">
+        <p class="text-muted small mb-3">
+          <mat-icon inline class="align-middle me-1" fontIcon="info"></mat-icon>
+          Możesz dodać wiele wydatków przed zapisaniem. Po uzupełnieniu formularza kliknij "Dodaj
+          pozycję", a następnie "Zapisz i klasyfikuj".
+        </p>
+        <form [formGroup]="form" class="mt-2 expense-form">
     <mat-form-field appearance="outline">
       <mat-label>Nazwa</mat-label>
       <input
@@ -107,6 +111,46 @@
       <span>Trwa klasyfikacja i zapis wydatków. Proszę czekać.</span>
     </div>
   }
+      </div>
+    </mat-tab>
+
+    <!-- OCR Tab -->
+    <mat-tab label="Ze zdjęcia">
+      <div class="tab-content ocr-tab">
+        @if (ocrError()) {
+          <!-- Error State -->
+          <div class="error-state">
+            <mat-icon color="warn">error</mat-icon>
+            <p>{{ ocrError() }}</p>
+            <div class="error-actions">
+              <button mat-raised-button (click)="retryOcr()">
+                <mat-icon>refresh</mat-icon>
+                Spróbuj ponownie
+              </button>
+            </div>
+          </div>
+        } @else if (showReceiptItems()) {
+          <!-- Receipt Items List -->
+          <app-receipt-items-list
+            [receiptItems]="receiptItems()"
+            (itemsChanged)="onReceiptItemsChanged($event)"
+            (classifyRequested)="onClassifyReceiptItems($event)" />
+        } @else if (ocrInProgress()) {
+          <!-- Processing State -->
+          <div class="processing-state">
+            <mat-spinner></mat-spinner>
+            <p>Analizuję paragon...</p>
+            <p class="subtitle">Może to potrwać do 30 sekund</p>
+          </div>
+        } @else {
+          <!-- Camera Capture -->
+          <app-camera-capture
+            (imageCaptured)="onImageCaptured($event)"
+            (processingError)="ocrError.set($event)" />
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>
 
 <mat-dialog-actions align="end">
