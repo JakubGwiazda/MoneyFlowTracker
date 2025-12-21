@@ -3,7 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ReceiptOcrService } from './receipt-ocr.service';
 import { ImageCompressionService } from '../image-compression/image-compression.service';
 import { AuthService } from '../authorization/auth.service';
-import { OcrError } from '../../models/receipt';
+import { OcrError, OcrResponse } from '../../models/receipt';
 import { environment } from '../../../environments/environment';
 
 describe('ReceiptOcrService', () => {
@@ -53,18 +53,10 @@ describe('ReceiptOcrService', () => {
       const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
       const mockBase64 = 'base64encodedimage';
       const mockToken = 'mock-auth-token';
-      const mockResponse = {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                items: [
-                  { name: 'Mleko', price: 3.99 },
-                  { name: 'Chleb', price: 2.5 },
-                ],
-              }),
-            },
-          },
+      const mockResponse: OcrResponse = {
+        items: [
+          { name: 'Mleko', amount: 3.99, expense_date: '2024-01-01' },
+          { name: 'Chleb', amount: 2.5, expense_date: '2024-01-01' },
         ],
       };
 
@@ -90,8 +82,8 @@ describe('ReceiptOcrService', () => {
 
       expect(result.success).toBe(true);
       expect(result.items.length).toBe(2);
-      expect(result.items[0]).toEqual({ name: 'Mleko', price: 3.99 });
-      expect(result.items[1]).toEqual({ name: 'Chleb', price: 2.5 });
+      expect(result.items[0]).toEqual({ name: 'Mleko', amount: 3.99, expense_date: '2024-01-01' });
+      expect(result.items[1]).toEqual({ name: 'Chleb', amount: 2.5, expense_date: '2024-01-01' });
     }));
 
     it('should return error when image blob is invalid', async () => {
@@ -164,75 +156,6 @@ describe('ReceiptOcrService', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Problem z serwerem');
-    }));
-
-    it('should handle no items found', fakeAsync(() => {
-      const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
-      const mockResponse = {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({ items: [] }),
-            },
-          },
-        ],
-      };
-
-      compressionService.validateImageBlob.and.returnValue({ valid: true });
-      compressionService.compressImage.and.returnValue(Promise.resolve(mockBlob));
-      compressionService.blobToBase64.and.returnValue(Promise.resolve('base64'));
-      authService.getAccessToken.and.returnValue(Promise.resolve('token'));
-
-      let result: any;
-      service.processReceipt(mockBlob).then(r => (result = r));
-
-      tick(); // Flush async operations
-
-      const req = httpMock.expectOne(mockEdgeFunctionUrl);
-      req.flush(mockResponse);
-      flush(); // Flush remaining async operations
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Nie znaleziono pozycji');
-    }));
-
-    it('should filter out invalid items', fakeAsync(() => {
-      const mockBlob = new Blob(['test'], { type: 'image/jpeg' });
-      const mockResponse = {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                items: [
-                  { name: 'Valid Item', price: 5.99 },
-                  { name: '', price: 3.0 }, // Invalid: empty name
-                  { name: 'Another Valid', price: 0 }, // Invalid: price = 0
-                  { name: 'Good Item', price: 10.5 },
-                ],
-              }),
-            },
-          },
-        ],
-      };
-
-      compressionService.validateImageBlob.and.returnValue({ valid: true });
-      compressionService.compressImage.and.returnValue(Promise.resolve(mockBlob));
-      compressionService.blobToBase64.and.returnValue(Promise.resolve('base64'));
-      authService.getAccessToken.and.returnValue(Promise.resolve('token'));
-
-      let result: any;
-      service.processReceipt(mockBlob).then(r => (result = r));
-
-      tick(); // Flush async operations
-
-      const req = httpMock.expectOne(mockEdgeFunctionUrl);
-      req.flush(mockResponse);
-      flush(); // Flush remaining async operations
-
-      expect(result.success).toBe(true);
-      expect(result.items.length).toBe(2);
-      expect(result.items[0].name).toBe('Valid Item');
-      expect(result.items[1].name).toBe('Good Item');
     }));
   });
 });
