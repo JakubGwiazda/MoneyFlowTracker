@@ -67,7 +67,10 @@ export interface ExpenseToClassify {
 }
 
 // OCR Types
-export interface ReceiptItem {
+export interface ExpenseToAdd {
   name: string;
-  price: number;
+  amount: number;
+  expense_date: string;
+  quantity?: number;
+  unit?: string;
 }

@@ -3,14 +3,25 @@
  * Data structures for receipt processing and OCR functionality
  */
 
-export interface ReceiptItem {
+/**
+ * ExpenseToAdd - unified type for expenses being added
+ * Used for both manual entry and OCR-extracted items
+ */
+export interface ExpenseToAdd {
   name: string;
-  price: number;
+  amount: number;
+  expense_date: string;
+  quantity?: number;
+  unit?: string;
+}
+
+export interface OcrResponse {
+  items: ExpenseToAdd[];
 }
 
 export interface OcrResult {
   success: boolean;
-  items: ReceiptItem[];
+  items: ExpenseToAdd[];
   error?: string;
 }
 

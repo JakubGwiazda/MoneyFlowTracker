@@ -16,13 +16,7 @@ import { ExpensesFacadeService } from '../../services/expenses-facade.service';
 import { ReceiptOcrService } from '../../../../services/receipt-ocr/receipt-ocr.service';
 import { CameraCaptureComponent } from '../camera-capture/camera-capture.component';
 import { ReceiptItemsListComponent } from '../receipt-items-list/receipt-items-list.component';
-import { ReceiptItem } from '../../../../models/receipt';
-
-export type ExpenseToAdd = {
-  name: string;
-  amount: number;
-  expense_date: string;
-};
+import { OcrResult, ExpenseToAdd } from '../../../../models/receipt';
 
 export type AddExpenseDialogResult = {
   expenses: ExpenseToAdd[];
@@ -62,16 +56,20 @@ export class AddExpenseDialogComponent {
   // Manual entry state
   readonly expensesList = signal<ExpenseToAdd[]>([]);
   readonly isClassifying = signal<boolean>(false);
-  readonly disableSaveBtn = computed(
-    () => this.isClassifying() || this.expensesList().length === 0
-  );
+
+  readonly disableSaveBtn = computed(() => {
+    const hasExpenses = this.expensesList().length !== 0;
+    const hasReceiptItems = this.receiptItems().length !== 0;
+    const noItems = !hasExpenses && !hasReceiptItems;
+    return this.isClassifying() || noItems;
+  });
 
   readonly displayedColumns = ['name', 'amount', 'expense_date', 'actions'];
 
   // OCR state
   readonly ocrInProgress = signal(false);
   readonly ocrError = signal<string | null>(null);
-  readonly receiptItems = signal<ReceiptItem[]>([]);
+  readonly receiptItems = signal<ExpenseToAdd[]>([]);
   readonly showReceiptItems = computed(() => this.receiptItems().length > 0);
 
   readonly form = this.fb.group({
@@ -79,6 +77,12 @@ export class AddExpenseDialogComponent {
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     expense_date: [new Date(), Validators.required],
   });
+
+  addFileFromDisk($event: Event): void {
+    const input = $event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    this.onImageCaptured(input.files[0] as Blob);
+  }
 
   addExpenseToList(): void {
     if (this.form.invalid) {
@@ -105,9 +109,6 @@ export class AddExpenseDialogComponent {
       amount: null,
     });
     this.form.markAsUntouched();
-    console.log(this.disableSaveBtn());
-    console.log(this.expensesList().length > 0);
-    console.log(this.isClassifying());
   }
 
   removeExpense(index: number): void {
@@ -134,8 +135,8 @@ export class AddExpenseDialogComponent {
         return;
       }
 
-      // Set receipt items to display
-      this.receiptItems.set(result.items);
+      // Set receipt items to display - ensure all items have expense_date
+      this.receiptItems.set(this.addExpenseDate(result.items));
     } catch (error: any) {
       console.error('OCR error:', error);
       this.ocrError.set('Nieoczekiwany błąd podczas przetwarzania paragonu');
@@ -144,21 +145,22 @@ export class AddExpenseDialogComponent {
     }
   }
 
-  onReceiptItemsChanged(items: ReceiptItem[]) {
-    // Update receipt items when user edits them
-    this.receiptItems.set(items);
+  addExpenseDate(items: ExpenseToAdd[]): ExpenseToAdd[] {
+    const expense_date = this.toIsoDate(new Date());
+    return items.map(item => ({
+      ...item,
+      expense_date: expense_date,
+    }));
   }
 
-  async onClassifyReceiptItems(items: ReceiptItem[]) {
-    // Convert receipt items to expenses with current date
-    const expenses: ExpenseToAdd[] = items.map(item => ({
-      name: item.name,
-      amount: item.price,
-      expense_date: this.toIsoDate(new Date()),
-    }));
+  onReceiptItemsChanged(items: ExpenseToAdd[]) {
+    // Update receipt items when user edits them
+    this.receiptItems.set(this.addExpenseDate(items));
+  }
 
+  async onClassifyReceiptItems(items: ExpenseToAdd[]) {
     // Set to expenses list and classify/save
-    this.expensesList.set(expenses);
+    this.expensesList.set(items);
     await this.onSave();
   }
 
@@ -168,9 +170,10 @@ export class AddExpenseDialogComponent {
   }
 
   async onSave(): Promise<void> {
-    if (this.expensesList().length !== 0) {
+    if (this.expensesList().length !== 0 || this.receiptItems().length !== 0) {
       this.isClassifying.set(true);
-      await this.classifyAndSaveExpenses(this.expensesList());
+      let itemsToAdd = this.expensesList().concat(this.receiptItems());
+      await this.classifyAndSaveExpenses(itemsToAdd);
     } else {
       if (this.form.invalid) {
         return;

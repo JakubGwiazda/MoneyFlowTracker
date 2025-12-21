@@ -6,9 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReceiptItem } from '../../../../models/receipt';
+import { ExpenseToAdd } from '../../../../models/receipt';
 
-export interface EditableReceiptItem extends ReceiptItem {
+export interface EditableExpenseItem extends ExpenseToAdd {
   isEditing: boolean;
 }
 
@@ -33,15 +33,14 @@ export interface EditableReceiptItem extends ReceiptItem {
 })
 export class ReceiptItemsListComponent {
   // Inputs
-  readonly receiptItems = input.required<ReceiptItem[]>();
+  readonly receiptItems = input<ExpenseToAdd[]>([]);
 
   // Outputs
-  readonly itemsChanged = output<ReceiptItem[]>();
-  readonly classifyRequested = output<ReceiptItem[]>();
+  readonly itemsChanged = output<ExpenseToAdd[]>();
 
   // State
-  readonly items = signal<EditableReceiptItem[]>([]);
-  readonly displayedColumns = ['name', 'price', 'actions'];
+  readonly items = signal<EditableExpenseItem[]>([]);
+  readonly displayedColumns = ['name', 'amount', 'actions'];
 
   // Computed
   readonly itemsCount = computed(() => this.items().length);
@@ -95,12 +94,12 @@ export class ReceiptItemsListComponent {
       if (item.name === '') {
         item.name = 'Produkt';
       }
-      if (item.price <= 0) {
-        item.price = 0.01;
+      if (item.amount <= 0) {
+        item.amount = 0.01;
       }
 
-      // Round price to 2 decimals
-      item.price = Math.round(item.price * 100) / 100;
+      // Round amount to 2 decimals
+      item.amount = Math.round(item.amount * 100) / 100;
 
       item.isEditing = false;
       return updated;
@@ -114,13 +113,14 @@ export class ReceiptItemsListComponent {
     this.emitChanges();
   }
 
-  classifyAll() {
-    const items = this.items().map(({ name, price }) => ({ name, price }));
-    this.classifyRequested.emit(items);
-  }
-
   private emitChanges() {
-    const items = this.items().map(({ name, price }) => ({ name, price }));
+    const items = this.items().map(({ name, amount, expense_date, quantity, unit }) => ({
+      name,
+      amount,
+      expense_date,
+      ...(quantity !== undefined && { quantity }),
+      ...(unit !== undefined && { unit }),
+    }));
     this.itemsChanged.emit(items);
   }
 }

@@ -1,12 +1,12 @@
 /**
- * OCR Module
- * Helper functions for receipt OCR processing using OpenRouter Vision API
+ * Konfiguracja OpenRouter OCR
+ * Migracja logiki z obecnego ocr.ts
  */
 
-import type { OpenRouterMessage } from '../_shared/types.ts';
+import type { OpenRouterMessage } from '../../../_shared/types.ts';
 
 /**
- * Build system prompt for OCR expert
+ * Prompt systemowy dla OCR (zachowany z ocr.ts)
  */
 export function buildOcrSystemPrompt(): string {
   return `Jesteś ekspertem w rozpoznawaniu paragonów fiskalnych.
@@ -25,8 +25,7 @@ Format odpowiedzi: JSON z tablicą items, gdzie każdy item ma: name (string) i 
 }
 
 /**
- * Build messages array for OCR request
- * @param imageBase64 Base64 encoded image string
+ * Buduje wiadomości dla OpenRouter (zachowane z ocr.ts)
  */
 export function buildOcrMessages(imageBase64: string): OpenRouterMessage[] {
   return [
@@ -53,7 +52,7 @@ export function buildOcrMessages(imageBase64: string): OpenRouterMessage[] {
 }
 
 /**
- * Build JSON schema response format for OCR
+ * Schema odpowiedzi JSON (zachowana z ocr.ts)
  */
 export function buildOcrResponseFormat(): any {
   return {
@@ -83,3 +82,17 @@ export function buildOcrResponseFormat(): any {
     },
   };
 }
+
+/**
+ * Domyślny model OpenRouter dla OCR
+ */
+export const DEFAULT_OCR_MODEL = 'anthropic/claude-3.5-sonnet';
+
+/**
+ * Domyślne parametry dla OCR
+ */
+export const DEFAULT_OCR_PARAMS = {
+  temperature: 0.1,
+  max_tokens: 1000,
+};
+

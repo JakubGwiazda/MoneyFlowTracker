@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, timeout, lastValueFrom } from 'rxjs';
 import { ImageCompressionService } from '../image-compression/image-compression.service';
 import { AuthService } from '../authorization/auth.service';
-import { OcrError, ReceiptItem, OcrResult, OCR_TIMEOUT } from '../../models/receipt';
+import { OcrError, ExpenseToAdd, OcrResult, OCR_TIMEOUT, OcrResponse } from '../../models/receipt';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -51,7 +51,7 @@ export class ReceiptOcrService {
       // 6. Call edge function with timeout
       const response = await lastValueFrom(
         this.http
-          .post<any>(this.edgeFunctionUrl, payload, {
+          .post<OcrResponse>(this.edgeFunctionUrl, payload, {
             headers: { Authorization: `Bearer ${token}` },
           })
           .pipe(
@@ -62,12 +62,9 @@ export class ReceiptOcrService {
           )
       );
 
-      // 7. Parse and validate response
-      const items = this.parseOcrResponse(response);
-
       return {
         success: true,
-        items,
+        items: response.items,
       };
     } catch (error: any) {
       console.error('OCR processing error:', error);
@@ -85,57 +82,6 @@ export class ReceiptOcrService {
         items: [],
         error: 'Nieoczekiwany błąd podczas przetwarzania paragonu',
       };
-    }
-  }
-
-  /**
-   * Parse OCR response and validate items
-   * @param response OpenRouter API response
-   * @returns Array of receipt items
-   */
-  private parseOcrResponse(response: any): ReceiptItem[] {
-    try {
-      // Parse content from OpenRouter response
-      const content = response.choices?.[0]?.message?.content;
-
-      if (!content) {
-        throw new OcrError('Empty response from OCR', 'INVALID_RESPONSE');
-      }
-
-      const parsed = typeof content === 'string' ? JSON.parse(content) : content;
-
-      if (!parsed.items || !Array.isArray(parsed.items)) {
-        throw new OcrError('Invalid response format', 'INVALID_RESPONSE');
-      }
-
-      // Validate and clean items
-      const items: ReceiptItem[] = [];
-      for (const item of parsed.items) {
-        if (!item.name || typeof item.name !== 'string') {
-          continue; // Skip invalid items
-        }
-
-        const price = Number(item.price);
-        if (isNaN(price) || price <= 0) {
-          continue; // Skip invalid prices
-        }
-
-        items.push({
-          name: item.name.trim(),
-          price: Math.round(price * 100) / 100, // Round to 2 decimals
-        });
-      }
-
-      if (items.length === 0) {
-        throw new OcrError('No valid items found', 'NO_ITEMS_FOUND');
-      }
-
-      return items;
-    } catch (error: any) {
-      if (error instanceof OcrError) {
-        throw error;
-      }
-      throw new OcrError('Failed to parse OCR response', 'PARSE_ERROR', error);
     }
   }
 
