@@ -6,6 +6,7 @@
 .env.production
 .env.test
 .env.development
+.env.*
 # Compiled output
 /dist
 /tmp
