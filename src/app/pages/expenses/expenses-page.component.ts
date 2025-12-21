@@ -197,6 +197,7 @@ export class ExpensesPageComponent implements OnInit {
       {
         width: '800px',
         maxHeight: '70vh',
+        disableClose: true,
       }
     );
 

@@ -1,0 +1,74 @@
+<div class="receipt-items-container">
+  <div class="header">
+    <h3>Rozpoznane pozycje ({{ itemsCount() }})</h3>
+    <p class="subtitle">Sprawdź i popraw rozpoznane pozycje przed klasyfikacją</p>
+  </div>
+
+  @if (itemsCount() === 0) {
+    <div class="empty-state">
+      <mat-icon>receipt_long</mat-icon>
+      <p>Nie znaleziono pozycji na paragonie</p>
+    </div>
+  } @else {
+    <table mat-table [dataSource]="items()" class="items-table">
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Nazwa</th>
+        <td mat-cell *matCellDef="let item; let i = index">
+          @if (item.isEditing) {
+            <mat-form-field appearance="outline" class="inline-edit">
+              <input
+                matInput
+                [(ngModel)]="item.name"
+                (blur)="finishEditing(i)"
+                (keyup.enter)="finishEditing(i)"
+                (keyup.escape)="finishEditing(i)" />
+            </mat-form-field>
+          } @else {
+            <span (click)="startEditing(i)" class="editable-cell" title="Kliknij aby edytować">
+              {{ item.name }}
+            </span>
+          }
+        </td>
+      </ng-container>
+
+      <!-- Price Column -->
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef>Cena</th>
+        <td mat-cell *matCellDef="let item; let i = index">
+          @if (item.isEditing) {
+            <mat-form-field appearance="outline" class="inline-edit">
+              <input
+                matInput
+                type="number"
+                step="0.01"
+                min="0.01"
+                [(ngModel)]="item.amount"
+                (blur)="finishEditing(i)"
+                (keyup.enter)="finishEditing(i)"
+                (keyup.escape)="finishEditing(i)" />
+              <span matSuffix>zł</span>
+            </mat-form-field>
+          } @else {
+            <span (click)="startEditing(i)" class="editable-cell" title="Kliknij aby edytować">
+              {{ item.amount | number: '1.2-2' }} zł
+            </span>
+          }
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Akcje</th>
+        <td mat-cell *matCellDef="let item; let i = index">
+          <button mat-icon-button color="warn" (click)="removeItem(i)" matTooltip="Usuń pozycję">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  }
+</div>

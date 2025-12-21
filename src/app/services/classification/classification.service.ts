@@ -29,7 +29,7 @@ export class ClassificationService {
   private readonly maxRetries = 3;
 
   constructor() {
-    this.edgeFunctionUrl = `${environment.supabaseUrl}/functions/v1/openrouter_integration`;
+    this.edgeFunctionUrl = `${environment.supabaseUrl}/functions/v1/expense-classification`;
   }
 
   /**
@@ -63,9 +63,7 @@ export class ClassificationService {
     // Wywołanie edge function
     this.rateLimiter.recordRequest('classification');
 
-    return this.callEdgeFunction(payload).pipe(
-      map(response => this.parseModelResponse(response)),
-    );
+    return this.callEdgeFunction(payload).pipe(map(response => this.parseModelResponse(response)));
   }
 
   /**
@@ -103,7 +101,7 @@ export class ClassificationService {
     this.rateLimiter.recordRequest('batch-classification');
 
     return this.callEdgeFunction(payload).pipe(
-      map(response => this.parseBatchModelResponse(response, expenses.length)),
+      map(response => this.parseBatchModelResponse(response, expenses.length))
     );
   }
 
