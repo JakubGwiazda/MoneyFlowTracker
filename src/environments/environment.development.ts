@@ -1,5 +1,6 @@
 // Ten plik jest używany TYLKO lokalnie podczas development
 export const environment = {
+  serviceWorker: true,
   production: false,
   supabaseUrl: 'http://127.0.0.1:54321',
   supabaseKey:
