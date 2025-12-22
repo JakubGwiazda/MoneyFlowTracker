@@ -1,9 +1,12 @@
 {
   "name": "Money Flow Tracker",
   "short_name": "MoneyFlowTracker",
+  "theme_color": "#1976d2",
+  "background_color": "#fafafa",
   "display": "standalone",
-  "scope": "./",
-  "start_url": "./",
+  "scope": "/",
+  "start_url": "/",
+  "description": "Aplikacja do śledzenia wydatków",
   "icons": [
     {
       "src": "icons/icon-72x72.png",
