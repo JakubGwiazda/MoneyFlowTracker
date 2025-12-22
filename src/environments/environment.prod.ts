@@ -1,4 +1,5 @@
 export const environment = {
+  serviceWorker: true,
   production: true,
   supabaseUrl: 'https://bebnkqgtuemvscxdlvsq.supabase.co',
   supabaseKey:
