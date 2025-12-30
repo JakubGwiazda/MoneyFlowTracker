@@ -1,0 +1,45 @@
+<div class="pwa-update-dialog">
+  <h2 mat-dialog-title class="dialog-title">
+    <mat-icon class="update-icon">system_update</mat-icon>
+    Dostępna aktualizacja
+  </h2>
+
+  <mat-dialog-content class="dialog-content">
+    @if (!updateError) {
+      <p class="update-message">
+        Dostępna jest nowa wersja aplikacji. Zalecamy aktualizację, aby korzystać z najnowszych
+        funkcji i poprawek.
+      </p>
+
+      @if (isUpdating) {
+        <div class="updating-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="updating-text">Instalowanie aktualizacji...</p>
+        </div>
+      }
+    } @else {
+      <div class="error-state">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <p class="error-message">
+          Wystąpił błąd podczas aktualizacji. Spróbuj ponownie lub zaktualizuj później.
+        </p>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    @if (!updateError && !isUpdating) {
+      <button mat-button (click)="updateLater()" class="later-button">Później</button>
+      <button mat-raised-button color="primary" (click)="updateNow()" class="update-button">
+        Aktualizuj teraz
+      </button>
+    }
+
+    @if (updateError) {
+      <button mat-button (click)="updateLater()" class="later-button">Anuluj</button>
+      <button mat-raised-button color="primary" (click)="retryUpdate()" class="retry-button">
+        Spróbuj ponownie
+      </button>
+    }
+  </mat-dialog-actions>
+</div>
