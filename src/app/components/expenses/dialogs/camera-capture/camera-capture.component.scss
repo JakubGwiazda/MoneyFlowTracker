@@ -51,6 +51,50 @@ video {
   z-index: 1;
 }
 
+.zoom-controls {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 24px;
+  z-index: 2;
+
+  .zoom-btn {
+    color: white;
+    
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .zoom-slider {
+    width: 150px;
+    
+    ::ng-deep {
+      .mdc-slider__track--active_fill,
+      .mdc-slider__track--inactive {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .mdc-slider__track--active_fill {
+        background-color: white;
+      }
+
+      .mdc-slider__thumb-knob {
+        background-color: white;
+        border-color: white;
+      }
+    }
+  }
+}
+
 .capture-btn {
   position: absolute !important;
   bottom: 20px;
@@ -120,6 +164,22 @@ video {
     font-size: 12px;
     padding: 8px;
     bottom: 90px;
+  }
+
+  .zoom-controls {
+    top: 12px;
+    padding: 6px 12px;
+    gap: 4px;
+
+    .zoom-slider {
+      width: 100px;
+    }
+
+    .zoom-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
   }
 
   .capture-btn {
