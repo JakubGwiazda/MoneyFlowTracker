@@ -2,3 +2,45 @@
   box-shadow: none;
   border: 1px solid #e0e0e0;
 }
+
+.expenses-page-container {
+  height: calc(100vh - 200px);
+}
+
+.actions-section {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 450px) {
+  .expenses-page-container {
+    height: calc(100vh - 140px);
+  }
+
+  .filters-expansion-panel {
+    border-radius: 0;
+    margin: 0 -8px;
+  }
+
+  .actions-section {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: center;
+
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .table-container {
+    margin: 0 -8px;
+  }
+
+  .pagination-container {
+    font-size: 12px;
+    padding: 8px 4px;
+  }
+}

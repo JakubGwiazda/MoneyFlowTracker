@@ -51,6 +51,34 @@ const DEFAULT_PRESET: DatePreset = 'today';
         font-weight: 500;
         margin: 0;
       }
+      
+      .filters-container {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      
+      .filter-item {
+        flex: 1;
+        min-width: 200px;
+      }
+      
+      @media (max-width: 450px) {
+        .label_text {
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+        
+        .filters-container {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .filter-item {
+          width: 100%;
+          min-width: 0;
+        }
+      }
     `,
   ],
 })

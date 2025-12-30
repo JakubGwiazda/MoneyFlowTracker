@@ -28,18 +28,13 @@ export interface RowActionEvent<T = any> {
       mat-icon-button
       [matMenuTriggerFor]="menu"
       [disabled]="disabled()"
-      [attr.aria-label]="ariaLabel()"
-    >
+      [attr.aria-label]="ariaLabel()">
       <mat-icon fontIcon="more_vert"></mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">
       @for (action of actions(); track action.key) {
-        <button
-          mat-menu-item
-          [class]="action.class"
-          (click)="emitAction(action)"
-        >
+        <button mat-menu-item [class]="action.class" (click)="emitAction(action)">
           <mat-icon [color]="action.color">{{ action.icon }}</mat-icon>
           <span>{{ action.label }}</span>
         </button>
@@ -49,6 +44,22 @@ export interface RowActionEvent<T = any> {
       }
     </mat-menu>
   `,
+  styles: [
+    `
+      @media (max-width: 450px) {
+        button {
+          height: 32px;
+          padding: 0;
+        }
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    `,
+  ],
 })
 export class RowActionsComponent<T = any> {
   readonly actions = input.required<RowAction<T>[]>();
@@ -61,8 +72,7 @@ export class RowActionsComponent<T = any> {
   emitAction(action: RowAction<T>): void {
     this.actionSelect.emit({
       action,
-      data: this.data()
+      data: this.data(),
     });
   }
 }
-

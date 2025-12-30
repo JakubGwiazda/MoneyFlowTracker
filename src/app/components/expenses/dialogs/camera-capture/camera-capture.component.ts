@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSliderModule } from '@angular/material/slider';
 import { CameraService } from '../../../../services/camera/camera.service';
 import { ImageCompressionService } from '../../../../services/image-compression/image-compression.service';
 import { CameraError } from '../../../../models/receipt';
@@ -23,7 +24,13 @@ import { CameraError } from '../../../../models/receipt';
 @Component({
   selector: 'app-camera-capture',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSliderModule,
+  ],
   templateUrl: './camera-capture.component.html',
   styleUrls: ['./camera-capture.component.scss'],
 })
@@ -44,6 +51,11 @@ export class CameraCaptureComponent implements OnInit, OnDestroy {
   readonly capturedImageUrl = signal<string | null>(null);
   readonly isProcessing = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly zoomSupported = signal(false);
+  readonly zoomLevel = signal(1);
+  readonly zoomMin = signal(1);
+  readonly zoomMax = signal(1);
+  readonly zoomStep = signal(0.1);
 
   private stream: MediaStream | null = null;
 
@@ -68,10 +80,13 @@ export class CameraCaptureComponent implements OnInit, OnDestroy {
       this.stream = await this.cameraService.openCameraStream();
 
       // Wait for video element to be ready
-      setTimeout(() => {
+      setTimeout(async () => {
         if (this.videoElement && this.stream) {
           this.videoElement.nativeElement.srcObject = this.stream;
           this.cameraActive.set(true);
+
+          // Initialize zoom controls
+          await this.initializeZoomControls();
         }
       }, 100);
     } catch (error: any) {
@@ -109,6 +124,36 @@ export class CameraCaptureComponent implements OnInit, OnDestroy {
       const errorMsg = 'Nie udało się zrobić zdjęcia';
       this.errorMessage.set(errorMsg);
       this.processingError.emit(errorMsg);
+    }
+  }
+
+  async initializeZoomControls() {
+    if (this.cameraService.isZoomSupported()) {
+      const capabilities = this.cameraService.getZoomCapabilities();
+      if (capabilities) {
+        this.zoomSupported.set(true);
+        this.zoomMin.set(capabilities.min);
+        this.zoomMax.set(capabilities.max);
+        this.zoomStep.set(capabilities.step);
+
+        // Get current zoom level
+        const currentZoom = await this.cameraService.getCurrentZoom();
+        this.zoomLevel.set(currentZoom);
+      }
+    } else {
+      this.zoomSupported.set(false);
+    }
+  }
+
+  async onZoomChange(event: any) {
+    const newZoom = event.value || event.target?.value;
+    if (newZoom) {
+      try {
+        await this.cameraService.setZoom(newZoom);
+        this.zoomLevel.set(newZoom);
+      } catch (error) {
+        console.error('Failed to set zoom:', error);
+      }
     }
   }
 

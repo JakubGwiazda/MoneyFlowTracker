@@ -34,7 +34,9 @@ export type CameraErrorCode =
   | 'CAMERA_ERROR'
   | 'CANVAS_ERROR'
   | 'BLOB_ERROR'
-  | 'CAPTURE_ERROR';
+  | 'CAPTURE_ERROR'
+  | 'ZOOM_NOT_SUPPORTED'
+  | 'ZOOM_ERROR';
 
 export class CameraError extends Error {
   constructor(

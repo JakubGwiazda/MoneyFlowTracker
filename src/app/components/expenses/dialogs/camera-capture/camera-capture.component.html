@@ -24,6 +24,26 @@
       @if (cameraActive()) {
         <div class="camera-tip">Upewnij się, że paragon jest wyraźny i dobrze oświetlony</div>
 
+        <!-- Zoom Controls -->
+        @if (zoomSupported()) {
+          <div class="zoom-controls">
+            <button mat-icon-button class="zoom-btn" (click)="onZoomChange({ value: zoomMin() })">
+              <mat-icon>zoom_out</mat-icon>
+            </button>
+            <mat-slider
+              class="zoom-slider"
+              [min]="zoomMin()"
+              [max]="zoomMax()"
+              [step]="zoomStep()"
+              discrete>
+              <input matSliderThumb [value]="zoomLevel()" (input)="onZoomChange($event)" />
+            </mat-slider>
+            <button mat-icon-button class="zoom-btn" (click)="onZoomChange({ value: zoomMax() })">
+              <mat-icon>zoom_in</mat-icon>
+            </button>
+          </div>
+        }
+
         <!-- Capture Button -->
         <button
           mat-fab

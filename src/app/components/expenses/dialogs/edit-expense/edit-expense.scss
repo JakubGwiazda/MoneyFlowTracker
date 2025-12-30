@@ -1,0 +1,26 @@
+.expense-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (max-width: 450px) {
+  .expense-edit-form {
+    gap: 0.25rem;
+  }
+  
+  mat-dialog-content {
+    padding: 12px !important;
+  }
+  
+  mat-dialog-actions {
+    padding: 8px 12px !important;
+    gap: 8px;
+    
+    button {
+      flex: 1;
+      font-size: 13px;
+    }
+  }
+}
+

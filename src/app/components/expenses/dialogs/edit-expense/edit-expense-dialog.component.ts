@@ -35,6 +35,7 @@ type DialogData = {
     MatNativeDateModule,
   ],
   templateUrl: './edit-expense.html',
+  styleUrl: './edit-expense.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditExpenseDialogComponent {

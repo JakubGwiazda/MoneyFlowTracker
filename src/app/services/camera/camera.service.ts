@@ -8,6 +8,8 @@ import { CameraError } from '../../models/receipt';
 @Injectable({ providedIn: 'root' })
 export class CameraService {
   private activeStream = signal<MediaStream | null>(null);
+  private videoTrack: MediaStreamTrack | null = null;
+  private zoomCapabilities: { min: number; max: number; step: number } | null = null;
 
   /**
    * Check if camera is available on the device
@@ -48,6 +50,14 @@ export class CameraService {
       const stream = await navigator.mediaDevices.getUserMedia(constraints || defaultConstraints);
 
       this.activeStream.set(stream);
+
+      // Get video track for zoom control
+      const videoTracks = stream.getVideoTracks();
+      if (videoTracks.length > 0) {
+        this.videoTrack = videoTracks[0];
+        await this.initializeZoomCapabilities();
+      }
+
       return stream;
     } catch (error: any) {
       if (error.name === 'NotAllowedError') {
@@ -116,6 +126,86 @@ export class CameraService {
   }
 
   /**
+   * Initialize zoom capabilities for the current video track
+   */
+  private async initializeZoomCapabilities(): Promise<void> {
+    if (!this.videoTrack) {
+      return;
+    }
+
+    try {
+      const capabilities = this.videoTrack.getCapabilities() as any;
+      if (capabilities.zoom) {
+        this.zoomCapabilities = {
+          min: capabilities.zoom.min || 1,
+          max: capabilities.zoom.max || 1,
+          step: capabilities.zoom.step || 0.1,
+        };
+      } else {
+        this.zoomCapabilities = null;
+      }
+    } catch (error) {
+      console.warn('Zoom capabilities not supported', error);
+      this.zoomCapabilities = null;
+    }
+  }
+
+  /**
+   * Check if zoom is supported by the current camera
+   */
+  isZoomSupported(): boolean {
+    return this.zoomCapabilities !== null && this.zoomCapabilities.max > this.zoomCapabilities.min;
+  }
+
+  /**
+   * Get zoom capabilities (min, max, step)
+   */
+  getZoomCapabilities(): { min: number; max: number; step: number } | null {
+    return this.zoomCapabilities;
+  }
+
+  /**
+   * Get current zoom level
+   */
+  async getCurrentZoom(): Promise<number> {
+    if (!this.videoTrack) {
+      return 1;
+    }
+
+    try {
+      const settings = this.videoTrack.getSettings() as any;
+      return settings.zoom || 1;
+    } catch (error) {
+      console.warn('Failed to get current zoom', error);
+      return 1;
+    }
+  }
+
+  /**
+   * Set zoom level
+   * @param zoomLevel Zoom level to set (within capabilities range)
+   */
+  async setZoom(zoomLevel: number): Promise<void> {
+    if (!this.videoTrack || !this.zoomCapabilities) {
+      throw new CameraError('Zoom not supported', 'ZOOM_NOT_SUPPORTED');
+    }
+
+    // Clamp zoom level to valid range
+    const clampedZoom = Math.max(
+      this.zoomCapabilities.min,
+      Math.min(this.zoomCapabilities.max, zoomLevel)
+    );
+
+    try {
+      await this.videoTrack.applyConstraints({
+        advanced: [{ zoom: clampedZoom } as any],
+      });
+    } catch (error) {
+      throw new CameraError('Failed to set zoom', 'ZOOM_ERROR', error);
+    }
+  }
+
+  /**
    * Close active camera stream and release resources
    */
   closeCameraStream(): void {
@@ -124,6 +214,8 @@ export class CameraService {
       stream.getTracks().forEach(track => track.stop());
       this.activeStream.set(null);
     }
+    this.videoTrack = null;
+    this.zoomCapabilities = null;
   }
 
   /**
