@@ -49,6 +49,35 @@ export interface RowActionEvent<T = any> {
       }
     </mat-menu>
   `,
+  styles: [
+    `
+      /* Mobile responsive - optimized for Motorola Edge 60 Pro */
+      @media (max-width: 450px) {
+        button {
+          width: 32px;
+          height: 32px;
+          padding: 0;
+        }
+        
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+        
+        :host ::ng-deep .mat-mdc-menu-item {
+          font-size: 13px;
+          min-height: 40px;
+        }
+        
+        :host ::ng-deep .mat-mdc-menu-item mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    `,
+  ],
 })
 export class RowActionsComponent<T = any> {
   readonly actions = input.required<RowAction<T>[]>();

@@ -90,6 +90,18 @@ const DEFAULT_PRESET: DatePreset = 'today';
       .w-100 {
         width: 100%;
       }
+      
+      /* Mobile responsive - optimized for Motorola Edge 60 Pro */
+      @media (max-width: 450px) {
+        .label_text {
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+        
+        .mt-4 {
+          margin-top: 12px !important;
+        }
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

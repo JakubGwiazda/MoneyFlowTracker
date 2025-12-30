@@ -138,6 +138,10 @@ import {
   `,
   styles: [
     `
+      .table-wrapper {
+        position: relative;
+      }
+
       .loading-overlay {
         position: absolute;
         top: 0;
@@ -161,6 +165,38 @@ import {
       .expenses-table {
         width: 100%;
         background: white;
+      }
+      
+      /* Mobile responsive - optimized for Motorola Edge 60 Pro */
+      @media (max-width: 450px) {
+        .table-container {
+          overflow-x: auto;
+        }
+        
+        .expenses-table {
+          min-width: 500px;
+          font-size: 11px;
+        }
+        
+        .expenses-table th,
+        .expenses-table td {
+          padding: 6px 4px !important;
+          font-size: 11px !important;
+        }
+        
+        /* Sticky first column (name) for easier navigation */
+        .expenses-table th:first-child,
+        .expenses-table td:first-child {
+          position: sticky;
+          left: 0;
+          background: white;
+          z-index: 2;
+          box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        }
+        
+        .expenses-table th:first-child {
+          z-index: 3;
+        }
       }
     `,
   ],

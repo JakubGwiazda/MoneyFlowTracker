@@ -73,6 +73,10 @@
 }
 
 @media (max-width: 640px) {
+  .tab-content {
+    overflow: hidden;
+  }
+
   .main_page {
     padding: 32px 0;
     gap: 32px;

@@ -1,11 +1,13 @@
 <form class="mt-4" [formGroup]="form">
-  <div class="d-flex">
-    <app-date-filter
-      [value]="dateFilterValue()"
-      [disabled]="loading()"
-      [label]="'Okres danych'"
-      (dateChange)="onDateFilterChange($event)" />
-    <div class="ms-3 me-3">
+  <div class="filters-container">
+    <div class="filter-item">
+      <app-date-filter
+        [value]="dateFilterValue()"
+        [disabled]="loading()"
+        [label]="'Okres danych'"
+        (dateChange)="onDateFilterChange($event)" />
+    </div>
+    <div class="filter-item">
       <p class="label_text">Status klasyfikacji</p>
       <app-chips
         [options]="statusChipOptions"
@@ -13,13 +15,15 @@
         [disabled]="loading()"
         (selectionChange)="onStatusSelectionChange($event)" />
     </div>
-    <app-select-autocomplete
-      [options]="categoryOptions()"
-      [fieldLabel]="'Kategoria'"
-      [value]="form.controls.category_id.value"
-      [disabled]="loading()"
-      (valueChange)="onCategorySelected($event)"
-      (queryChange)="categorySearch.emit($event)"
-      data-testid="expenses-category-filter" />
+    <div class="filter-item">
+      <app-select-autocomplete
+        [options]="categoryOptions()"
+        [fieldLabel]="'Kategoria'"
+        [value]="form.controls.category_id.value"
+        [disabled]="loading()"
+        (valueChange)="onCategorySelected($event)"
+        (queryChange)="categorySearch.emit($event)"
+        data-testid="expenses-category-filter" />
+    </div>
   </div>
 </form>
