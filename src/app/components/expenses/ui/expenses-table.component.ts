@@ -85,8 +85,9 @@ import {
 
           <ng-container matColumnDef="classification">
             <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let element">
+            <td mat-cell *matCellDef="let element" class="classification-cell">
               <app-badge
+                class="desktop-badge"
                 [label]="element.statusLabel"
                 [tone]="element.statusTone"
                 [pending]="element.classification_status === 'pending'"
@@ -95,6 +96,13 @@ import {
                     ? 'Pewność: ' + element.confidenceDisplay
                     : null
                 " />
+              <mat-icon
+                class="mobile-icon"
+                [class]="getStatusIconClass(element.classification_status)"
+                [matTooltip]="getStatusTooltip(element)"
+                [style.color]="getStatusColor(element.classification_status)">
+                {{ getStatusIcon(element.classification_status) }}
+              </mat-icon>
             </td>
           </ng-container>
 
@@ -166,24 +174,31 @@ import {
         width: 100%;
         background: white;
       }
-      
-      /* Mobile responsive - optimized for Motorola Edge 60 Pro */
+
+      .mobile-icon {
+        display: none;
+      }
+
+      .desktop-badge {
+        display: inline-block;
+      }
+
       @media (max-width: 450px) {
         .table-container {
           overflow-x: auto;
         }
-        
+
         .expenses-table {
           min-width: 500px;
           font-size: 11px;
         }
-        
+
         .expenses-table th,
         .expenses-table td {
           padding: 6px 4px !important;
           font-size: 11px !important;
         }
-        
+
         /* Sticky first column (name) for easier navigation */
         .expenses-table th:first-child,
         .expenses-table td:first-child {
@@ -191,11 +206,39 @@ import {
           left: 0;
           background: white;
           z-index: 2;
-          box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+          box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+          padding-left: 10px !important;
+          min-width: 50px;
+          max-width: 150px;
         }
-        
+
+        /* Header sticky - higher z-index to stay on top */
         .expenses-table th:first-child {
-          z-index: 3;
+          z-index: 999 !important;
+          background: #fafafa;
+        }
+
+        /* Ensure text doesn't overflow in first column */
+        .expenses-table td:first-child > div,
+        .expenses-table td:first-child span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: block;
+        }
+
+        /* Show icon on mobile, hide badge */
+        .classification-cell .desktop-badge {
+          display: none;
+        }
+
+        .classification-cell .mobile-icon {
+          display: inline-flex;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          align-items: center;
+          justify-content: center;
         }
       }
     `,
@@ -286,5 +329,47 @@ export class ExpensesTableComponent implements AfterViewInit {
         this.deleteExpense.emit(expenseId);
         break;
     }
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'schedule';
+      case 'predicted':
+        return 'smart_toy';
+      case 'corrected':
+        return 'edit';
+      case 'failed':
+        return 'error';
+      default:
+        return 'help_outline';
+    }
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'pending':
+        return '#3b82f6'; // blue
+      case 'predicted':
+        return '#16a34a'; // green
+      case 'corrected':
+        return '#d97706'; // orange
+      case 'failed':
+        return '#dc2626'; // red
+      default:
+        return '#6b7280'; // gray
+    }
+  }
+
+  getStatusIconClass(status: string): string {
+    return `status-icon-${status}`;
+  }
+
+  getStatusTooltip(element: ExpensesListViewModel): string {
+    const statusLabel = element.statusLabel;
+    if (element.classification_status === 'predicted') {
+      return `${statusLabel} (Pewność: ${element.confidenceDisplay})`;
+    }
+    return statusLabel;
   }
 }

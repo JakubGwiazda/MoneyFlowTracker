@@ -112,7 +112,6 @@ body {
 .text-gray-800 { color: rgba(0, 0, 0, 0.8); }
 .text-gray-900 { color: rgba(0, 0, 0, 0.87); }
 
-/* Mobile responsive - optimized for Motorola Edge 60 Pro (viewport ~400-430px) */
 @media (max-width: 450px) {
   .container {
     padding: 0 8px;

@@ -63,7 +63,6 @@ const DEFAULT_PRESET: DatePreset = 'today';
         min-width: 200px;
       }
       
-      /* Mobile responsive - optimized for Motorola Edge 60 Pro */
       @media (max-width: 450px) {
         .label_text {
           font-size: 16px;
