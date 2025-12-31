@@ -1,63 +1,63 @@
-<div class="categories-page-container d-flex flex-column mt-2" style="height: calc(100vh - 200px)">
-  <mat-card class="flex-shrink-0">
-    <mat-expansion-panel
-      class="filters-expansion-panel"
-      [expanded]="filtersExpanded()"
-      (expandedChange)="onFiltersPanelExpandedChange($event)">
-      <mat-expansion-panel-header>
-        <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
-        <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
-      </mat-expansion-panel-header>
+<div class="categories-page-container d-flex flex-column" style="height: calc(100vh - 200px)">
+  <div class="tab-content mt-2 flex-shrink-0">
+    <mat-card>
+      <mat-expansion-panel
+        class="filters-expansion-panel"
+        [expanded]="filtersExpanded()"
+        (expandedChange)="onFiltersPanelExpandedChange($event)">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
+          <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
+        </mat-expansion-panel-header>
 
-      <div class="d-flex">
-        <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Szukaj kategorii</mat-label>
-          <input
-            matInput
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange($event)"
-            placeholder="Wpisz nazwę kategorii..."
-            data-testid="categories-search-input" />
-          <mat-icon matPrefix>search</mat-icon>
-        </mat-form-field>
-        <div class="ms-3">
-          <p class="label_text">Status klasyfikacji</p>
-          <app-chips
-            [options]="statusChipOptions"
-            [selectedValue]="choosenCategoriesStatus"
-            [(ngModel)]="choosenCategoriesStatus"
-            (selectionChange)="onStatusSelectionChange($event)" />
+        <div class="d-flex filters-content">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Szukaj kategorii</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchQuery"
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Wpisz nazwę kategorii..."
+              data-testid="categories-search-input" />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+          <div class="ms-3 status-filter">
+            <p class="label_text">Status klasyfikacji</p>
+            <app-chips
+              [options]="statusChipOptions"
+              [selectedValue]="choosenCategoriesStatus"
+              [(ngModel)]="choosenCategoriesStatus"
+              (selectionChange)="onStatusSelectionChange($event)" />
+          </div>
         </div>
-      </div>
-    </mat-expansion-panel>
-  </mat-card>
-  <div class="actions-section mt-3 mb-3 flex-shrink-0">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="onAddCategory()"
-      data-testid="add-category-button">
-      <mat-icon>add</mat-icon>
-      Dodaj kategorię
-    </button>
+      </mat-expansion-panel>
+    </mat-card>
+    <div class="actions-section mt-3 mb-3">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onAddCategory()"
+        data-testid="add-category-button">
+        <mat-icon>add</mat-icon>
+        Dodaj kategorię
+      </button>
+    </div>
   </div>
-
   <div class="table-container flex-grow-1 overflow-auto">
     <app-categories-table
       [data]="vm().categories"
       [loading]="vm().loading"
+      [filtersExpanded]="filtersExpanded()"
       (editCategory)="onEditCategory($event)"
       (deleteCategory)="onDeleteCategory($event)"
       (toggleActive)="onToggleActive($event)" />
   </div>
 
-  @if (vm().categories.length > 0) {
-    <div class="pagination-container flex-shrink-0">
-      <app-pagination-controls
-        [state]="vm().pagination"
-        [disabled]="vm().loading"
-        (pageChange)="onPageChange($event)"
-        (perPageChange)="onPerPageChange($event)" />
-    </div>
-  }
+  <div class="pagination-container flex-shrink-0">
+    <app-pagination-controls
+      [state]="vm().pagination"
+      [disabled]="vm().loading"
+      (pageChange)="onPageChange($event)"
+      (perPageChange)="onPerPageChange($event)" />
+  </div>
 </div>

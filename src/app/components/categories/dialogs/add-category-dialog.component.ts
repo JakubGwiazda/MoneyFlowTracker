@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import type { CreateCategoryCommand, UpdateCategoryCommand, CategoryDto } from '../../../../types';
 import type { CategoryOptionViewModel } from '../../../models/categories';
 
@@ -34,12 +35,16 @@ export type AddCategoryDialogResult = {
     MatSelectModule,
     MatSlideToggleModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
   templateUrl: './add-category-dialog.html',
   styleUrl: './add-category-dialog.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddCategoryDialogComponent implements OnInit {
-  private readonly dialogRef = inject(MatDialogRef<AddCategoryDialogComponent>);
+  readonly dialogRef = inject(
+    MatDialogRef<AddCategoryDialogComponent, AddCategoryDialogResult | undefined>
+  );
   private readonly fb = inject(FormBuilder);
   readonly data = inject<AddCategoryDialogData>(MAT_DIALOG_DATA);
 

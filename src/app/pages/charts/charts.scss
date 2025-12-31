@@ -5,13 +5,6 @@
 }
 
 .chart-container {
-  // Zwiększona wysokość dla mobile, aby pomieścić legendę
-  min-height: 400px;
-
-  @media (max-width: 768px) {
-    //min-height: 600px; // Więcej miejsca na mobile dla legendy poniżej
-  }
-
   // Wymuszenie zawijania legendy w ngx-charts
   ::ng-deep {
     .legend-wrap {

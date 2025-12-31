@@ -30,6 +30,7 @@ import { CategoriesTableService } from './categories-table.service';
 export class CategoriesTableComponent {
   readonly data = input.required<readonly CategoryListViewModel[]>();
   readonly loading = input<boolean>(false);
+  readonly filtersExpanded = input<boolean>(true);
 
   readonly editCategory = output<string>();
   readonly deleteCategory = output<string>();

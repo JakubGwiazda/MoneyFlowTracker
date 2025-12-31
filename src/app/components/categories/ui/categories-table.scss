@@ -30,6 +30,10 @@
   margin-bottom: 1rem;
 }
 
+.table-wrapper {
+  position: relative;
+}
+
 .table-container {
   width: 100%;
   overflow: auto;
@@ -42,20 +46,31 @@
   background: white;
 }
 
-//zostaje
+.category-name-wrapper {
+  display: block;
+  width: 100%;
+}
+
 .category-name {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
-//zostaje
+
+.category-name-text {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+
 .expand-button {
   width: 32px;
   height: 32px;
   line-height: 32px;
   margin-right: 0.25rem;
+  flex-shrink: 0;
 }
-//zostaje
+
 .expand-button mat-icon {
   font-size: 20px;
   width: 20px;
@@ -66,6 +81,11 @@
 .expand-placeholder {
   display: inline-block;
   width: 40px;
+  flex-shrink: 0;
+}
+
+.subcategory-icon {
+  display: none; // Hidden on desktop
 }
 
 .child-icon {
@@ -95,12 +115,50 @@
   color: rgba(0, 0, 0, 0.87);
 }
 
+.status-cell {
+  .mobile-icon {
+    display: none;
+  }
+
+  .desktop-badge {
+    display: inline-block;
+  }
+}
+
 .actions-header {
-  text-align: right;
+  text-align: center;
+  padding-right: 16px !important;
 }
 
 .actions-cell {
-  text-align: right;
+  text-align: center;
+  padding-right: 16px !important;
+}
+
+// Column widths
+.mat-column-level {
+  width: 70px;
+  max-width: 100px;
+}
+
+.mat-column-created_at {
+  width: 70px;
+  max-width: 100px;
+}
+
+.mat-column-usage {
+  width: 70px;
+  max-width: 100px;
+}
+
+.mat-column-status {
+  width: 50px;
+  max-width: 50px;
+}
+
+.mat-column-actions {
+  width: 80px;
+  max-width: 80px;
 }
 
 th.mat-header-cell {
@@ -114,4 +172,139 @@ th.mat-header-cell {
 
 td.mat-cell {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+// Mobile responsive styles
+@media (max-width: 450px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .categories-table {
+    min-width: 600px;
+    font-size: 11px;
+  }
+
+  .categories-table th,
+  .categories-table td {
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+  }
+
+  // Sticky first column (name) for easier navigation
+  .categories-table th:first-child,
+  .categories-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    min-width: 50px;
+    max-width: 100px;
+    width: 100px;
+  }
+
+  // Header sticky - higher z-index to stay on top
+  .categories-table th:first-child {
+    z-index: 999 !important;
+    background: #fafafa;
+  }
+
+  // Minimalne wcięcia na mobile - 6px zamiast 24px na poziom
+  .category-name-wrapper {
+    padding-left: calc(var(--level, 0) * 6px) !important;
+  }
+
+  // Ensure text wraps in first column
+  .categories-table td:first-child .category-name {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .category-name-text {
+    white-space: normal;
+    line-height: 1.3;
+    display: block;
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Pokaż ikonę podkategorii na mobile
+  .subcategory-icon {
+    display: inline-flex;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+    margin-right: 2px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  // Adjust expand button for mobile
+  .expand-button {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin-right: 2px;
+    padding: 0;
+    min-width: 24px;
+    align-self: flex-start;
+  }
+
+  .expand-button mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  // Ukryj placeholder dla podkategorii na mobile
+  .child-row .expand-placeholder {
+    display: none;
+  }
+
+  .expand-placeholder {
+    width: 26px;
+    flex-shrink: 0;
+  }
+
+  .category-name {
+    align-items: center;
+  }
+
+  // Show icon on mobile, hide badge
+  .status-cell .desktop-badge {
+    display: none;
+  }
+
+  .status-cell .mobile-icon {
+    display: inline-flex;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Reduce padding in usage cell
+  .usage-cell {
+    gap: 0.125rem;
+    font-size: 11px;
+  }
+
+  // Smaller actions button
+  .actions-cell button {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
