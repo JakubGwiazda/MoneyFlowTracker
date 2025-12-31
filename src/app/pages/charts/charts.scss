@@ -5,6 +5,48 @@
 }
 
 .chart-container {
+  // Zwiększona wysokość dla mobile, aby pomieścić legendę
+  min-height: 400px;
+
+  @media (max-width: 768px) {
+    //min-height: 600px; // Więcej miejsca na mobile dla legendy poniżej
+  }
+
+  // Wymuszenie zawijania legendy w ngx-charts
+  ::ng-deep {
+    .legend-wrap {
+      overflow: visible !important;
+    }
+
+    .chart-legend {
+      display: block !important;
+    }
+
+    .legend-labels {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      max-width: 100% !important;
+
+      @media (max-width: 768px) {
+        gap: 4px !important;
+        padding: 0 8px !important;
+      }
+    }
+
+    .legend-label {
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      margin: 4px !important;
+
+      @media (max-width: 768px) {
+        font-size: 12px !important;
+        margin: 2px !important;
+      }
+    }
+  }
 }
 
 .filters-expansion-panel {

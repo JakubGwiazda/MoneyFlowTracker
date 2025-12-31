@@ -4,7 +4,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BarChartModule, PieChartModule } from '@swimlane/ngx-charts';
+import { BarChartModule, LegendPosition, PieChartModule } from '@swimlane/ngx-charts';
 import { ChartType, ChartViewMode } from '../../models/charts';
 import { MatExpansionModule } from '@angular/material/expansion';
 import {
@@ -14,18 +14,6 @@ import {
 } from '../../components/common/date-filter/date-filter.component';
 import { ExpensesFacadeService } from '../../components/expenses/services/expenses-facade.service';
 
-/**
- * Component for displaying expense data in various chart formats
- * Supports bar charts (US-008) and pie charts (US-009)
- *
- * @example
- * ```html
- * <app-expenses-charts
- *   [data]="chartData()"
- *   [title]="'Expenses by Category'"
- * />
- * ```
- */
 @Component({
   selector: 'app-charts-page',
   standalone: true,
@@ -57,6 +45,7 @@ export class ChartsPageComponent implements OnInit {
   protected readonly gradient = signal(false);
   protected readonly animations = signal(true);
   protected readonly colorScheme = signal('picnic');
+  protected readonly legendPosition = signal<LegendPosition>(LegendPosition.Right);
 
   // View state
   private readonly _selectedChartType = signal<ChartType>(ChartType.BAR);
@@ -82,6 +71,14 @@ export class ChartsPageComponent implements OnInit {
   ngOnInit(): void {
     // Load initial data for charts
     void this.loadChartData();
+    this.updateLegendPosition();
+    window.addEventListener('resize', () => this.updateLegendPosition());
+  }
+
+  private updateLegendPosition(): void {
+    const isMobile = window.innerWidth < 768;
+    this.legendPosition.set(isMobile ? LegendPosition.Below : LegendPosition.Right);
+    console.log('legendPosition', this.legendPosition());
   }
 
   /**
