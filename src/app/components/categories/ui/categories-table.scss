@@ -137,28 +137,23 @@
 
 // Column widths
 .mat-column-level {
-  width: 70px;
-  max-width: 100px;
+  min-width: 70px;
 }
 
 .mat-column-created_at {
-  width: 70px;
-  max-width: 100px;
+  min-width: 70px;
 }
 
 .mat-column-usage {
-  width: 70px;
-  max-width: 100px;
+  min-width: 70px;
 }
 
 .mat-column-status {
-  width: 50px;
-  max-width: 50px;
+  min-width: 50px;
 }
 
 .mat-column-actions {
-  width: 80px;
-  max-width: 80px;
+  min-width: 80px;
 }
 
 th.mat-header-cell {
