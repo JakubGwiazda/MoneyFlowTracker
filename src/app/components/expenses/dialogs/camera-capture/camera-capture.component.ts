@@ -56,7 +56,7 @@ export class CameraCaptureComponent implements OnInit, OnDestroy {
   readonly zoomMin = signal(1);
   readonly zoomMax = signal(1);
   readonly zoomStep = signal(0.1);
-
+  readonly maxPracticalZoom = 3;
   private stream: MediaStream | null = null;
 
   async ngOnInit() {
@@ -133,7 +133,8 @@ export class CameraCaptureComponent implements OnInit, OnDestroy {
       if (capabilities) {
         this.zoomSupported.set(true);
         this.zoomMin.set(capabilities.min);
-        this.zoomMax.set(capabilities.max);
+        this.zoomMax.set(Math.min(capabilities.max, this.maxPracticalZoom));
+
         this.zoomStep.set(capabilities.step);
 
         // Get current zoom level

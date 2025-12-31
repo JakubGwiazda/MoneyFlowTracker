@@ -30,9 +30,6 @@ export class PwaUpdateService {
 
     // Sprawdzaj aktualizacje co 6 godzin
     this.schedulePeriodicUpdateChecks();
-
-    // Nasłuchuj na zdarzenia nowych wersji
-    this.listenForVersionUpdates();
   }
 
   /**
@@ -62,19 +59,6 @@ export class PwaUpdateService {
     });
   }
 
-  /**
-   * Nasłuchuje na zdarzenia nowych wersji
-   * Zwraca Observable z informacją o nowej wersji
-   */
-  private listenForVersionUpdates(): void {
-    this.swUpdate.versionUpdates
-      .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
-      .subscribe(evt => {
-        console.log('Nowa wersja dostępna:', evt);
-        console.log('Aktualna wersja:', evt.currentVersion);
-        console.log('Nowa wersja:', evt.latestVersion);
-      });
-  }
 
   /**
    * Sprawdza czy jest dostępna nowa wersja

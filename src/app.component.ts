@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { PwaUpdateService } from './app/services/pwa-update/pwa-update.service';
-import { PwaUpdateDialogComponent } from './app/components/shared/dialogs/pwa-update-dialog/pwa-update-dialog.component';
+import { PwaUpdateDialogComponent } from './app/components/common/dialogs/pwa-update-dialog/pwa-update-dialog.component';
 
 @Component({
   selector: 'app-root',
