@@ -52,7 +52,8 @@ export class ExpensesPageComponent implements OnInit {
   readonly categoryOptions = this.facade.categoryOptions;
   readonly chartData = this.facade.expensesByCategory;
 
-  readonly filtersExpanded = signal(true);
+  readonly filtersExpanded = signal(false);
+  protected readonly summaryAmount = computed(() => this.facade.chartSummaryAmount());
 
   private readonly expenseLookup = computed(() => {
     const vm = this.vm();

@@ -1,5 +1,5 @@
 <div class="expenses-page-container d-flex flex-column" style="height: calc(100vh - 200px)">
-  <div class="tab-content mt-2 flex-shrink-0">
+  <div class="tab-content mt-2 mb-2 flex-shrink-0">
     <mat-card>
       <mat-expansion-panel
         class="filters-expansion-panel"
@@ -18,7 +18,7 @@
           (categorySearch)="onCategorySearch($event)" />
       </mat-expansion-panel>
     </mat-card>
-    <div class="actions-section mt-3 mb-3">
+    <div class="actions-section mt-3 mb-2">
       <button
         mat-raised-button
         color="primary"
@@ -30,6 +30,7 @@
         Dodaj pozycję
       </button>
     </div>
+    <div>Kwota łączna wydatków: {{ summaryAmount() }} PLN</div>
   </div>
   <div class="table-container flex-grow-1 overflow-auto">
     <app-expenses-table

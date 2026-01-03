@@ -14,18 +14,16 @@
       <!-- Name Column -->
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>Nazwa</th>
-        <td mat-cell *matCellDef="let item; let i = index">
-          @if (item.isEditing) {
-            <mat-form-field appearance="outline" class="inline-edit">
-              <input
-                matInput
-                [(ngModel)]="item.name"
-                (blur)="finishEditing(i)"
-                (keyup.enter)="finishEditing(i)"
-                (keyup.escape)="finishEditing(i)" />
-            </mat-form-field>
+        <td mat-cell *matCellDef="let item; let i = index" class="name-cell">
+          @if (item.isEditingName) {
+            <input
+              class="inline-input name-input"
+              type="text"
+              [(ngModel)]="item.name"
+              (blur)="finishEditingName(i)"
+              autofocus />
           } @else {
-            <span (click)="startEditing(i)" class="editable-cell" title="Kliknij aby edytować">
+            <span (click)="startEditingName(i)" class="editable-cell" title="Kliknij aby edytować">
               {{ item.name }}
             </span>
           }
@@ -35,22 +33,24 @@
       <!-- Price Column -->
       <ng-container matColumnDef="amount">
         <th mat-header-cell *matHeaderCellDef>Cena</th>
-        <td mat-cell *matCellDef="let item; let i = index">
-          @if (item.isEditing) {
-            <mat-form-field appearance="outline" class="inline-edit">
+        <td mat-cell *matCellDef="let item; let i = index" class="amount-cell">
+          @if (item.isEditingAmount) {
+            <div class="amount-input-wrapper">
               <input
-                matInput
+                class="inline-input amount-input"
                 type="number"
                 step="0.01"
                 min="0.01"
                 [(ngModel)]="item.amount"
-                (blur)="finishEditing(i)"
-                (keyup.enter)="finishEditing(i)"
-                (keyup.escape)="finishEditing(i)" />
-              <span matSuffix>zł</span>
-            </mat-form-field>
+                (blur)="finishEditingAmount(i)"
+                autofocus />
+              <span class="currency-suffix">zł</span>
+            </div>
           } @else {
-            <span (click)="startEditing(i)" class="editable-cell" title="Kliknij aby edytować">
+            <span
+              (click)="startEditingAmount(i)"
+              class="editable-cell"
+              title="Kliknij aby edytować">
               {{ item.amount | number: '1.2-2' }} zł
             </span>
           }

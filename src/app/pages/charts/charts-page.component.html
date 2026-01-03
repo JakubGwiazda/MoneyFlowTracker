@@ -1,5 +1,5 @@
 <mat-card class="filters-card">
-  <mat-expansion-panel class="filters-expansion-panel" [expanded]="true">
+  <mat-expansion-panel class="filters-expansion-panel" [expanded]="false">
     <mat-expansion-panel-header>
       <mat-panel-title> Filtry wyszukiwania </mat-panel-title>
       <mat-panel-description> Kliknij aby rozwinąć/zwinąć filtry </mat-panel-description>
@@ -26,6 +26,7 @@
 </div>
 <div>
   @if (hasData()) {
+    <div class="mt-2">Kwota łączna wydatków: {{ summaryAmount() }} PLN</div>
     <div class="chart-container" data-testid="expenses-chart">
       @switch (selectedChartType()) {
         @case (ChartType.BAR) {

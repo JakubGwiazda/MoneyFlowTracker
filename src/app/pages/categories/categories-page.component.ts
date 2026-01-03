@@ -68,7 +68,7 @@ export class CategoriesPageComponent implements OnInit {
   activeFilter: boolean | undefined = true;
   choosenCategoriesStatus: boolean | undefined = true;
 
-  readonly filtersExpanded = signal(true);
+  readonly filtersExpanded = signal(false);
 
   private readonly categoryLookup = computed(() => {
     const vm = this.vm();

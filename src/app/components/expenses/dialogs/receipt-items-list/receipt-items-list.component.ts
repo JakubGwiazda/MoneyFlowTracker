@@ -9,7 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { ExpenseToAdd } from '../../../../models/receipt';
 
 export interface EditableExpenseItem extends ExpenseToAdd {
-  isEditing: boolean;
+  isEditingName: boolean;
+  isEditingAmount: boolean;
 }
 
 /**
@@ -58,7 +59,8 @@ export class ReceiptItemsListComponent {
     this.items.set(
       items.map(item => ({
         ...item,
-        isEditing: false,
+        isEditingName: false,
+        isEditingAmount: false,
       }))
     );
   }
@@ -70,30 +72,59 @@ export class ReceiptItemsListComponent {
       this.items.set(
         items.map(item => ({
           ...item,
-          isEditing: false,
+          isEditingName: false,
+          isEditingAmount: false,
         }))
       );
     }
   }
 
-  startEditing(index: number) {
+  startEditingName(index: number) {
     this.items.update(items => {
-      const updated = [...items];
-      updated[index].isEditing = true;
+      const updated = items.map((item, i) => ({
+        ...item,
+        isEditingName: i === index,
+        isEditingAmount: false, // Close amount editing in all rows
+      }));
       return updated;
     });
   }
 
-  finishEditing(index: number) {
+  startEditingAmount(index: number) {
+    this.items.update(items => {
+      const updated = items.map((item, i) => ({
+        ...item,
+        isEditingName: false, // Close name editing in all rows
+        isEditingAmount: i === index,
+      }));
+      return updated;
+    });
+  }
+
+  finishEditingName(index: number) {
     this.items.update(items => {
       const updated = [...items];
       const item = updated[index];
 
-      // Validate
+      // Validate name
       item.name = item.name.trim();
       if (item.name === '') {
         item.name = 'Produkt';
       }
+
+      item.isEditingName = false;
+      return updated;
+    });
+
+    this.emitChanges();
+  }
+
+  finishEditingAmount(index: number) {
+    this.items.update(items => {
+      const updated = [...items];
+      const item = updated[index];
+
+      // Validate amount
       if (item.amount <= 0) {
         item.amount = 0.01;
       }
@@ -101,7 +132,7 @@ export class ReceiptItemsListComponent {
       // Round amount to 2 decimals
       item.amount = Math.round(item.amount * 100) / 100;
 
-      item.isEditing = false;
+      item.isEditingAmount = false;
       return updated;
     });
 

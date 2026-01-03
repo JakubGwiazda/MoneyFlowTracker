@@ -1,12 +1,12 @@
 <mat-tab-group class="tab_group" [attr.data-testid]="'expenses-tab-group'">
-  <mat-tab label="Wizualizacja wydatków" [attr.data-testid]="'expenses-chart-tab'">
-    <div class="tab-content mt-2">
-      <app-charts-page />
-    </div>
-  </mat-tab>
   <mat-tab label="Lista wydatków" [attr.data-testid]="'expenses-list-tab'">
     <div class="tab-content mt-2">
       <app-expenses-page />
+    </div>
+  </mat-tab>
+  <mat-tab label="Wizualizacja wydatków" [attr.data-testid]="'expenses-chart-tab'">
+    <div class="tab-content mt-2">
+      <app-charts-page />
     </div>
   </mat-tab>
   <mat-tab label="Kategorie">

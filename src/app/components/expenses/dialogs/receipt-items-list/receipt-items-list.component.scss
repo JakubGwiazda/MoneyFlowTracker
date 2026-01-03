@@ -40,6 +40,7 @@
 
 .items-table {
   width: 100%;
+  table-layout: fixed;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
@@ -54,6 +55,20 @@
   td {
     font-size: 14px;
   }
+
+  // Column widths
+  .mat-column-name {
+    width: 50%;
+  }
+
+  .mat-column-amount {
+    width: 30%;
+  }
+
+  .mat-column-actions {
+    width: 20%;
+    text-align: center;
+  }
 }
 
 .editable-cell {
@@ -62,22 +77,61 @@
   padding: 8px;
   border-radius: 4px;
   transition: background 0.2s;
+  word-break: break-word;
+  overflow-wrap: break-word;
 
   &:hover {
     background: rgba(0, 0, 0, 0.04);
   }
 }
 
-.inline-edit {
+.inline-input {
+  display: block;
   width: 100%;
-  margin: 0;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 2px solid #3f51b5;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
 
-  ::ng-deep .mat-mdc-form-field-wrapper {
-    padding-bottom: 0;
+  &:focus {
+    border-color: #303f9f;
+    background: #f5f7ff;
   }
 
-  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-    display: none;
+  &.name-input {
+    min-width: 0;
+  }
+
+  &.amount-input {
+    text-align: right;
+    padding-right: 4px;
+    max-width: 120px;
+  }
+}
+
+.name-cell {
+  overflow: hidden;
+}
+
+.amount-cell {
+  white-space: nowrap;
+}
+
+.amount-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .currency-suffix {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
   }
 }
 
@@ -126,21 +180,60 @@
   }
 
   .items-table {
-    font-size: 11px;
+    font-size: 12px;
 
     th {
-      font-size: 12px;
+      font-size: 11px;
+      padding: 8px 4px;
     }
 
-    th,
     td {
-      padding: 6px 4px;
+      padding: 4px 2px;
+      vertical-align: middle;
+    }
+
+    // Adjust column widths for mobile
+    .mat-column-name {
+      width: 45%;
+    }
+
+    .mat-column-amount {
+      width: 35%;
+    }
+
+    .mat-column-actions {
+      width: 20%;
     }
   }
 
   .editable-cell {
-    padding: 4px;
-    font-size: 11px;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .inline-input {
+    padding: 4px 6px;
+    font-size: 12px;
+    max-width: 130px;
+
+    &.name-input {
+      width: 100%;
+      max-width: 130px;
+    }
+
+    &.amount-input {
+      font-size: 13px;
+      padding: 4px;
+      max-width: 70px;
+    }
+  }
+
+  .amount-input-wrapper {
+    gap: 2px;
+
+    .currency-suffix {
+      font-size: 11px;
+    }
   }
 
   .actions {

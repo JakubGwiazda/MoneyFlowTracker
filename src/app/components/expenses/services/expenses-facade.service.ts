@@ -18,17 +18,6 @@ import { ExpenseOperationsService } from './operations/expense-operations.servic
 import { ExpenseLoaderService } from './loaders/expense-loader.service';
 import { ExpenseAggregatorService } from './aggregation/expense-aggregator.service';
 
-/**
- * Main facade service for expense management.
- * Orchestrates state, operations, and data loading services.
- *
- * Refactored architecture separates concerns:
- * - State management: ExpensesStateService, ChartsStateService
- * - Operations: ExpenseOperationsService
- * - Data loading: ExpenseLoaderService
- * - Aggregation: ExpenseAggregatorService
- * - Request management: RequestManagerService
- */
 @Injectable({ providedIn: 'root' })
 export class ExpensesFacadeService {
   // Injected services
@@ -53,7 +42,7 @@ export class ExpensesFacadeService {
   readonly chartExpenses = this.chartsState.chartExpenses;
   readonly chartLoading = this.chartsState.chartLoading;
   readonly chartError = this.chartsState.chartError;
-
+  readonly chartSummaryAmount = this.chartsState.chartSummaryAmount;
   // Aggregated data
   readonly expensesByCategory = this.aggregator.createCategoryAggregation(() => this.expenses());
   readonly chartExpensesByCategory = this.aggregator.createCategoryAggregation(() =>

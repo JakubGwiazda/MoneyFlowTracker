@@ -18,12 +18,14 @@ export class ChartsStateService {
   private readonly chartExpensesSignal = signal<ExpensesListViewModel[]>([]);
   private readonly chartLoadingSignal = signal<boolean>(false);
   private readonly chartErrorSignal = signal<string | null>(null);
+  private readonly chartSummaryAmountSignal = signal<number>(0);
 
   // Public read-only signals
   readonly chartFilters = this.chartFiltersSignal.asReadonly();
   readonly chartExpenses = this.chartExpensesSignal.asReadonly();
   readonly chartLoading = this.chartLoadingSignal.asReadonly();
   readonly chartError = this.chartErrorSignal.asReadonly();
+  readonly chartSummaryAmount = this.chartSummaryAmountSignal.asReadonly();
 
   // State update methods
   setChartFilters(update: Partial<ChartsFilterState>): void {
@@ -37,6 +39,7 @@ export class ChartsStateService {
 
   setChartExpenses(expenses: ExpensesListViewModel[]): void {
     this.chartExpensesSignal.set(expenses);
+    this.chartSummaryAmountSignal.set(expenses.reduce((acc, expense) => acc + expense.amount, 0));
   }
 
   setChartLoading(loading: boolean): void {
