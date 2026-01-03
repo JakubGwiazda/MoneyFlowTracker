@@ -40,7 +40,7 @@ export class ChartsStateService {
   setChartExpenses(expenses: ExpensesListViewModel[]): void {
     this.chartExpensesSignal.set(expenses);
     this.chartSummaryAmountSignal.set(
-      expenses.reduce((acc, expense) => acc + Number(expense.amount.toFixed(2)), 0)
+      Number(expenses.reduce((acc, expense) => acc + expense.amount, 0).toFixed(2))
     );
   }
 

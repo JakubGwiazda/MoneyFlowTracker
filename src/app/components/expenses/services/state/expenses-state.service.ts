@@ -29,7 +29,7 @@ export class ExpensesStateService {
   private readonly loadingSignal = signal<boolean>(false);
   private readonly errorSignal = signal<string | null>(null);
   private readonly categoryOptionsSignal = signal<CategoryOptionViewModel[]>([]);
-
+  private readonly summaryAmountSignal = signal<number>(0);
   // Public read-only signals
   readonly filters = this.filtersSignal.asReadonly();
   readonly expenses = this.expensesSignal.asReadonly();
@@ -37,6 +37,7 @@ export class ExpensesStateService {
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
   readonly categoryOptions = this.categoryOptionsSignal.asReadonly();
+  readonly summaryAmount = this.summaryAmountSignal.asReadonly();
 
   // Computed sort state
   readonly sortState = computed<SortState | null>(() => {
@@ -99,6 +100,9 @@ export class ExpensesStateService {
 
   setExpenses(expenses: ExpensesListViewModel[]): void {
     this.expensesSignal.set(expenses);
+    this.summaryAmountSignal.set(
+      Number(expenses.reduce((acc, expense) => acc + expense.amount, 0).toFixed(2))
+    );
   }
 
   setPagination(pagination: PaginationState): void {

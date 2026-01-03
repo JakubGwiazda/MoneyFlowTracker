@@ -13,6 +13,9 @@
 
     .chart-legend {
       display: block !important;
+      div {
+        width: 100% !important;
+      }
     }
 
     .legend-labels {
