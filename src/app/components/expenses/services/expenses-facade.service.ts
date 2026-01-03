@@ -43,6 +43,8 @@ export class ExpensesFacadeService {
   readonly chartExpenses = this.chartsState.chartExpenses;
   readonly chartLoading = this.chartsState.chartLoading;
   readonly chartError = this.chartsState.chartError;
+  readonly chartSummaryAmount = this.chartsState.chartSummaryAmount;
+  
   // Aggregated data
   readonly expensesByCategory = this.aggregator.createCategoryAggregation(() => this.expenses());
   readonly chartExpensesByCategory = this.aggregator.createCategoryAggregation(() =>

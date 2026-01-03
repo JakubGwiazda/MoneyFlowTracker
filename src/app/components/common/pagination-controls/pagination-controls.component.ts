@@ -18,7 +18,7 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
       <div>
         <span>Strona {{ state().page }}</span>
         @if (totalItems() !== null) {
-          <span> z {{ totalItems() }} </span>
+          <span> z {{ maxPages() }} </span>
         }
       </div>
       <div class="d-flex justify-content-end align-items-center gap-2" style="width: 20%;">
@@ -78,6 +78,7 @@ export class PaginationControlsComponent {
   readonly perPageOptions = PER_PAGE_OPTIONS;
 
   readonly totalItems = computed(() => this.state().total ?? null);
+  readonly maxPages = computed(() => Math.ceil(this.totalItems()! / this.state().perPage));
 
   onPrev(): void {
     if (!this.state().hasPrev) {

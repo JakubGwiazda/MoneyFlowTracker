@@ -46,7 +46,7 @@ export class ChartsPageComponent implements OnInit {
   protected readonly animations = signal(true);
   protected readonly colorScheme = signal('picnic');
   protected readonly legendPosition = signal<LegendPosition>(LegendPosition.Right);
-  protected readonly summaryAmount = computed(() => this.expensesFacade.summaryAmount());
+  protected readonly summaryAmount = computed(() => this.expensesFacade.chartSummaryAmount());
 
   // View state
   private readonly _selectedChartType = signal<ChartType>(ChartType.BAR);
