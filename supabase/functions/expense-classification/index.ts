@@ -96,6 +96,35 @@ serve(async req => {
       finishReason: data.choices[0]?.finish_reason,
     });
 
+    // 10.5 Parse and validate the AI response
+    try {
+      const content = data.choices[0]?.message?.content;
+      if (content) {
+        const parsed = JSON.parse(content);
+
+        // Validate categoryIds in the response
+        if (payload.type === 'batch' && parsed.results) {
+          const invalidCategories = parsed.results
+            .filter((r: any) => r.categoryId && !categories.some(c => c.id === r.categoryId))
+            .map((r: any) => ({ categoryId: r.categoryId, categoryName: r.categoryName }));
+
+          if (invalidCategories.length > 0) {
+            console.warn('AI returned invalid category IDs:', invalidCategories);
+          }
+        } else if (payload.type === 'single' && parsed.categoryId) {
+          const categoryExists = categories.some(c => c.id === parsed.categoryId);
+          if (!categoryExists) {
+            console.warn('AI returned invalid category ID:', {
+              categoryId: parsed.categoryId,
+              categoryName: parsed.categoryName,
+            });
+          }
+        }
+      }
+    } catch (parseError) {
+      console.error('Error parsing AI response for validation:', parseError);
+    }
+
     // 11. Return success response
     return successResponse(data);
   } catch (error: any) {

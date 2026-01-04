@@ -79,7 +79,6 @@ export class ChartsPageComponent implements OnInit {
   private updateLegendPosition(): void {
     const isMobile = window.innerWidth < 768;
     this.legendPosition.set(isMobile ? LegendPosition.Below : LegendPosition.Right);
-    console.log('legendPosition', this.legendPosition());
   }
 
   /**

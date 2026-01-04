@@ -23,8 +23,16 @@ ${categoriesList}
 ### ZASADY KLASYFIKACJI:
 
 1. Oceń, do której z istniejących kategorii wydatek najbardziej pasuje.
-2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć identyfikator i nazwę tej kategorii.
-3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii** zgodną z zasadami poniżej.
+2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć:
+   - categoryId: ID wybranej kategorii z listy
+   - categoryName: nazwę wybranej kategorii
+   - isNewCategory: false
+   - newCategoryName: pusty string ""
+3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii**:
+   - categoryId: null
+   - categoryName: nazwę nowej kategorii
+   - isNewCategory: true
+   - newCategoryName: nazwę nowej kategorii (taka sama jak categoryName)
 4. Oceniaj pewność (confidence) w skali 0–1, uwzględniając:
    - słowa kluczowe w opisie,
    - kontekst zakupu (np. miejsce, usługa, produkt),
@@ -72,8 +80,16 @@ ${categoriesList}
 ### ZASADY KLASYFIKACJI:
 
 1. Dla każdego wydatku oceń, do której z istniejących kategorii najbardziej pasuje.
-2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć identyfikator i nazwę tej kategorii.
-3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii** zgodną z zasadami poniżej.
+2. Jeśli **pewność dopasowania ≥ 0.7**, zwróć:
+   - categoryId: ID wybranej kategorii z listy
+   - categoryName: nazwę wybranej kategorii
+   - isNewCategory: false
+   - newCategoryName: pusty string ""
+3. Jeśli **pewność < 0.7**, zaproponuj **nową nazwę kategorii**:
+   - categoryId: null
+   - categoryName: nazwę nowej kategorii
+   - isNewCategory: true
+   - newCategoryName: nazwę nowej kategorii (taka sama jak categoryName)
 4. Oceniaj pewność (confidence) w skali 0–1, uwzględniając:
    - słowa kluczowe w opisie,
    - kontekst zakupu (np. miejsce, usługa, produkt),
@@ -88,7 +104,7 @@ ${categoriesList}
 8. Zwróć wynik **w formacie JSON** jako tablicę obiektów.
 9. Zachowaj kolejność wydatków - wynik dla wydatku nr 1 musi być pierwszy w tablicy, itd.
 10. Proponowane nazwy nowych kategorii muszą być unikalne i nie powinny być takie same jak nazwy istniejących kategorii.
-11. W przypadku nowych kategorii w polu ID oraz category name zwróć null, a uzupelnij pole newCategoryName nazwą nowej kategorii.
+11. WAŻNE: Jeśli dopasowujesz do istniejącej kategorii, ZAWSZE użyj dokładnie tego samego ID i nazwy, które są w liście kategorii powyżej.
 `;
 }
 
@@ -129,11 +145,13 @@ export function buildResponseFormat(type: string, expectedCount?: number): any {
           properties: {
             categoryId: {
               type: ['string', 'null'],
-              description: 'ID dopasowanej kategorii z listy istniejących kategorii',
+              description:
+                'ID dopasowanej kategorii z listy istniejących kategorii (null dla nowej kategorii)',
             },
             categoryName: {
               type: 'string',
-              description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii',
+              description:
+                'Nazwa dopasowanej kategorii (z listy istniejących) lub nazwa nowej kategorii',
             },
             confidence: {
               type: 'number',
@@ -180,11 +198,12 @@ export function buildResponseFormat(type: string, expectedCount?: number): any {
               properties: {
                 categoryId: {
                   type: ['string', 'null'],
-                  description: 'ID dopasowanej kategorii lub null dla nowej kategorii',
+                  description: 'ID dopasowanej kategorii (null dla nowej kategorii)',
                 },
                 categoryName: {
                   type: 'string',
-                  description: 'Nazwa dopasowanej kategorii z listy istniejących kategorii',
+                  description:
+                    'Nazwa dopasowanej kategorii (z listy istniejących) lub nazwa nowej kategorii',
                 },
                 confidence: {
                   type: 'number',
@@ -259,4 +278,3 @@ export function buildMessages(payload: any, categories: any[]): any[] {
 
   return [];
 }
-
