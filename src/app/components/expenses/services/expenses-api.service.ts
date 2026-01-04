@@ -189,21 +189,23 @@ export class ExpensesApiService {
 
   /**
    * Gets categories for AI classification
+   * Returns both system categories (user_id IS NULL) and user's own categories
+   * RLS policy automatically filters to show only accessible categories
    */
   getCategoriesForClassification(): Observable<
     {
       id: string;
       name: string;
-      parent_id: null;
+      parent_id: string | null;
       is_active: boolean;
       created_at: string;
-      user_id: null;
+      user_id: string | null;
     }[]
   > {
     return from(
       supabaseClient
         .from('categories')
-        .select('id, name, is_active')
+        .select('id, name, parent_id, is_active, created_at, user_id')
         .eq('is_active', true)
         .order('name')
     ).pipe(
@@ -212,14 +214,8 @@ export class ExpensesApiService {
           throw new Error('Nie udało się pobrać kategorii do klasyfikacji.');
         }
 
-        return (categories || []).map(cat => ({
-          id: cat.id,
-          name: cat.name,
-          parent_id: null,
-          is_active: cat.is_active,
-          created_at: new Date().toISOString(),
-          user_id: null,
-        }));
+        // RLS automatically filters to: system categories (user_id IS NULL) + own categories
+        return categories || [];
       })
     );
   }
@@ -328,7 +324,17 @@ export class ExpensesApiService {
           let categoryId: string | null = null;
 
           if (classification.categoryId) {
-            categoryId = classification.categoryId;
+            // Verify that the category ID exists in available categories
+            const categoryExists = categories.some(cat => cat.id === classification.categoryId);
+            if (categoryExists) {
+              categoryId = classification.categoryId;
+            } else {
+              console.warn(
+                `Category ID ${classification.categoryId} not found in available categories, treating as new category`
+              );
+              // Fallback: try to find by category name in the map
+              categoryId = categoryNameToIdMap.get(classification.categoryName) || null;
+            }
           } else if (classification.isNewCategory) {
             categoryId = categoryNameToIdMap.get(classification.newCategoryName) || null;
           }

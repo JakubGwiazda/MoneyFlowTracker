@@ -42,11 +42,11 @@ serve(async req => {
       );
     }
 
-    // 6. Fetch user categories
+    // 6. Fetch user categories (system categories + user's own categories)
     const { data: categories, error: categoriesError } = await supabaseClient
       .from('categories')
       .select('id, name')
-      .or('user_id.is.null,user_id.eq.' + user.id)
+      .or(`user_id.is.null,user_id.eq.${user.id}`)
       .eq('is_active', true)
       .order('name');
 
