@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { supabaseClient } from '../../../db/supabase.client';
 import type { User, AuthError } from '@supabase/supabase-js';
+import { environment } from 'src/environments/environment.prod';
 
 export type AuthState = {
   user: User | null;
@@ -172,6 +173,25 @@ export class AuthService {
       }));
 
       return { success: false, error: errorMessage };
+    }
+  }
+
+  async sendLinkToResetPassword(email: string): Promise<void> {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async resetPassword(
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      await supabaseClient.auth.updateUser({ password: newPassword });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: this.resolveErrorMessage(error) };
     }
   }
 

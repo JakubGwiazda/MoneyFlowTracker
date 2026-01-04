@@ -5,6 +5,8 @@ import { guestGuard } from './guards/guest.guard';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password';
 
 const loadMainPage = () =>
   import('./pages/main-page/main-page.component').then(m => m.MainPageComponent);
@@ -23,6 +25,16 @@ export const appRoutes: Routes = [
   {
     path: 'register',
     component: RegisterComponent,
+    canActivate: [guestGuard],
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent,
+    canActivate: [guestGuard],
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
     canActivate: [guestGuard],
   },
   {
