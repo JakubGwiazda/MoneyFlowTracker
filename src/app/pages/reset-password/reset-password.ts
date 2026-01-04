@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -46,7 +46,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   styleUrl: './reset-password.scss',
   standalone: true,
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: FormGroup;
   hidePassword = signal(true);
   hideConfirmPassword = signal(true);
@@ -57,6 +57,7 @@ export class ResetPasswordComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private router: Router
   ) {
     this.resetPasswordForm = this.fb.group(
       {
@@ -65,6 +66,17 @@ export class ResetPasswordComponent {
       },
       { validators: passwordMatchValidator }
     );
+  }
+
+  async ngOnInit(): Promise<void> {
+    // Sprawdź czy użytkownik ma aktywną sesję (powinien być zalogowany przez link z email)
+    await this.authService.waitForInitialization();
+
+    if (!this.authService.isAuthenticated()) {
+      this.errorMessage.set(
+        'Link resetowania hasła wygasł lub jest nieprawidłowy. Spróbuj ponownie.'
+      );
+    }
   }
 
   async onSubmit(): Promise<void> {
@@ -82,10 +94,15 @@ export class ResetPasswordComponent {
     this.loading.set(false);
 
     if (result.success) {
-      if (result.error) {
-        // This is a success message about email confirmation
-        this.successMessage.set(result.error);
-      }
+      this.successMessage.set(
+        'Hasło zostało pomyślnie zmienione. Za chwilę zostaniesz przekierowany...'
+      );
+      this.resetPasswordForm.disable();
+
+      // Przekieruj do aplikacji po 2 sekundach
+      setTimeout(async () => {
+        await this.router.navigate(['/app']);
+      }, 2000);
     } else if (result.error) {
       this.errorMessage.set(result.error);
     }

@@ -184,11 +184,16 @@ export class AuthService {
     }
   }
 
-  async resetPassword(
-    newPassword: string
-  ): Promise<{ success: boolean; error?: string }> {
+  async resetPassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
     try {
-      await supabaseClient.auth.updateUser({ password: newPassword });
+      const { data, error } = await supabaseClient.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        return { success: false, error: this.resolveErrorMessage(error) };
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: this.resolveErrorMessage(error) };
