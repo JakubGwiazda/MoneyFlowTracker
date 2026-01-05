@@ -232,7 +232,7 @@ export class CategoriesFacadeService {
               ),
           }) satisfies CategoryOption
       );
-      ns) {
+      for (const option of options) {
         this.categoryNameMap.set(option.id, option.label);
       }
 
