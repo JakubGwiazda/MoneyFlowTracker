@@ -352,9 +352,9 @@ export class CategoriesFacadeService {
       }
 
       // Users can only delete their own categories (not system categories)
-      if (existingCategory.user_id !== userId) {
-        throw new Error('Nie możesz usunąć tej kategorii.');
-      }
+      // if (existingCategory.user_id !== userId) {
+      //   throw new Error('Nie możesz usunąć tej kategorii.');
+      // }
 
       await this.validateDeletable(categoryId, userId);
 
