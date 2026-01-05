@@ -61,6 +61,27 @@ export class SupabaseExpenseRepository implements IExpenseRepository {
     }
   }
 
+  async massUpdateCategory(
+    expenseIds: string[],
+    categoryId: string,
+    userId: string
+  ): Promise<void> {
+    const { error } = await this.supabase
+      .from('expenses')
+      .update({
+        category_id: categoryId,
+        classification_status: 'corrected',
+        corrected_category_id: categoryId,
+      })
+      .in('id', expenseIds)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Failed to mass update expenses:', error);
+      throw new Error('EXPENSE_MASS_UPDATE_FAILED');
+    }
+  }
+
   async findById(id: string, userId: string): Promise<ExpenseDto | null> {
     const { data: expense, error } = await this.supabase
       .from('expenses')

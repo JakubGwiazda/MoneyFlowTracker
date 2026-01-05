@@ -29,6 +29,18 @@
         <mat-icon>add</mat-icon>
         Dodaj pozycję
       </button>
+      @if (hasSelection()) {
+        <button
+          mat-raised-button
+          color="accent"
+          type="button"
+          (click)="onMassEditCategory()"
+          class="flex items-center gap-2"
+          data-testid="mass-edit-button">
+          <mat-icon>edit</mat-icon>
+          Edytuj wiele ({{ selectedExpenseIds().length }})
+        </button>
+      }
     </div>
     <div>Kwota pozycji na stronie: {{ summaryAmount() }} PLN</div>
   </div>
@@ -39,6 +51,7 @@
       [sortState]="vm().sort"
       [filtersExpanded]="filtersExpanded()"
       (sortChange)="onSortChange($event)"
+      (selectionChange)="onSelectionChange($event)"
       (editExpense)="onEditExpense($event)"
       (deleteExpense)="onDeleteExpense($event)" />
   </div>

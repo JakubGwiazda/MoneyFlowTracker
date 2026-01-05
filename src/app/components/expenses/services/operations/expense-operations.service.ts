@@ -51,4 +51,12 @@ export class ExpenseOperationsService {
       throw new Error(resolveErrorMessage(error));
     }
   }
+
+  async massUpdateCategory(expenseIds: string[], categoryId: string): Promise<void> {
+    try {
+      await firstValueFrom(this.expensesApi.massUpdateCategory(expenseIds, categoryId));
+    } catch (error) {
+      throw new Error(resolveErrorMessage(error));
+    }
+  }
 }

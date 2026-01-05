@@ -18,6 +18,11 @@ import {
   AddExpenseDialogResult,
 } from 'src/app/components/expenses/dialogs/add-expense/add-expense-dialog.component';
 import { EditExpenseDialogComponent } from 'src/app/components/expenses/dialogs/edit-expense/edit-expense-dialog.component';
+import {
+  MassEditCategoryDialogComponent,
+  type MassEditCategoryDialogData,
+  type MassEditCategoryDialogResult,
+} from 'src/app/components/expenses/dialogs/mass-edit-category/mass-edit-category-dialog.component';
 import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
 import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-table.component';
@@ -54,6 +59,8 @@ export class ExpensesPageComponent implements OnInit {
 
   readonly filtersExpanded = signal(false);
   protected readonly summaryAmount = computed(() => this.facade.summaryAmount());
+  readonly selectedExpenseIds = signal<string[]>([]);
+  readonly hasSelection = computed(() => this.selectedExpenseIds().length > 0);
 
   private readonly expenseLookup = computed(() => {
     const vm = this.vm();
@@ -64,8 +71,8 @@ export class ExpensesPageComponent implements OnInit {
     return map;
   });
 
-  ngOnInit(): void {
-    void this.facade.loadCategories();
+  async ngOnInit(): Promise<void> {
+    await this.facade.loadCategories();
   }
 
   onFilterChange(patch: Partial<ExpensesFilterState>): void {
@@ -184,6 +191,54 @@ export class ExpensesPageComponent implements OnInit {
 
   onFiltersPanelExpandedChange(expanded: boolean): void {
     this.filtersExpanded.set(expanded);
+  }
+
+  onSelectionChange(selectedIds: string[]): void {
+    this.selectedExpenseIds.set(selectedIds);
+  }
+
+  onMassEditCategory(): void {
+    const selectedIds = this.selectedExpenseIds();
+    if (selectedIds.length === 0) {
+      return;
+    }
+
+    void this.facade.loadCategories('');
+
+    const dialogRef = this.dialog.open<
+      MassEditCategoryDialogComponent,
+      MassEditCategoryDialogData,
+      MassEditCategoryDialogResult
+    >(MassEditCategoryDialogComponent, {
+      width: '420px',
+      data: {
+        expenseIds: selectedIds,
+        expenseCount: selectedIds.length,
+        getCategories: () => this.categoryOptions(),
+        onCategorySearch: (query: string) => this.facade.loadCategories(query),
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: MassEditCategoryDialogResult | undefined) => {
+      if (result === undefined) {
+        return;
+      }
+
+      try {
+        await this.facade.massUpdateCategory(selectedIds, result.category_id);
+        this.snackBar.open(
+          `Zaktualizowano kategorię dla ${selectedIds.length} wydatków.`,
+          'Zamknij',
+          { duration: 3000 }
+        );
+        this.selectedExpenseIds.set([]);
+      } catch (error) {
+        console.error(error);
+        this.snackBar.open('Nie udało się zaktualizować kategorii.', 'Zamknij', {
+          duration: 3000,
+        });
+      }
+    });
   }
 
   private async openExpenseDialog(expenseId?: string): Promise<void> {

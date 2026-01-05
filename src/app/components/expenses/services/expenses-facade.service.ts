@@ -148,6 +148,11 @@ export class ExpensesFacadeService {
     return result;
   }
 
+  async massUpdateCategory(expenseIds: string[], categoryId: string): Promise<void> {
+    await this.operations.massUpdateCategory(expenseIds, categoryId);
+    await this.refresh('manual');
+  }
+
   // AI operations
   async suggestCategory(description: string, amount: number): Promise<ClassificationResult> {
     return await this.loader.suggestCategory(description, amount);

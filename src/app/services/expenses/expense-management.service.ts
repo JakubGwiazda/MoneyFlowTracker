@@ -179,4 +179,40 @@ export class ExpenseManagementService {
     // Log classification
     void this.logger.logClassification(expenseId, predictedCategoryId, confidence, userId);
   }
+
+  /**
+   * Updates multiple expenses with a new category.
+   * This marks all expenses as 'corrected' with the specified category.
+   *
+   * @param expenseIds - Array of expense IDs to update
+   * @param categoryId - The new category ID to apply
+   * @param userId - The authenticated user's ID
+   * @returns Promise<void>
+   * @throws Error if validation fails or mass update fails
+   */
+  async massUpdateCategory(
+    expenseIds: string[],
+    categoryId: string,
+    userId: string
+  ): Promise<void> {
+    if (expenseIds.length === 0) {
+      throw new Error('No expenses selected for update');
+    }
+
+    // Validate category
+    const validationResult = await this.validator.validate(categoryId);
+    if (!validationResult.isValid) {
+      throw new Error(validationResult.errors[0]);
+    }
+
+    // Mass update expenses
+    await this.repository.massUpdateCategory(expenseIds, categoryId, userId);
+
+    // Log the operation
+    void this.logger.logUpdate(
+      `mass_update_${expenseIds.length}`,
+      { category_id: categoryId, classification_status: 'corrected' },
+      userId
+    );
+  }
 }
