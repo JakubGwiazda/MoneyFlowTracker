@@ -92,9 +92,31 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MONEYFLOWTRACKER_8B4C6 }}
           channelId: live
           projectId: moneyflowtracker-8b4c6
+  deploy_supabase_migrations:
+    name: Deploy Supabase migrations
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v6
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref bebnkqgtuemvscxdlvsq --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Deploy database migrations
+        run: supabase db push --linked
+
   deploy_supabase_functions:
     name: Deploy Supabase functions
-    needs: build
+    needs: deploy_supabase_migrations
     runs-on: ubuntu-latest
     environment: test
     steps:

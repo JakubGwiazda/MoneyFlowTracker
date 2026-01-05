@@ -352,22 +352,68 @@ export class CategoriesFacadeService {
       }
 
       // Users can only delete their own categories (not system categories)
+      // Temporarily commented out to allow deleting system categories for testing
       // if (existingCategory.user_id !== userId) {
       //   throw new Error('Nie możesz usunąć tej kategorii.');
       // }
 
-      await this.validateDeletable(categoryId, userId);
-
-      // Soft delete
-      const { error: deleteError } = await supabaseClient
+      // Check if category has children - ALWAYS block deletion
+      const { data: children } = await supabaseClient
         .from('categories')
-        .update({
-          is_active: false,
-        })
-        .eq('id', categoryId);
+        .select('id')
+        .eq('parent_id', categoryId)
+        .limit(1);
 
-      if (deleteError) {
-        throw new Error('Nie udało się usunąć kategorii.');
+      if (children && children.length > 0) {
+        throw new Error('Nie można usunąć kategorii zawierającej podkategorie.');
+      }
+
+      // Check if category is being used in expenses
+      const { data: expenses } = await supabaseClient
+        .from('expenses')
+        .select('id')
+        .or(`category_id.eq.${categoryId},predicted_category_id.eq.${categoryId}`)
+        .limit(1);
+
+      const hasExpenses = expenses && expenses.length > 0;
+
+      if (hasExpenses) {
+        // Soft delete - category has expenses, just deactivate it
+        const { error: updateError } = await supabaseClient
+          .from('categories')
+          .update({
+            is_active: false,
+          })
+          .eq('id', categoryId);
+
+        if (updateError) {
+          console.error('Soft delete error:', updateError);
+          throw new Error('Nie udało się dezaktywować kategorii.');
+        }
+      } else {
+        // Hard delete - category has no expenses, remove it completely
+        // Note: This will fail for system categories due to RLS policy
+        // System categories (user_id IS NULL) cannot be deleted by users
+        const { error: deleteError } = await supabaseClient
+          .from('categories')
+          .delete()
+          .eq('id', categoryId);
+
+        if (deleteError) {
+          console.error('Hard delete error:', deleteError);
+          // If hard delete fails (e.g., system category), try soft delete
+          const { error: fallbackError } = await supabaseClient
+            .from('categories')
+            .update({
+              is_active: false,
+            })
+            .eq('id', categoryId);
+
+          if (fallbackError) {
+            console.error('Fallback soft delete error:', fallbackError);
+            throw new Error('Nie udało się usunąć kategorii.');
+          }
+        }
       }
 
       await this.refresh();
@@ -668,31 +714,6 @@ export class CategoriesFacadeService {
     // Check if parent has this category as parent (for update)
     if (currentId && parent.parent_id === currentId) {
       throw new Error('Wybrana kategoria nadrzędna tworzy cykl.');
-    }
-  }
-
-  private async validateDeletable(categoryId: string, userId: string): Promise<void> {
-    // Check if category is being used
-    const { data: expenses } = await supabaseClient
-      .from('expenses')
-      .select('id')
-      .eq('user_id', userId)
-      .or(`category_id.eq.${categoryId},predicted_category_id.eq.${categoryId}`)
-      .limit(1);
-
-    if (expenses && expenses.length > 0) {
-      throw new Error('Nie można usunąć kategorii używanej w wydatkach.');
-    }
-
-    // Check if category has children
-    const { data: children } = await supabaseClient
-      .from('categories')
-      .select('id')
-      .eq('parent_id', categoryId)
-      .limit(1);
-
-    if (children && children.length > 0) {
-      throw new Error('Nie można usunąć kategorii zawierającej podkategorie.');
     }
   }
 
