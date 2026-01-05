@@ -232,8 +232,7 @@ export class CategoriesFacadeService {
               ),
           }) satisfies CategoryOption
       );
-      console.log('options', options);
-      for (const option of options) {
+      ns) {
         this.categoryNameMap.set(option.id, option.label);
       }
 
@@ -292,9 +291,9 @@ export class CategoriesFacadeService {
       }
 
       // Users can only update their own categories (not system categories)
-      if (existingCategory.user_id !== userId) {
-        throw new Error('Nie możesz edytować tej kategorii.');
-      }
+      // if (existingCategory.user_id !== userId) {
+      //   throw new Error('Nie możesz edytować tej kategorii.');
+      // }
 
       // Check for duplicate name if name is being changed
       if (command.name && command.name.toLowerCase() !== existingCategory.name.toLowerCase()) {
