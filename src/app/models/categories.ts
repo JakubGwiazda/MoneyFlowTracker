@@ -48,6 +48,13 @@ export type PaginationState = {
 /**
  * Category option for dropdowns/autocomplete.
  */
+export type CategoryOption =  CategoryOptionViewModel & {
+  children?: CategoryOptionViewModel[];
+};
+
+/**
+ * Category option for dropdowns/autocomplete.
+ */
 export type CategoryOptionViewModel = {
   id: string;
   label: string;

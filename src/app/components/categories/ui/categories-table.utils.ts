@@ -48,6 +48,8 @@ export function buildCategoryTree(
 /**
  * Flattens a category tree into visible rows based on expanded state.
  * Pure function that recursively processes the tree structure.
+ * Note: Categories are already sorted hierarchically from the backend
+ * (parent_id nulls first, then by name), so no additional sorting is needed.
  */
 export function flattenVisibleRows(treeData: CategoryTreeData): readonly CategoryTreeNode[] {
   const visible: CategoryTreeNode[] = [];
@@ -55,17 +57,15 @@ export function flattenVisibleRows(treeData: CategoryTreeData): readonly Categor
   const addNode = (node: CategoryTreeNode) => {
     visible.push(node);
     if (node.isExpanded && node.children.length > 0) {
-      // Sort children by name
-      const sortedChildren = [...node.children].sort((a, b) => a.name.localeCompare(b.name));
-      for (const child of sortedChildren) {
+      // Children are already in correct order from tree building
+      for (const child of node.children) {
         addNode(child);
       }
     }
   };
 
-  // Sort root nodes by name
-  const sortedRoots = [...treeData.roots].sort((a, b) => a.name.localeCompare(b.name));
-  for (const root of sortedRoots) {
+  // Root nodes are already sorted from tree building
+  for (const root of treeData.roots) {
     addNode(root);
   }
 
