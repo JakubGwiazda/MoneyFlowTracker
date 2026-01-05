@@ -702,9 +702,9 @@ export class CategoriesFacadeService {
     }
 
     // Validate that parent belongs to the same user
-    if (parent.user_id !== userId) {
-      throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
-    }
+    // if (parent.user_id !== userId) {
+    //   throw new Error('Nie możesz używać kategorii systemowych jako kategorii nadrzędnej.');
+    // }
 
     // Check for circular reference
     if (currentId && parentId === currentId) {
