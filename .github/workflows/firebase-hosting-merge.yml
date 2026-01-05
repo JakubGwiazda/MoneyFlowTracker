@@ -96,6 +96,7 @@ jobs:
     name: Deploy Supabase migrations
     needs: build
     runs-on: ubuntu-latest
+    environment: test
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
