@@ -8,6 +8,7 @@ import {
   type PaginationLink,
   type CategoryOptionViewModel,
   type CategoryOperationResult,
+  CategoryOption,
 } from '../../../models/categories';
 import { AuthService } from '../../../services/authorization/auth.service';
 
@@ -44,7 +45,7 @@ export class CategoriesFacadeService {
   private readonly paginationSignal = signal<PaginationState>(EMPTY_PAGINATION);
   private readonly loadingSignal = signal<boolean>(false);
   private readonly errorSignal = signal<string | null>(null);
-  private readonly allCategoriesSignal = signal<CategoryOptionViewModel[]>([]);
+  private readonly allCategoriesSignal = signal<CategoryOption[]>([]);
   private readonly categoriesLoaded = signal<boolean>(false);
 
   readonly filters = this.filtersSignal.asReadonly();
@@ -98,24 +99,30 @@ export class CategoriesFacadeService {
     try {
       const userId = await this.ensureAuthenticatedUser();
 
-      const query = this.buildCategoriesQuery(filters);
+      // Step 1: Build query for parent categories only (with pagination)
+      const parentQuery = this.buildParentCategoriesQuery(filters);
 
       if (controller.signal.aborted) {
         return;
       }
 
-      const { data, error, count } = await this.executeCategoriesQuery(query);
+      // Step 2: Execute query to get parent categories and total count
+      const {
+        data: parentData,
+        error: parentError,
+        count,
+      } = await this.executeCategoriesQuery(parentQuery);
 
       if (controller.signal.aborted) {
         return;
       }
 
-      if (error) {
+      if (parentError) {
         throw new Error('Nie udało się pobrać listy kategorii.');
       }
 
-      // Map to CategoryDto format
-      const categories: CategoryDto[] = (data || []).map(row => ({
+      // Map parent categories to CategoryDto format
+      const parentCategories: CategoryDto[] = (parentData || []).map(row => ({
         id: row.id,
         name: row.name,
         parent_id: row.parent_id,
@@ -124,8 +131,41 @@ export class CategoriesFacadeService {
         user_id: row.user_id,
       }));
 
+      // Step 3: Fetch all children for the parent categories (no pagination)
+      let childCategories: CategoryDto[] = [];
+      if (parentCategories.length > 0) {
+        const parentIds = parentCategories.map(c => c.id);
+        const childQuery = this.buildChildCategoriesQuery(parentIds, filters);
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        const { data: childData, error: childError } = await childQuery;
+
+        if (childError) {
+          throw new Error('Nie udało się pobrać podkategorii.');
+        }
+
+        childCategories = (childData || []).map((row: any) => ({
+          id: row.id,
+          name: row.name,
+          parent_id: row.parent_id,
+          is_active: row.is_active,
+          created_at: row.created_at,
+          user_id: row.user_id,
+        }));
+      }
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      // Step 4: Combine parent and child categories
+      const allCategories = [...parentCategories, ...childCategories];
+
       const { usageCounts, childrenMap } = await this.enrichCategoriesData(
-        categories,
+        allCategories,
         userId,
         controller
       );
@@ -134,9 +174,10 @@ export class CategoriesFacadeService {
         return;
       }
 
-      const viewModels = this.mapToViewModels(categories, usageCounts, childrenMap);
+      const viewModels = this.mapToViewModels(allCategories, usageCounts, childrenMap);
 
       this.categoriesSignal.set(viewModels);
+      // Use count of parent categories only for pagination
       this.paginationSignal.set(this.buildPaginationState(filters, count || 0));
     } catch (error) {
       if (controller.signal.aborted) {
@@ -159,13 +200,17 @@ export class CategoriesFacadeService {
       const { data: categories, error } = await supabaseClient
         .from('categories')
         .select('id, name, parent_id, is_active, user_id')
+        .or(`user_id.is.null,user_id.eq.${this.authService.authState().user?.id}`)
+        .order('parent_id', { ascending: true, nullsFirst: true })
         .order('name');
 
       if (error) {
         throw new Error('Nie udało się pobrać listy kategorii.');
       }
 
-      const options = (categories || []).map(
+      let parents = categories?.filter(category => category.parent_id === null);
+
+      const options = parents.map(
         category =>
           ({
             id: category.id,
@@ -173,9 +218,21 @@ export class CategoriesFacadeService {
             parentId: category.parent_id,
             isActive: category.is_active,
             isSystem: category.user_id === null,
-          }) satisfies CategoryOptionViewModel
+            children: categories
+              ?.filter(c => c.parent_id === category.id)
+              .map(
+                c =>
+                  ({
+                    id: c.id,
+                    label: c.name,
+                    parentId: c.parent_id,
+                    isActive: c.is_active,
+                    isSystem: c.user_id === null,
+                  }) satisfies CategoryOptionViewModel
+              ),
+          }) satisfies CategoryOption
       );
-
+      console.log('options', options);
       for (const option of options) {
         this.categoryNameMap.set(option.id, option.label);
       }
@@ -403,9 +460,15 @@ export class CategoriesFacadeService {
     return user.id;
   }
 
-  private buildCategoriesQuery(filters: CategoriesFilterState): SupabaseQuery {
-    // RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
+  /**
+   * Builds query for parent categories only (with pagination and count).
+   * RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
+   */
+  private buildParentCategoriesQuery(filters: CategoriesFilterState): SupabaseQuery {
     let query = supabaseClient.from('categories').select('*', { count: 'exact' });
+
+    // Filter to parent categories only
+    query = query.is('parent_id', null);
 
     // Apply filters
     if (filters.search) {
@@ -416,21 +479,41 @@ export class CategoriesFacadeService {
       query = query.eq('is_active', filters.active);
     }
 
-    if (filters.parent_id !== undefined) {
-      if (filters.parent_id === null) {
-        query = query.is('parent_id', null);
-      } else {
-        query = query.eq('parent_id', filters.parent_id);
-      }
-    }
-
-    // Apply sorting
+    // Sort by name
     query = query.order('name', { ascending: true });
 
     // Apply pagination
     const from = (filters.page - 1) * filters.per_page;
     const to = from + filters.per_page - 1;
     query = query.range(from, to);
+
+    return query;
+  }
+
+  /**
+   * Builds query for child categories of specific parents (no pagination).
+   * RLS automatically filters to show: system categories (user_id IS NULL) + own categories (user_id = auth.uid())
+   */
+  private buildChildCategoriesQuery(
+    parentIds: string[],
+    filters: CategoriesFilterState
+  ): SupabaseQuery {
+    let query = supabaseClient.from('categories').select('*');
+
+    // Filter to children of specific parents
+    query = query.in('parent_id', parentIds);
+
+    // Apply same filters as parent categories
+    if (filters.search) {
+      query = query.ilike('name', `%${filters.search}%`);
+    }
+
+    if (filters.active !== undefined) {
+      query = query.eq('is_active', filters.active);
+    }
+
+    // Sort by name
+    query = query.order('name', { ascending: true });
 
     return query;
   }

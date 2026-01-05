@@ -124,6 +124,20 @@ export class ExpensesApiService {
   }
 
   /**
+   * Mass updates category for multiple expenses
+   */
+  massUpdateCategory(expenseIds: string[], categoryId: string): Observable<void> {
+    return from(this.getCurrentUser()).pipe(
+      switchMap(user => {
+        if (!user) {
+          throw new Error('Nie jesteś zalogowany.');
+        }
+        return from(this.expenseManagement.massUpdateCategory(expenseIds, categoryId, user.id));
+      })
+    );
+  }
+
+  /**
    * Deletes an expense
    */
   deleteExpense(expenseId: string): Observable<void> {

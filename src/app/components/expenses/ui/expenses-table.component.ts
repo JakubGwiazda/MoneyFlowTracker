@@ -16,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SelectionModel } from '@angular/cdk/collections';
 
 import type { ExpensesListViewModel, SortState } from '../../../models/expenses';
 import { BadgeComponent } from '../../common/badge/badge.component';
@@ -36,6 +38,7 @@ import {
     MatButtonModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
     BadgeComponent,
     RowActionsComponent,
     DatePipe,
@@ -51,6 +54,25 @@ import {
           matSort
           (matSortChange)="onSort($event)"
           data-testid="expenses-table">
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef style="width: 50px">
+              <mat-checkbox
+                (change)="$event ? masterToggle() : null"
+                [checked]="selection.hasValue() && isAllSelected()"
+                [indeterminate]="selection.hasValue() && !isAllSelected()"
+                [aria-label]="'Zaznacz wszystkie'">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox
+                (click)="$event.stopPropagation()"
+                (change)="$event ? toggleRow(row) : null"
+                [checked]="selection.isSelected(row.id)"
+                [aria-label]="'Zaznacz wydatek'">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef mat-sort-header="created_at">Nazwa</th>
             <td mat-cell *matCellDef="let element">
@@ -258,10 +280,13 @@ export class ExpensesTableComponent implements AfterViewInit {
   readonly editCategory = output<string>();
   readonly deleteExpense = output<string>();
   readonly reclassifyExpense = output<string>();
+  readonly selectionChange = output<string[]>();
 
   readonly dataSource = new MatTableDataSource<ExpensesListViewModel>([]);
+  readonly selection = new SelectionModel<string>(true, []);
 
   readonly columns = [
+    'select',
     'name',
     'amount',
     'expense_date',
@@ -290,7 +315,34 @@ export class ExpensesTableComponent implements AfterViewInit {
   constructor() {
     effect(() => {
       this.dataSource.data = this.data();
+      // Clear selection when data changes (e.g., after mass edit)
+      this.selection.clear();
     });
+  }
+
+  isAllSelected(): boolean {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows && numRows > 0;
+  }
+
+  masterToggle(): void {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    } else {
+      this.dataSource.data.forEach(row => this.selection.select(row.id));
+    }
+    this.selectionChange.emit(this.selection.selected);
+  }
+
+  toggleRow(row: ExpensesListViewModel): void {
+    this.selection.toggle(row.id);
+    this.selectionChange.emit(this.selection.selected);
+  }
+
+  clearSelection(): void {
+    this.selection.clear();
+    this.selectionChange.emit([]);
   }
 
   ngAfterViewInit(): void {
