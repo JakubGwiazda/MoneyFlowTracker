@@ -45,6 +45,14 @@
   }
 }
 
+.multiselect-container {
+  @media (max-width: 768px) {
+    font-size: 12px !important;
+    margin: 2px !important;
+    width: 400px !important;
+  }
+}
+
 .filters-expansion-panel {
   box-shadow: none;
   border: 1px solid #e0e0e0;

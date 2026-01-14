@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,7 @@ import {
   type DateFilterChange,
 } from '../../components/common/date-filter/date-filter.component';
 import { ExpensesFacadeService } from '../../components/expenses/services/expenses-facade.service';
+import { Multiselect } from 'src/app/components/common/multiselect/multiselect';
 
 @Component({
   selector: 'app-charts-page',
@@ -27,6 +28,7 @@ import { ExpensesFacadeService } from '../../components/expenses/services/expens
     BarChartModule,
     PieChartModule,
     DateFilterComponent,
+    Multiselect,
   ],
   templateUrl: './charts-page.component.html',
   styleUrl: './charts.scss',
@@ -48,6 +50,11 @@ export class ChartsPageComponent implements OnInit {
   protected readonly legendPosition = signal<LegendPosition>(LegendPosition.Right);
   protected readonly summaryAmount = computed(() => this.expensesFacade.chartSummaryAmount());
 
+  protected readonly options = computed(() =>
+    this.expensesFacade.chartExpensesByCategory().map(p => p.name)
+  );
+
+  protected readonly choosenCategories = signal<string[]>(this.options());
   // View state
   private readonly _selectedChartType = signal<ChartType>(ChartType.BAR);
   private readonly _chartViewModes = signal<ChartViewMode[]>([
@@ -63,17 +70,38 @@ export class ChartsPageComponent implements OnInit {
   });
 
   // Computed signals
-  protected readonly data = computed(() => this.expensesFacade.chartExpensesByCategory());
+  protected readonly data = computed(() => {
+    let expenses = this.expensesFacade.chartExpensesByCategory();
+
+    if (this.choosenCategories().length > 0) {
+      return expenses.filter(p => this.choosenCategories().includes(p.name));
+    }
+
+    return expenses;
+  });
   protected readonly hasData = computed(() => this.data().length > 0);
   protected readonly selectedChartType = computed(() => this._selectedChartType());
   protected readonly chartViewModes = computed(() => this._chartViewModes());
   protected readonly dateFilterValue = computed(() => this._dateFilterValue());
+
+  constructor() {
+    effect(() => {
+      const opts = this.options();
+      if (opts.length === 0) return;
+      if (this.choosenCategories().length > 0) return; // don’t override user choice later
+      this.choosenCategories.set(opts);
+    });
+  }
 
   ngOnInit(): void {
     // Load initial data for charts
     void this.loadChartData();
     this.updateLegendPosition();
     window.addEventListener('resize', () => this.updateLegendPosition());
+  }
+
+  onSelectionChange(choosenCategories: string[]) {
+    this.choosenCategories.set(choosenCategories);
   }
 
   private updateLegendPosition(): void {

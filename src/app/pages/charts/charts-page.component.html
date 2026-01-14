@@ -10,6 +10,14 @@
         [label]="'Okres danych'"
         (dateChange)="onDateFilterChange($event)" />
     </div>
+    <div class="mt-2 multiselect-container" >
+      <app-multiselect
+        [options]="options()"
+        [label]="'Kategorie'"
+        [selectAllValues]="true"
+        [selectedValues]="choosenCategories()"
+        (selectionChange)="onSelectionChange($event)" />
+    </div>
   </mat-expansion-panel>
 </mat-card>
 <div class="chart-controls mt-4">
