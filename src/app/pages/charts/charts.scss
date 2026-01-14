@@ -46,10 +46,8 @@
 }
 
 .multiselect-container {
-  @media (max-width: 768px) {
-    font-size: 12px !important;
-    margin: 2px !important;
-    width: 400px !important;
+  @media (min-width: 768px) {
+    max-width: 50%;
   }
 }
 
