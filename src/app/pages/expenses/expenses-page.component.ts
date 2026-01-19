@@ -23,7 +23,7 @@ import {
   type MassEditCategoryDialogData,
   type MassEditCategoryDialogResult,
 } from 'src/app/components/expenses/dialogs/mass-edit-category/mass-edit-category-dialog.component';
-import { ExpensesFacadeService } from 'src/app/components/expenses/services/expenses-facade.service';
+import { ExpensesStoreService } from 'src/app/components/expenses/services/expenses-store.service';
 import { ExpensesFilterComponent } from 'src/app/components/expenses/ui/expenses-filters.component';
 import { ExpensesTableComponent } from 'src/app/components/expenses/ui/expenses-table.component';
 import { MatIcon } from '@angular/material/icon';
@@ -49,16 +49,16 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrl: './expenses-page.scss',
 })
 export class ExpensesPageComponent implements OnInit {
-  private readonly facade = inject(ExpensesFacadeService);
+  private readonly store = inject(ExpensesStoreService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
-  readonly vm = this.facade.viewModel;
-  readonly categoryOptions = this.facade.categoryOptions;
-  readonly chartData = this.facade.expensesByCategory;
+  readonly vm = this.store.viewModel;
+  readonly categoryOptions = this.store.categoryOptions;
+  readonly chartData = this.store.expensesByCategory;
 
   readonly filtersExpanded = signal(false);
-  protected readonly summaryAmount = computed(() => this.facade.summaryAmount());
+  protected readonly summaryAmount = computed(() => this.store.summaryAmount());
   readonly selectedExpenseIds = signal<string[]>([]);
   readonly hasSelection = computed(() => this.selectedExpenseIds().length > 0);
 
@@ -72,15 +72,15 @@ export class ExpensesPageComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    await this.facade.loadCategories();
+    await this.store.loadCategories();
   }
 
   onFilterChange(patch: Partial<ExpensesFilterState>): void {
-    this.facade.setFilters(patch);
+    this.store.setFilters(patch);
   }
 
   onChartDateFilterChange(change: { preset: string; date_from?: string; date_to?: string }): void {
-    this.facade.setFilters({
+    this.store.setFilters({
       preset: change.preset as any,
       date_from: change.date_from,
       date_to: change.date_to,
@@ -93,11 +93,11 @@ export class ExpensesPageComponent implements OnInit {
   }
 
   onCategorySearch(query: string): void {
-    void this.facade.loadCategories(query);
+    void this.store.loadCategories(query);
   }
 
   onSortChange(sort: SortState | null): void {
-    this.facade.setSort(sort);
+    this.store.setSort(sort);
   }
 
   onEditExpense(expenseId: string): void {
@@ -106,14 +106,14 @@ export class ExpensesPageComponent implements OnInit {
       return;
     }
 
-    void this.facade.loadCategories('');
+    void this.store.loadCategories('');
 
     const dialogRef = this.dialog.open(EditExpenseDialogComponent, {
       width: '420px',
       data: {
         expense,
         getCategories: () => this.categoryOptions(),
-        onCategorySearch: (query: string) => this.facade.loadCategories(query),
+        onCategorySearch: (query: string) => this.store.loadCategories(query),
       },
     });
 
@@ -134,7 +134,7 @@ export class ExpensesPageComponent implements OnInit {
         }
 
         try {
-          await this.facade.updateExpense(expenseId, {
+          await this.store.updateExpense(expenseId, {
             name: result.name,
             amount: result.amount,
             expense_date: result.expense_date,
@@ -172,7 +172,7 @@ export class ExpensesPageComponent implements OnInit {
       }
 
       try {
-        await this.facade.deleteExpense(expenseId);
+        await this.store.deleteExpense(expenseId);
         this.snackBar.open('Wydatek został usunięty.', 'Zamknij', { duration: 3000 });
       } catch (error) {
         console.error(error);
@@ -182,11 +182,11 @@ export class ExpensesPageComponent implements OnInit {
   }
 
   onPageChange(page: number): void {
-    this.facade.setPage(page);
+    this.store.setPage(page);
   }
 
   onPerPageChange(perPage: number): void {
-    this.facade.setPerPage(perPage);
+    this.store.setPerPage(perPage);
   }
 
   onFiltersPanelExpandedChange(expanded: boolean): void {
@@ -203,7 +203,7 @@ export class ExpensesPageComponent implements OnInit {
       return;
     }
 
-    void this.facade.loadCategories('');
+    void this.store.loadCategories('');
 
     const dialogRef = this.dialog.open<
       MassEditCategoryDialogComponent,
@@ -215,7 +215,7 @@ export class ExpensesPageComponent implements OnInit {
         expenseIds: selectedIds,
         expenseCount: selectedIds.length,
         getCategories: () => this.categoryOptions(),
-        onCategorySearch: (query: string) => this.facade.loadCategories(query),
+        onCategorySearch: (query: string) => this.store.loadCategories(query),
       },
     });
 
@@ -225,7 +225,7 @@ export class ExpensesPageComponent implements OnInit {
       }
 
       try {
-        await this.facade.massUpdateCategory(selectedIds, result.category_id);
+        await this.store.massUpdateCategory(selectedIds, result.category_id);
         this.snackBar.open(
           `Zaktualizowano kategorię dla ${selectedIds.length} wydatków.`,
           'Zamknij',

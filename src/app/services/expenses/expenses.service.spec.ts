@@ -3,6 +3,8 @@ import { ExpenseManagementService } from './expense-management.service';
 import { SupabaseExpenseRepository } from './repositories/supabase-expense.repository';
 import { CategoryValidator } from './validators/category.validator';
 import { ExpenseLoggingService } from './logging/expense-logging.service';
+import { AuthService } from '../authorization/auth.service';
+import { ClassificationService } from '../classification/classification.service';
 import type { CreateExpenseCommand, ExpenseDto } from '../../../types';
 
 describe('ExpenseManagementService - Critical Category Validation Tests', () => {
@@ -10,6 +12,8 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
   let mockRepository: jasmine.SpyObj<SupabaseExpenseRepository>;
   let mockValidator: jasmine.SpyObj<CategoryValidator>;
   let mockLogger: jasmine.SpyObj<ExpenseLoggingService>;
+  let mockAuthService: jasmine.SpyObj<AuthService>;
+  let mockClassificationService: jasmine.SpyObj<ClassificationService>;
   const userId = 'user-123';
 
   const mockActiveCategory = {
@@ -58,6 +62,20 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       'logUpdate',
       'logClassification',
     ]);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['waitForInitialization', 'authState']);
+    mockClassificationService = jasmine.createSpyObj('ClassificationService', [
+      'classifyExpense',
+      'batchClassifyExpenses',
+    ]);
+
+    // Setup AuthService mock to return user
+    mockAuthService.waitForInitialization.and.returnValue(Promise.resolve());
+    mockAuthService.authState.and.returnValue({
+      user: { id: userId } as any,
+      session: null,
+      loading: false,
+      error: null,
+    });
 
     TestBed.configureTestingModule({
       providers: [
@@ -65,6 +83,8 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
         { provide: SupabaseExpenseRepository, useValue: mockRepository },
         { provide: CategoryValidator, useValue: mockValidator },
         { provide: ExpenseLoggingService, useValue: mockLogger },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: ClassificationService, useValue: mockClassificationService },
       ],
     });
 
@@ -86,7 +106,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       // Mock repository create to return expense
       mockRepository.create.and.returnValue(Promise.resolve(mockExpenseData));
 
-      const result = await service.createExpense(command, userId);
+      const result = await service.createExpense(command);
 
       // Verify category was validated
       expect(mockValidator.validate).toHaveBeenCalledWith('cat-active-1');
@@ -111,7 +131,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
         Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -129,7 +149,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
         Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -149,7 +169,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       const expectedExpense = { ...mockExpenseData, category_id: null };
       mockRepository.create.and.returnValue(Promise.resolve(expectedExpense));
 
-      const result = await service.createExpense(command, userId);
+      const result = await service.createExpense(command);
 
       // Verify expense created without category
       expect(result.category_id).toBeNull();
@@ -169,7 +189,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
         Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -187,7 +207,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
         Promise.resolve({ isValid: false, errors: ['CATEGORY_NOT_FOUND'] })
       );
 
-      await expectAsync(service.createExpense(command, userId)).toBeRejectedWithError(
+      await expectAsync(service.createExpense(command)).toBeRejectedWithError(
         'CATEGORY_NOT_FOUND'
       );
     });
@@ -207,7 +227,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockRepository.create.and.returnValue(Promise.resolve(mockExpenseData));
       mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      await service.createExpense(command, userId);
+      await service.createExpense(command);
 
       // Verify log was created
       expect(mockLogger.logCreate).toHaveBeenCalledWith(mockExpenseData, userId);
@@ -232,7 +252,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockLogger.logCreate.and.returnValue(rejectedPromise);
 
       // Should not throw - expense creation is primary operation
-      const result = await service.createExpense(command, userId);
+      const result = await service.createExpense(command);
       expect(result).toBeDefined();
       expect(result.id).toBe(mockExpenseData.id);
     });
@@ -248,7 +268,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
       mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence);
 
       // Verify repository was called with correct data
       expect(mockRepository.update).toHaveBeenCalledWith(expenseId, jasmine.any(Object), userId);
@@ -271,7 +291,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
       mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence);
 
       // Verify repository was called with failed status
       const updateCall = mockRepository.update.calls.mostRecent();
@@ -287,7 +307,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockRepository.update.and.returnValue(Promise.resolve(mockExpenseData));
       mockLogger.logClassification.and.returnValue(Promise.resolve());
 
-      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId);
+      await service.updateExpenseClassification(expenseId, predictedCategoryId, confidence);
 
       // Verify logger was called with correct parameters
       expect(mockLogger.logClassification).toHaveBeenCalledWith(
@@ -307,7 +327,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       mockRepository.update.and.throwError('Update failed');
 
       await expectAsync(
-        service.updateExpenseClassification(expenseId, predictedCategoryId, confidence, userId)
+        service.updateExpenseClassification(expenseId, predictedCategoryId, confidence)
       ).toBeRejectedWithError('Update failed');
     });
   });
@@ -330,7 +350,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       });
       mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      await service.createExpense(command, userId);
+      await service.createExpense(command);
 
       // Repository create should have been called with correct user_id
       expect(mockRepository.create).toHaveBeenCalled();
@@ -353,7 +373,7 @@ describe('ExpenseManagementService - Critical Category Validation Tests', () => 
       });
       mockLogger.logCreate.and.returnValue(Promise.resolve());
 
-      await service.createExpense(command, userId);
+      await service.createExpense(command);
 
       // Verify classification defaults are set by the builder
       expect(capturedData.classification_status).toBe('pending');
