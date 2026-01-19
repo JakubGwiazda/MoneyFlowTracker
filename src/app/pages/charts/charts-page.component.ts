@@ -12,7 +12,7 @@ import {
   type DateFilterValue,
   type DateFilterChange,
 } from '../../components/common/date-filter/date-filter.component';
-import { ExpensesFacadeService } from '../../components/expenses/services/expenses-facade.service';
+import { ExpensesStoreService } from '../../components/expenses/services/expenses-store.service';
 import { Multiselect } from 'src/app/components/common/multiselect/multiselect';
 
 @Component({
@@ -34,7 +34,7 @@ import { Multiselect } from 'src/app/components/common/multiselect/multiselect';
   styleUrl: './charts.scss',
 })
 export class ChartsPageComponent implements OnInit {
-  private readonly expensesFacade = inject(ExpensesFacadeService);
+  private readonly expensesStore = inject(ExpensesStoreService);
   // Chart type enum for template usage
   protected readonly ChartType = ChartType;
 
@@ -48,10 +48,10 @@ export class ChartsPageComponent implements OnInit {
   protected readonly animations = signal(true);
   protected readonly colorScheme = signal('picnic');
   protected readonly legendPosition = signal<LegendPosition>(LegendPosition.Right);
-  protected readonly summaryAmount = computed(() => this.expensesFacade.chartSummaryAmount());
+  protected readonly summaryAmount = computed(() => this.expensesStore.chartSummaryAmount());
 
   protected readonly options = computed(() =>
-    this.expensesFacade.chartExpensesByCategory().map(p => p.name)
+    this.expensesStore.chartExpensesByCategory().map(p => p.name)
   );
 
   protected readonly choosenCategories = signal<string[]>(this.options());
@@ -71,7 +71,7 @@ export class ChartsPageComponent implements OnInit {
 
   // Computed signals
   protected readonly data = computed(() => {
-    let expenses = this.expensesFacade.chartExpensesByCategory();
+    let expenses = this.expensesStore.chartExpensesByCategory();
 
     if (this.choosenCategories().length > 0) {
       return expenses.filter(p => this.choosenCategories().includes(p.name));
@@ -114,14 +114,14 @@ export class ChartsPageComponent implements OnInit {
    */
   private async loadChartData(): Promise<void> {
     try {
-      // Synchronize date filters with facade before loading data
-      this.expensesFacade.setChartFilters({
+      // Synchronize date filters with store before loading data
+      this.expensesStore.setChartFilters({
         preset: this._dateFilterValue().preset as any,
         date_from: this._dateFilterValue().date_from,
         date_to: this._dateFilterValue().date_to,
       });
 
-      await this.expensesFacade.refreshForCharts('initial');
+      await this.expensesStore.refreshForCharts('init');
     } catch (error) {
       console.error('Failed to load chart data:', error);
     }
@@ -168,8 +168,8 @@ export class ChartsPageComponent implements OnInit {
     // Update internal filter state
     this._dateFilterValue.set(change);
 
-    // Apply filters to expenses facade which will trigger data reload
-    this.expensesFacade.setChartFilters({
+    // Apply filters to expenses store which will trigger data reload
+    this.expensesStore.setChartFilters({
       preset: change.preset as any,
       date_from: change.date_from,
       date_to: change.date_to,

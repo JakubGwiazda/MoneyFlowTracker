@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 
-import { ExpensesFacadeService } from '../../services/expenses-facade.service';
+import { ExpensesStoreService } from '../../services/expenses-store.service';
 import { ReceiptOcrService } from '../../../../services/receipt-ocr/receipt-ocr.service';
 import { CameraCaptureComponent } from '../camera-capture/camera-capture.component';
 import { ReceiptItemsListComponent } from '../receipt-items-list/receipt-items-list.component';
@@ -50,7 +50,7 @@ export class AddExpenseDialogComponent {
     MatDialogRef<AddExpenseDialogComponent, AddExpenseDialogResult | undefined>
   );
   private readonly fb = inject(FormBuilder);
-  private readonly expensesFacade = inject(ExpensesFacadeService);
+  private readonly expensesStore = inject(ExpensesStoreService);
   private readonly receiptOcrService = inject(ReceiptOcrService);
 
   // Manual entry state
@@ -197,7 +197,7 @@ export class AddExpenseDialogComponent {
 
   private async classifyAndSaveExpenses(expenses: ExpenseToAdd[]): Promise<void> {
     try {
-      await this.expensesFacade.batchClassifyAndCreateExpenses(expenses);
+      await this.expensesStore.batchClassifyAndCreateExpenses(expenses);
       this.dialogRef.close({ expenses });
     } catch (error) {
       console.error('Error classifying and saving expenses:', error);
